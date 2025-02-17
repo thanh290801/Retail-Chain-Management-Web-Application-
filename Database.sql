@@ -1,21 +1,4 @@
-﻿-- Tạo cơ sở dữ liệu
-CREATE DATABASE RetailChain;
-GO
-
--- Sử dụng cơ sở dữ liệu
-USE RetailChain;
-GO
-
--- Bảng Kho hàng
-CREATE TABLE warehouses (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    name NVARCHAR(255) NOT NULL,
-    address NVARCHAR(255) NOT NULL,
-    capacity INT NOT NULL -- Dung tích kho
-);
-
--- Bảng Sản phẩm
-CREATE TABLE products (
+﻿
     -- Tạo cơ sở dữ liệu
 CREATE DATABASE RetailChain;
 GO
