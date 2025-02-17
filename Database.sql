@@ -1,9 +1,9 @@
 ﻿-- Tạo cơ sở dữ liệu
-CREATE DATABASE FinancialManagement4;
+CREATE DATABASE RetailChain;
 GO
 
 -- Sử dụng cơ sở dữ liệu
-USE FinancialManagement4;
+USE RetailChain;
 GO
 
 -- Tạo bảng Chi nhánh
