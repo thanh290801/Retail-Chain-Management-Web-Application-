@@ -16,13 +16,102 @@ CREATE TABLE warehouses (
 
 -- Bảng Sản phẩm
 CREATE TABLE products (
+    -- Tạo cơ sở dữ liệu
+CREATE DATABASE RetailChain;
+GO
+
+-- Sử dụng cơ sở dữ liệu
+USE RetailChain;
+GO
+
+-- Bảng Kho hàng
+CREATE TABLE warehouses (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(255) NOT NULL,
+    address NVARCHAR(255) NOT NULL,
+    capacity INT NOT NULL -- Dung tích kho
+);
+
+-- Bảng Sản phẩm
+CREATE TABLE products (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(255) NOT NULL,
+    barcode NVARCHAR(50) UNIQUE NOT NULL, -- Mã vạch sản phẩm
     unit NVARCHAR(50) NOT NULL, -- Đơn vị tính (kg, lít, hộp…)
     quantity_per_unit INT NOT NULL, -- Số lượng trên mỗi đơn vị
     volume DECIMAL(10,2) NULL, -- Dung tích nếu là sản phẩm dạng nước
     category NVARCHAR(50) CHECK (category IN ('thực phẩm', 'đồ uống', 'hàng tiêu dùng')),
     is_enabled BIT DEFAULT 1 -- Có hiển thị trong hệ thống hay không
+);
+
+-- Bảng Quản lý hàng tồn kho
+CREATE TABLE stock_levels (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    product_id INT NOT NULL,
+    warehouse_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 0,
+    min_quantity INT NOT NULL DEFAULT 20, -- Ngưỡng cảnh báo hàng sắp hết
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE
+);
+
+-- Bảng Lô hàng (Batch)
+CREATE TABLE batches (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    product_id INT NOT NULL,
+    warehouse_id INT NOT NULL,
+    quantity INT NOT NULL,
+    expiration_date DATE NOT NULL, -- Ngày hết hạn của từng lô
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE
+);
+
+-- Bảng Phiếu mua hàng
+CREATE TABLE purchase_orders (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    supplier_id INT NOT NULL,
+    order_date DATETIME DEFAULT GETDATE(),
+    expected_arrival DATETIME, -- Ngày dự kiến nhận hàng
+    status NVARCHAR(50) CHECK (status IN ('pending', 'partially_received', 'completed', 'cancelled'))
+);
+
+-- Bảng Chi tiết Phiếu mua hàng
+CREATE TABLE purchase_order_items (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    purchase_order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity_ordered INT NOT NULL, -- Số lượng đặt mua
+    quantity_received INT DEFAULT 0, -- Số lượng thực nhận
+    price DECIMAL(10,2) NOT NULL, -- Giá nhập
+    FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+-- Bảng Đơn hàng (Thay thế cho sales_invoices)
+CREATE TABLE "Order" (
+    "id" INT IDENTITY(1,1) PRIMARY KEY,
+    "created_date" DATETIME NOT NULL DEFAULT GETDATE(),
+    "shop_id" INT NOT NULL,
+    "total_amount" DECIMAL(18,2) NOT NULL,
+    "discount" DECIMAL(18,2) NOT NULL DEFAULT 0,
+    "final_amount" DECIMAL(18,2) NOT NULL,
+    "payment_status" VARCHAR(20) CHECK ("payment_status" IN ('Pending', 'Paid', 'Refunded')) NOT NULL DEFAULT 'Pending',
+    "invoice_date" DATETIME DEFAULT GETDATE(), -- Gộp từ sales_invoices
+    FOREIGN KEY (shop_id) REFERENCES warehouses(id) ON DELETE CASCADE
+);
+
+-- Bảng Chi tiết đơn hàng (Thay thế cho sales_invoice_items)
+CREATE TABLE "OrderDetail" (
+    "id" INT IDENTITY(1,1) PRIMARY KEY,
+    "order_id" INT NOT NULL,
+    "product_id" INT NOT NULL,
+    "quantity" DECIMAL(10,2) NOT NULL,
+    "unit_price" DECIMAL(18,2) NOT NULL,
+    "total_price" DECIMAL(18,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES "Order"(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
 );
 
 -- Bảng Quản lý hàng tồn kho
