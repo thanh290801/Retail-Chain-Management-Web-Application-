@@ -61,59 +61,84 @@ CREATE TABLE inventory_movements (
     FOREIGN KEY (from_warehouse_id) REFERENCES warehouses(id) ON DELETE NO ACTION,
     FOREIGN KEY (to_warehouse_id) REFERENCES warehouses(id) ON DELETE NO ACTION
 );
-CREATE TABLE "Order"(
-    "id" BIGINT NOT NULL,
-    "created_date" DATETIME NOT NULL,
-    "shop" BIGINT NOT NULL,
-    "totalAmount" BIGINT NOT NULL,
-    "discount" BIGINT NOT NULL,
-    "finalAmount" BIGINT NOT NULL,
-    "paymentMethod" BIGINT NOT NULL,
-    "paymentStatus" BIGINT NOT NULL
+-- Bảng lưu thông tin đơn hàng
+CREATE TABLE "Order" (
+    "id" INT PRIMARY KEY NOT NULL,
+    "created_date" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "shop_id" INT NOT NULL,
+    "total_amount" DECIMAL(18,2) NOT NULL,
+    "discount" DECIMAL(18,2) NOT NULL DEFAULT 0,
+    "final_amount" DECIMAL(18,2) NOT NULL,
+    "payment_status" VARCHAR(20) CHECK ("payment_status" IN ('Pending', 'Paid', 'Refunded')) NOT NULL DEFAULT 'Pending'
 );
-ALTER TABLE
-    "Order" ADD CONSTRAINT "order_id_primary" PRIMARY KEY("id");
-CREATE TABLE "OrderDetail"(
-    "id" BIGINT NOT NULL,
-    "orderId" BIGINT NOT NULL,
-    "productId" BIGINT NOT NULL,
-    "quantity" FLOAT(53) NOT NULL,
-    "unitPrice" BIGINT NOT NULL,
-    "totalPrice" BIGINT NOT NULL
+
+-- Bảng chi tiết đơn hàng
+CREATE TABLE "OrderDetail" (
+    "id" INT PRIMARY KEY NOT NULL,
+    "order_id" INT NOT NULL,
+    "product_id" INT NOT NULL,
+    "quantity" DECIMAL(10,2) NOT NULL,
+    "unit_price" DECIMAL(18,2) NOT NULL,
+    "total_price" DECIMAL(18,2) NOT NULL,
+    FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE CASCADE
 );
-ALTER TABLE
-    "OrderDetail" ADD CONSTRAINT "orderdetail_id_primary" PRIMARY KEY("id");
-CREATE TABLE "Refund"(
-    "id" BIGINT NOT NULL,
-    "bill_id" BIGINT NOT NULL,
-    "refund_date" BIGINT NOT NULL
+
+-- Bảng phương thức thanh toán (Tiền mặt, VNPayQR)
+CREATE TABLE "PaymentMethod" (
+    "id" INT PRIMARY KEY NOT NULL,
+    "method_name" VARCHAR(50) UNIQUE NOT NULL
 );
-ALTER TABLE
-    "Refund" ADD CONSTRAINT "refund_id_primary" PRIMARY KEY("id");
-CREATE TABLE "Refund_details"(
-    "id" BIGINT NOT NULL,
-    "refundId" BIGINT NOT NULL,
-    "productId" BIGINT NOT NULL,
-    "quantity" FLOAT(53) NOT NULL,
-    "unitPrice" BIGINT NOT NULL,
-    "totalPrice" BIGINT NOT NULL
+
+-- Bảng lưu thông tin thanh toán
+CREATE TABLE "Payment" (
+    "id" INT PRIMARY KEY NOT NULL,
+    "order_id" INT NOT NULL,
+    "payment_method_id" INT NOT NULL,
+    "amount_paid" DECIMAL(18,2) NOT NULL,
+    "payment_status" VARCHAR(20) CHECK ("payment_status" IN ('Pending', 'Completed', 'Failed')) NOT NULL DEFAULT 'Pending',
+    "transaction_id" VARCHAR(255) UNIQUE,
+    "payment_date" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("payment_method_id") REFERENCES "PaymentMethod"("id") ON DELETE RESTRICT
 );
-ALTER TABLE
-    "Refund_details" ADD CONSTRAINT "refund_details_id_primary" PRIMARY KEY("id");
-CREATE TABLE "Payment"(
-    "id" BIGINT NOT NULL,
-    "orderId" BIGINT NOT NULL
+
+-- Bảng lưu thông tin hoàn tiền
+CREATE TABLE "Refund" (
+    "id" INT PRIMARY KEY NOT NULL,
+    "order_id" INT NOT NULL,
+    "refund_date" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "refund_amount" DECIMAL(18,2) NOT NULL,
+    "refund_status" VARCHAR(20) CHECK ("refund_status" IN ('Pending', 'Completed', 'Rejected')) NOT NULL DEFAULT 'Pending',
+    FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE CASCADE
 );
-ALTER TABLE
-    "Payment" ADD CONSTRAINT "payment_id_primary" PRIMARY KEY("id");
-ALTER TABLE
-    "Payment" ADD CONSTRAINT "payment_orderid_foreign" FOREIGN KEY("orderId") REFERENCES "Order"("id");
-ALTER TABLE
-    "Refund" ADD CONSTRAINT "refund_bill_id_foreign" FOREIGN KEY("bill_id") REFERENCES "Order"("id");
-ALTER TABLE
-    "OrderDetail" ADD CONSTRAINT "orderdetail_orderid_foreign" FOREIGN KEY("orderId") REFERENCES "Order"("id");
-ALTER TABLE
-    "Refund_details" ADD CONSTRAINT "refund_details_refundid_foreign" FOREIGN KEY("refundId") REFERENCES "Refund"("id");
+
+-- Bảng chi tiết hoàn tiền
+CREATE TABLE "RefundDetail" (
+    "id" INT PRIMARY KEY NOT NULL,
+    "refund_id" INT NOT NULL,
+    "product_id" INT NOT NULL,
+    "quantity" DECIMAL(10,2) NOT NULL,
+    "unit_price" DECIMAL(18,2) NOT NULL,
+    "total_price" DECIMAL(18,2) NOT NULL,
+    FOREIGN KEY ("refund_id") REFERENCES "Refund"("id") ON DELETE CASCADE
+);
+
+-- Bảng lưu giao dịch tiền (bao gồm thanh toán và hoàn tiền)
+CREATE TABLE "Transaction" (
+    "id" INT PRIMARY KEY NOT NULL,
+    "order_id" INT,
+    "refund_id" INT,
+    "payment_method_id" INT NOT NULL,
+    "transaction_type" VARCHAR(20) CHECK ("transaction_type" IN ('Payment', 'Refund')) NOT NULL,
+    "amount" DECIMAL(18,2) NOT NULL,
+    "transaction_date" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "transaction_status" VARCHAR(20) CHECK ("transaction_status" IN ('Pending', 'Completed', 'Failed')) NOT NULL DEFAULT 'Pending',
+    "external_transaction_id" VARCHAR(255) UNIQUE,
+    FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE SET NULL,
+    FOREIGN KEY ("refund_id") REFERENCES "Refund"("id") ON DELETE SET NULL,
+    FOREIGN KEY ("payment_method_id") REFERENCES "PaymentMethod"("id") ON DELETE RESTRICT
+);
+
 -- Tạo bảng Doanh số từ POS
 CREATE TABLE sales (
     id INT IDENTITY(1,1) PRIMARY KEY,
