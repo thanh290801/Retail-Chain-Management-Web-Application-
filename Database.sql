@@ -139,52 +139,115 @@ CREATE TABLE "Transaction" (
     FOREIGN KEY ("payment_method_id") REFERENCES "PaymentMethod"("id") ON DELETE RESTRICT
 );
 
--- Tạo bảng Doanh số từ POS
-CREATE TABLE sales (
+--THÀNH
+-- Bảng Doanh thu từ POS
+CREATE TABLE financial_revenue (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    branch_id INT FOREIGN KEY REFERENCES warehouses(id),
-    total_amount DECIMAL(15,2) NOT NULL, -- Tổng tiền thu từ POS
-    transaction_date DATE NOT NULL, -- Ngày giao dịch
-    created_at DATETIME DEFAULT GETDATE()
+    branch_id INT NOT NULL, 
+    total_sales DECIMAL(15,2) NOT NULL, 
+    transaction_date DATE NOT NULL, 
+    created_at DATETIME DEFAULT GETDATE(),
+    
+    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
 );
 GO
 
--- Tạo bảng Chi phí nhập hàng
-CREATE TABLE inventory_purchases (
+-- Bảng Chi phí nhập hàng từ kho
+CREATE TABLE financial_inventory_cost (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    branch_id INT FOREIGN KEY REFERENCES warehouses(id),
-    total_cost DECIMAL(15,2) NOT NULL, -- Tổng chi phí nhập hàng
-    purchase_date DATE NOT NULL, -- Ngày nhập hàng
-    created_at DATETIME DEFAULT GETDATE()
+    branch_id INT NOT NULL,
+    total_cost DECIMAL(15,2) NOT NULL, 
+    purchase_date DATE NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    
+    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
 );
 GO
 
--- Tạo bảng Chi phí lương nhân viên
-CREATE TABLE salaries (
+-- Bảng Chi phí lương nhân sự
+CREATE TABLE financial_salary_cost (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    branch_id INT FOREIGN KEY REFERENCES warehouses(id),
-    total_salary DECIMAL(15,2) NOT NULL, -- Tổng tiền lương phải trả
-    salary_month DATE NOT NULL, -- Tháng chi trả lương
-    created_at DATETIME DEFAULT GETDATE()
+    branch_id INT NOT NULL,
+    total_salary DECIMAL(15,2) NOT NULL, 
+    salary_month DATE NOT NULL, 
+    created_at DATETIME DEFAULT GETDATE(),
+
+    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
 );
 GO
 
--- Tạo bảng Tổng hợp tài chính
+-- Bảng Tổng hợp tài chính
 CREATE TABLE financial_summary (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    branch_id INT FOREIGN KEY REFERENCES warehouses(id),
-    date DATE NOT NULL, -- Ngày tổng hợp dữ liệu
-    total_sales DECIMAL(15,2) DEFAULT 0, -- Tổng doanh thu từ POS
-    total_expenses DECIMAL(15,2) DEFAULT 0, -- Tổng chi phí (nhập hàng + lương)
-    net_profit AS (total_sales - total_expenses) PERSISTED, -- Lợi nhuận tự động tính
-    created_at DATETIME DEFAULT GETDATE()
+    branch_id INT NOT NULL,
+    date DATE NOT NULL,
+    total_sales DECIMAL(15,2) DEFAULT 0, 
+    total_inventory_cost DECIMAL(15,2) DEFAULT 0, 
+    total_salary_cost DECIMAL(15,2) DEFAULT 0, 
+    total_other_expenses DECIMAL(15,2) DEFAULT 0, 
+    net_profit AS (total_sales - (total_inventory_cost + total_salary_cost + total_other_expenses)) PERSISTED, 
+    created_at DATETIME DEFAULT GETDATE(),
+    
+    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
 );
 GO
 
+-- Stored Procedure: Cập nhật tổng hợp tài chính
+CREATE PROCEDURE UpdateFinancialSummary
+AS
+BEGIN
+    SET NOCOUNT ON;
 
+    DELETE FROM financial_summary;
 
+    INSERT INTO financial_summary (branch_id, date, total_sales, total_inventory_cost, total_salary_cost, created_at)
+    SELECT 
+        r.branch_id,
+        r.transaction_date AS date,
+        COALESCE(SUM(r.total_sales), 0) AS total_sales,
+        COALESCE((SELECT SUM(ic.total_cost) FROM financial_inventory_cost ic 
+                  WHERE ic.branch_id = r.branch_id AND ic.purchase_date = r.transaction_date), 0) AS total_inventory_cost,
+        COALESCE((SELECT SUM(sc.total_salary) FROM financial_salary_cost sc 
+                  WHERE sc.branch_id = r.branch_id AND sc.salary_month = EOMONTH(r.transaction_date)), 0) AS total_salary_cost,
+        GETDATE() AS created_at
+    FROM financial_revenue r
+    GROUP BY r.branch_id, r.transaction_date;
+END;
+GO
 
+-- Stored Procedure: Lấy báo cáo tài chính linh hoạt
+CREATE PROCEDURE GetFinancialReport
+    @startDate DATE = NULL,  
+    @endDate DATE = NULL,    
+    @year INT = NULL,        
+    @month INT = NULL,       
+    @day INT = NULL,         
+    @branchId INT = NULL     
+AS
+BEGIN
+    SET NOCOUNT ON;
 
+    SELECT 
+        f.branch_id,
+        b.name AS branch_name,
+        f.date,
+        f.total_sales,
+        f.total_inventory_cost,
+        f.total_salary_cost,
+        f.total_other_expenses,
+        f.net_profit
+    FROM financial_summary f
+    JOIN warehouses b ON f.branch_id = b.id
+    WHERE 
+        (@startDate IS NULL OR f.date >= @startDate)
+        AND (@endDate IS NULL OR f.date <= @endDate)
+        AND (@year IS NULL OR YEAR(f.date) = @year)
+        AND (@month IS NULL OR MONTH(f.date) = @month)
+        AND (@day IS NULL OR DAY(f.date) = @day)
+        AND (@branchId IS NULL OR f.branch_id = @branchId)
+    ORDER BY f.date DESC;
+END;
+GO
 
 
 
