@@ -27,6 +27,16 @@ CREATE TABLE products (
     is_enabled BIT DEFAULT 1 -- Có hiển thị trong hệ thống hay không
 );
 
+-- Bảng Nhà cung cấp
+CREATE TABLE suppliers (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(255) NOT NULL,
+    contact_person NVARCHAR(255) NULL,
+    phone NVARCHAR(50) NULL,
+    email NVARCHAR(255) NULL,
+    address NVARCHAR(255) NULL
+);
+
 -- Bảng Quản lý hàng tồn kho
 CREATE TABLE stock_levels (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -56,6 +66,7 @@ CREATE TABLE purchase_orders (
     order_date DATETIME DEFAULT GETDATE(),
     expected_arrival DATETIME, -- Ngày dự kiến nhận hàng
     status NVARCHAR(50) CHECK (status IN ('pending', 'partially_received', 'completed', 'cancelled'))
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL
 );
 
 -- Bảng Chi tiết Phiếu mua hàng
