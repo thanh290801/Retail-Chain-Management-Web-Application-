@@ -39,6 +39,15 @@ CREATE TABLE products (
     is_enabled BIT DEFAULT 1 -- Có hiển thị trong hệ thống hay không
 );
 
+-- Bảng Giá bán sản phẩm
+CREATE TABLE product_prices (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    product_id INT NOT NULL,
+    price DECIMAL(18,2) NOT NULL, -- Giá bán hiện tại
+    effective_date DATETIME DEFAULT GETDATE(), -- Ngày áp dụng giá
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
 -- Bảng Quản lý hàng tồn kho
 CREATE TABLE stock_levels (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -92,6 +101,43 @@ CREATE TABLE purchase_order_items (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE
 );
+
+-- Bảng Phiếu kiểm kho
+CREATE TABLE stock_audit_records (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    warehouse_id INT NOT NULL,
+    audit_date DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE
+);
+
+-- Bảng Chi tiết Phiếu kiểm kho
+CREATE TABLE stock_audit_details (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    audit_id INT NOT NULL,
+    product_id INT NOT NULL,
+    recorded_quantity INT NOT NULL, -- Số lượng kiểm thực tế
+    FOREIGN KEY (audit_id) REFERENCES stock_audit_records(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+-- Bảng Phiếu điều chỉnh kho
+CREATE TABLE stock_adjustments (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    warehouse_id INT NOT NULL,
+    adjustment_date DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE
+);
+
+-- Bảng Chi tiết Phiếu điều chỉnh kho
+CREATE TABLE stock_adjustment_details (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    adjustment_id INT NOT NULL,
+    product_id INT NOT NULL,
+    adjusted_quantity INT NOT NULL, -- Số lượng điều chỉnh
+    FOREIGN KEY (adjustment_id) REFERENCES stock_adjustments(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
 
 -- Bảng Đơn hàng
 CREATE TABLE "Order" (
