@@ -298,7 +298,7 @@ CREATE TABLE financial_revenue (
     transaction_date DATE NOT NULL, 
     created_at DATETIME DEFAULT GETDATE(),
     
-    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
+    FOREIGN KEY (branch_id) REFERENCES warehouses(id) ON DELETE CASCADE
 );
 GO
 
@@ -310,7 +310,7 @@ CREATE TABLE financial_inventory_cost (
     purchase_date DATE NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     
-    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
+    FOREIGN KEY (branch_id) REFERENCES warehouses(id) ON DELETE CASCADE
 );
 GO
 
@@ -322,7 +322,7 @@ CREATE TABLE financial_salary_cost (
     salary_month DATE NOT NULL, 
     created_at DATETIME DEFAULT GETDATE(),
 
-    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
+    FOREIGN KEY (branch_id) REFERENCES warehouses(id) ON DELETE CASCADE
 );
 GO
 
@@ -338,7 +338,7 @@ CREATE TABLE financial_summary (
     net_profit AS (total_sales - (total_inventory_cost + total_salary_cost + total_other_expenses)) PERSISTED, 
     created_at DATETIME DEFAULT GETDATE(),
     
-    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
+    FOREIGN KEY (branch_id) REFERENCES warehouses(id) ON DELETE CASCADE
 );
 
 --Trung
