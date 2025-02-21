@@ -1,4 +1,4 @@
-﻿-- Tạo cơ sở dữ liệutest
+﻿-- Tạo cơ sở dữ liệu
 CREATE DATABASE RetailChain;
 GO
 
@@ -11,19 +11,69 @@ CREATE TABLE warehouses (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(255) NOT NULL,
     address NVARCHAR(255) NOT NULL,
-    capacity INT NOT NULL -- Dung tích kho
+);
+
+-- Bảng Quản lý nhân sự
+CREATE TABLE Employee (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Image NVARCHAR(255),
+    FullName NVARCHAR(100) NOT NULL,
+    Gender CHAR(1) CHECK (Gender IN ('M', 'F')), -- Male, Female
+    BirthDate DATE NOT NULL,
+    IdentityNumber VARCHAR(20) UNIQUE NOT NULL,
+    Hometown NVARCHAR(100),
+    CurrentAddress NVARCHAR(255),
+    PhoneNumber VARCHAR(15) UNIQUE NOT NULL,
+    WorkShiftId INT,
+    FixedSalary INT,
+    ActiveStatus BIT DEFAULT 1,
+    StartDate DATE NOT NULL,
+    BranchId INT,
+    FOREIGN KEY (BranchId) REFERENCES warehouses(id)
+);
+
+-- Bảng Tài khoản
+CREATE TABLE Account (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeId INT NOT NULL,
+    Username VARCHAR(50) UNIQUE NOT NULL,
+    PasswordHash VARCHAR(255) NOT NULL,
+    Role TINYINT CHECK (Role IN (1, 2, 3)), -- 1: Admin, 2: Manager, 3: Staff
+    FOREIGN KEY (EmployeeId) REFERENCES Employee(Id) ON DELETE CASCADE
+);
+
+-- Bảng Nhà cung cấp
+CREATE TABLE suppliers (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(255) NOT NULL,
+    contact_person NVARCHAR(255),
+    phone VARCHAR(50),
+    email NVARCHAR(255),
+    address NVARCHAR(255)
 );
 
 -- Bảng Sản phẩm
 CREATE TABLE products (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(255) NOT NULL,
-    barcode NVARCHAR(50) UNIQUE NOT NULL, -- Mã vạch sản phẩm
-    unit NVARCHAR(50) NOT NULL, -- Đơn vị tính (kg, lít, hộp…)
-    quantity_per_unit INT NOT NULL, -- Số lượng trên mỗi đơn vị
-    volume DECIMAL(10,2) NULL, -- Dung tích nếu là sản phẩm dạng nước
+    barcode NVARCHAR(50) UNIQUE NOT NULL,
+    unit NVARCHAR(20) NOT NULL,
+    quantity_per_unit SMALLINT NOT NULL,
+    base_unit NVARCHAR(20) NOT NULL,
+    weight DECIMAL(10,2) NULL,
+    volume DECIMAL(10,2) NULL,
+    image_url NVARCHAR(500) NULL,
     category NVARCHAR(50) CHECK (category IN ('thực phẩm', 'đồ uống', 'hàng tiêu dùng')),
-    is_enabled BIT DEFAULT 1 -- Có hiển thị trong hệ thống hay không
+    is_enabled BIT DEFAULT 1
+);
+
+-- Bảng Giá bán sản phẩm
+CREATE TABLE product_prices (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    product_id INT NOT NULL,
+    price DECIMAL(18,2) NOT NULL,
+    effective_date DATE DEFAULT GETDATE(),
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
 -- Bảng Quản lý hàng tồn kho
@@ -32,243 +82,96 @@ CREATE TABLE stock_levels (
     product_id INT NOT NULL,
     warehouse_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
-    min_quantity INT NOT NULL DEFAULT 20, -- Ngưỡng cảnh báo hàng sắp hết
+    min_quantity INT NOT NULL DEFAULT 20,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE
 );
 
--- Bảng Lô hàng (Batch)
-CREATE TABLE batches (
+-- Bảng Lô hàng và Chi tiết lô hàng
+CREATE TABLE batch (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    product_id INT NOT NULL,
     warehouse_id INT NOT NULL,
+    received_date DATE DEFAULT GETDATE(),
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE
+);
+
+CREATE TABLE batch_details (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    batch_id INT NOT NULL,
+    product_id INT NOT NULL,
     quantity INT NOT NULL,
-    expiration_date DATE NOT NULL, -- Ngày hết hạn của từng lô
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE
-);
-
--- Bảng Phiếu mua hàng
-CREATE TABLE purchase_orders (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    supplier_id INT NOT NULL,
-    order_date DATETIME DEFAULT GETDATE(),
-    expected_arrival DATETIME, -- Ngày dự kiến nhận hàng
-    status NVARCHAR(50) CHECK (status IN ('pending', 'partially_received', 'completed', 'cancelled'))
-);
-
--- Bảng Chi tiết Phiếu mua hàng
-CREATE TABLE purchase_order_items (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    purchase_order_id INT NOT NULL,
-    product_id INT NOT NULL,
-    quantity_ordered INT NOT NULL, -- Số lượng đặt mua
-    quantity_received INT DEFAULT 0, -- Số lượng thực nhận
-    price DECIMAL(10,2) NOT NULL, -- Giá nhập
-    FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id) ON DELETE CASCADE,
+    expiration_date DATE NOT NULL,
+    FOREIGN KEY (batch_id) REFERENCES batch(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
--- Bảng Đơn hàng (Thay thế cho sales_invoices)
-CREATE TABLE "Order" (
-    "id" INT IDENTITY(1,1) PRIMARY KEY,
-    "created_date" DATETIME NOT NULL DEFAULT GETDATE(),
-    "shop_id" INT NOT NULL,
-    "total_amount" DECIMAL(18,2) NOT NULL,
-    "discount" DECIMAL(18,2) NOT NULL DEFAULT 0,
-    "final_amount" DECIMAL(18,2) NOT NULL,
-    "payment_status" VARCHAR(20) CHECK ("payment_status" IN ('Pending', 'Paid', 'Refunded')) NOT NULL DEFAULT 'Pending',
-    "invoice_date" DATETIME DEFAULT GETDATE(), -- Gộp từ sales_invoices
-    FOREIGN KEY (shop_id) REFERENCES warehouses(id) ON DELETE CASCADE
-);
-
--- Bảng Chi tiết đơn hàng (Thay thế cho sales_invoice_items)
-CREATE TABLE "OrderDetail" (
-    "id" INT IDENTITY(1,1) PRIMARY KEY,
-    "order_id" INT NOT NULL,
-    "product_id" INT NOT NULL,
-    "quantity" DECIMAL(10,2) NOT NULL,
-    "unit_price" DECIMAL(18,2) NOT NULL,
-    "total_price" DECIMAL(18,2) NOT NULL,
-    FOREIGN KEY (order_id) REFERENCES "Order"(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-);
-
-);
-
--- Bảng Quản lý hàng tồn kho
-CREATE TABLE stock_levels (
+-- Bảng Đơn hàng và Chi tiết đơn hàng
+CREATE TABLE orders (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    product_id INT NOT NULL,
-    warehouse_id INT NOT NULL,
-    quantity INT NOT NULL DEFAULT 0,
-    min_quantity INT NOT NULL DEFAULT 20, -- Ngưỡng cảnh báo hàng sắp hết
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE
+    created_date DATETIME NOT NULL,
+    shop_id INT NOT NULL,
+    employee_id INT NOT NULL,
+    total_amount DECIMAL(18,2) NOT NULL,
+    discount DECIMAL(18,2) DEFAULT 0,
+    final_amount DECIMAL(18,2) NOT NULL,
+    payment_method TINYINT CHECK (payment_method IN (1, 2, 3)), -- 1: Cash, 2: Card, 3: Online
+    FOREIGN KEY (shop_id) REFERENCES warehouses(id) ON DELETE CASCADE,
+    FOREIGN KEY (employee_id) REFERENCES Employee(Id) ON DELETE CASCADE
 );
 
--- Bảng Lô hàng (Batch)
-CREATE TABLE batches (
+CREATE TABLE order_details (
     id INT IDENTITY(1,1) PRIMARY KEY,
+    order_id INT NOT NULL,
     product_id INT NOT NULL,
-    warehouse_id INT NOT NULL,
     quantity INT NOT NULL,
-    expiration_date DATE NOT NULL, -- Ngày hết hạn của từng lô
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id) ON DELETE CASCADE
-);
-
--- Bảng Phiếu mua hàng
-CREATE TABLE purchase_orders (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    supplier_id INT NOT NULL,
-    order_date DATETIME DEFAULT GETDATE(),
-    expected_arrival DATETIME, -- Ngày dự kiến nhận hàng
-    status NVARCHAR(50) CHECK (status IN ('pending', 'partially_received', 'completed', 'cancelled'))
-);
-
--- Bảng Chi tiết Phiếu mua hàng
-CREATE TABLE purchase_order_items (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    purchase_order_id INT NOT NULL,
-    product_id INT NOT NULL,
-    quantity_ordered INT NOT NULL, -- Số lượng đặt mua
-    quantity_received INT DEFAULT 0, -- Số lượng thực nhận
-    price DECIMAL(10,2) NOT NULL, -- Giá nhập
-    FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id) ON DELETE CASCADE,
+    unit_price DECIMAL(18,2) NOT NULL,
+    total_price AS (quantity * unit_price),
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
--- Bảng Đơn hàng (Thay thế cho sales_invoices)
-CREATE TABLE "Order" (
-    "id" INT IDENTITY(1,1) PRIMARY KEY,
-    "created_date" DATETIME NOT NULL DEFAULT GETDATE(),
-    "shop_id" INT NOT NULL,
-    "total_amount" DECIMAL(18,2) NOT NULL,
-    "discount" DECIMAL(18,2) NOT NULL DEFAULT 0,
-    "final_amount" DECIMAL(18,2) NOT NULL,
-    "payment_status" VARCHAR(20) CHECK ("payment_status" IN ('Pending', 'Paid', 'Refunded')) NOT NULL DEFAULT 'Pending',
-    "invoice_date" DATETIME DEFAULT GETDATE(), -- Gộp từ sales_invoices
-    FOREIGN KEY (shop_id) REFERENCES warehouses(id) ON DELETE CASCADE
-);
-
--- Bảng Chi tiết đơn hàng (Thay thế cho sales_invoice_items)
-CREATE TABLE "OrderDetail" (
-    "id" INT IDENTITY(1,1) PRIMARY KEY,
-    "order_id" INT NOT NULL,
-    "product_id" INT NOT NULL,
-    "quantity" DECIMAL(10,2) NOT NULL,
-    "unit_price" DECIMAL(18,2) NOT NULL,
-    "total_price" DECIMAL(18,2) NOT NULL,
-    FOREIGN KEY (order_id) REFERENCES "Order"(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-);
-
--- Bảng phương thức thanh toán (Tiền mặt, VNPayQR)
-CREATE TABLE "PaymentMethod" (
-    "id" INT PRIMARY KEY NOT NULL,
-    "method_name" VARCHAR(50) UNIQUE NOT NULL
-);
-
--- Bảng lưu thông tin thanh toán
-CREATE TABLE "Payment" (
-    "id" INT PRIMARY KEY NOT NULL,
-    "order_id" INT NOT NULL,
-    "payment_method_id" INT NOT NULL,
-    "amount_paid" DECIMAL(18,2) NOT NULL,
-    "payment_status" VARCHAR(20) CHECK ("payment_status" IN ('Pending', 'Completed', 'Failed')) NOT NULL DEFAULT 'Pending',
-    "transaction_id" VARCHAR(255) UNIQUE,
-    "payment_date" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE CASCADE,
-    FOREIGN KEY ("payment_method_id") REFERENCES "PaymentMethod"("id") ON DELETE RESTRICT
-);
-
--- Bảng lưu thông tin hoàn tiền
-CREATE TABLE "Refund" (
-    "id" INT PRIMARY KEY NOT NULL,
-    "order_id" INT NOT NULL,
-    "refund_date" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "refund_amount" DECIMAL(18,2) NOT NULL,
-    "refund_status" VARCHAR(20) CHECK ("refund_status" IN ('Pending', 'Completed', 'Rejected')) NOT NULL DEFAULT 'Pending',
-    FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE CASCADE
-);
-
--- Bảng chi tiết hoàn tiền
-CREATE TABLE "RefundDetail" (
-    "id" INT PRIMARY KEY NOT NULL,
-    "refund_id" INT NOT NULL,
-    "product_id" INT NOT NULL,
-    "quantity" DECIMAL(10,2) NOT NULL,
-    "unit_price" DECIMAL(18,2) NOT NULL,
-    "total_price" DECIMAL(18,2) NOT NULL,
-    FOREIGN KEY ("refund_id") REFERENCES "Refund"("id") ON DELETE CASCADE
-);
-
--- Bảng lưu giao dịch tiền (bao gồm thanh toán và hoàn tiền)
-CREATE TABLE "Transaction" (
-    "id" INT PRIMARY KEY NOT NULL,
-    "order_id" INT,
-    "refund_id" INT,
-    "payment_method_id" INT NOT NULL,
-    "transaction_type" VARCHAR(20) CHECK ("transaction_type" IN ('Payment', 'Refund')) NOT NULL,
-    "amount" DECIMAL(18,2) NOT NULL,
-    "transaction_date" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "transaction_status" VARCHAR(20) CHECK ("transaction_status" IN ('Pending', 'Completed', 'Failed')) NOT NULL DEFAULT 'Pending',
-    "external_transaction_id" VARCHAR(255) UNIQUE,
-    FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE SET NULL,
-    FOREIGN KEY ("refund_id") REFERENCES "Refund"("id") ON DELETE SET NULL,
-    FOREIGN KEY ("payment_method_id") REFERENCES "PaymentMethod"("id") ON DELETE RESTRICT
-);
-
---THÀNH
--- Bảng Doanh thu từ POS
-CREATE TABLE financial_revenue (
+-- Bảng Hoàn tiền và Chi tiết hoàn tiền
+CREATE TABLE refunds (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    branch_id INT NOT NULL, 
-    total_sales DECIMAL(15,2) NOT NULL, 
-    transaction_date DATE NOT NULL, 
-    created_at DATETIME DEFAULT GETDATE(),
-    
-    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
+    order_id INT NOT NULL,
+    refund_date DATE NOT NULL,
+    refund_amount DECIMAL(18,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
-GO
 
--- Bảng Chi phí nhập hàng từ kho
-CREATE TABLE financial_inventory_cost (
+-- Bảng Lịch sử chấm công
+CREATE TABLE attendance_history (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    branch_id INT NOT NULL,
-    total_cost DECIMAL(15,2) NOT NULL, 
-    purchase_date DATE NOT NULL,
-    created_at DATETIME DEFAULT GETDATE(),
-    
-    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
-);
-GO
-
--- Bảng Chi phí lương nhân sự
-CREATE TABLE financial_salary_cost (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    branch_id INT NOT NULL,
-    total_salary DECIMAL(15,2) NOT NULL, 
-    salary_month DATE NOT NULL, 
-    created_at DATETIME DEFAULT GETDATE(),
-
-    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
-);
-GO
-
--- Bảng Tổng hợp tài chính
-CREATE TABLE financial_summary (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    branch_id INT NOT NULL,
+    employee_id INT NOT NULL,
     date DATE NOT NULL,
-    total_sales DECIMAL(15,2) DEFAULT 0, 
-    total_inventory_cost DECIMAL(15,2) DEFAULT 0, 
-    total_salary_cost DECIMAL(15,2) DEFAULT 0, 
-    total_other_expenses DECIMAL(15,2) DEFAULT 0, 
-    net_profit AS (total_sales - (total_inventory_cost + total_salary_cost + total_other_expenses)) PERSISTED, 
-    created_at DATETIME DEFAULT GETDATE(),
-    
-    FOREIGN KEY (branch_id) REFERENCES warehouses(id)
+    shift TINYINT CHECK (shift IN (1, 2, 3)), -- 1: Morning, 2: Afternoon, 3: Night
+    on_time BIT,
+    FOREIGN KEY (employee_id) REFERENCES Employee(Id) ON DELETE CASCADE
 );
-GO
+
+-- Bảng Lương nhân viên
+CREATE TABLE Salary (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeId INT NOT NULL,
+    FixedSalary INT,
+    StartDate DATE,
+    EndDate DATE,
+    BonusSalary INT DEFAULT 0,
+    Penalty INT DEFAULT 0,
+    FinalSalary AS (FixedSalary + BonusSalary - Penalty),
+    FOREIGN KEY (EmployeeId) REFERENCES Employee(Id) ON DELETE CASCADE
+);
+
+-- Bảng Giao dịch tiền mặt
+CREATE TABLE CASH (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeId INT NOT NULL,
+    BranchId INT NOT NULL,
+    payment_method TINYINT CHECK (payment_method IN (1, 2, 3)),
+    Type BIT,
+    Amount INT NOT NULL,
+    Date DATE,
+    note NVARCHAR(255),
+    FOREIGN KEY (EmployeeId) REFERENCES Employee(Id) ON DELETE CASCADE,
+    FOREIGN KEY (BranchId) REFERENCES warehouses(id)
+);
