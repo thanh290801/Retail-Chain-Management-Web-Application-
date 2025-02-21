@@ -249,7 +249,7 @@ CREATE TABLE "Payment" (
     "transaction_id" VARCHAR(255) UNIQUE,
     "payment_date" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE CASCADE,
-    FOREIGN KEY ("payment_method_id") REFERENCES "PaymentMethod"("id") ON DELETE RESTRICT
+    FOREIGN KEY ("payment_method_id") REFERENCES "PaymentMethod"("id") ON DELETE
 );
 
 -- Bảng lưu thông tin hoàn tiền
@@ -286,7 +286,7 @@ CREATE TABLE "Transaction" (
     "external_transaction_id" VARCHAR(255) UNIQUE,
     FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE SET NULL,
     FOREIGN KEY ("refund_id") REFERENCES "Refund"("id") ON DELETE SET NULL,
-    FOREIGN KEY ("payment_method_id") REFERENCES "PaymentMethod"("id") ON DELETE RESTRICT
+    FOREIGN KEY ("payment_method_id") REFERENCES "PaymentMethod"("id") ON DELETE
 );
 
 --THÀNH
