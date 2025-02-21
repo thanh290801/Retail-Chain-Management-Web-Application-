@@ -35,6 +35,7 @@ CREATE TABLE products (
     base_unit NVARCHAR(50) NOT NULL, -- Đơn vị nhỏ nhất (gói, ml, g, kg...)
     weight DECIMAL(10,2) NULL, -- Trọng lượng (kg hoặc g)
     volume DECIMAL(10,2) NULL, -- Thể tích (l hoặc ml)
+    image_url NVARCHAR(500) NULL, -- Link ảnh sản phẩm
     category NVARCHAR(50) CHECK (category IN ('thực phẩm', 'đồ uống', 'hàng tiêu dùng')),
     is_enabled BIT DEFAULT 1 -- Có hiển thị trong hệ thống hay không
 );
@@ -137,7 +138,6 @@ CREATE TABLE stock_adjustment_details (
     FOREIGN KEY (adjustment_id) REFERENCES stock_adjustments(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
-
 
 -- Bảng Đơn hàng
 CREATE TABLE "Order" (
@@ -342,127 +342,3 @@ CREATE TABLE financial_summary (
 );
 GO
 
--- Stored Procedure: Cập nhật tổng hợp tài chính
-CREATE PROCEDURE UpdateFinancialSummary
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DELETE FROM financial_summary;
-
-    INSERT INTO financial_summary (branch_id, date, total_sales, total_inventory_cost, total_salary_cost, created_at)
-    SELECT 
-        r.branch_id,
-        r.transaction_date AS date,
-        COALESCE(SUM(r.total_sales), 0) AS total_sales,
-        COALESCE((SELECT SUM(ic.total_cost) FROM financial_inventory_cost ic 
-                  WHERE ic.branch_id = r.branch_id AND ic.purchase_date = r.transaction_date), 0) AS total_inventory_cost,
-        COALESCE((SELECT SUM(sc.total_salary) FROM financial_salary_cost sc 
-                  WHERE sc.branch_id = r.branch_id AND sc.salary_month = EOMONTH(r.transaction_date)), 0) AS total_salary_cost,
-        GETDATE() AS created_at
-    FROM financial_revenue r
-    GROUP BY r.branch_id, r.transaction_date;
-END;
-GO
-
--- Stored Procedure: Lấy báo cáo tài chính linh hoạt
-CREATE PROCEDURE GetFinancialReport
-    @startDate DATE = NULL,  
-    @endDate DATE = NULL,    
-    @year INT = NULL,        
-    @month INT = NULL,       
-    @day INT = NULL,         
-    @branchId INT = NULL     
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT 
-        f.branch_id,
-        b.name AS branch_name,
-        f.date,
-        f.total_sales,
-        f.total_inventory_cost,
-        f.total_salary_cost,
-        f.total_other_expenses,
-        f.net_profit
-    FROM financial_summary f
-    JOIN warehouses b ON f.branch_id = b.id
-    WHERE 
-        (@startDate IS NULL OR f.date >= @startDate)
-        AND (@endDate IS NULL OR f.date <= @endDate)
-        AND (@year IS NULL OR YEAR(f.date) = @year)
-        AND (@month IS NULL OR MONTH(f.date) = @month)
-        AND (@day IS NULL OR DAY(f.date) = @day)
-        AND (@branchId IS NULL OR f.branch_id = @branchId)
-    ORDER BY f.date DESC;
-END;
-GO
-
-
-
-
-
-
-
-
-
-
-
--- Chèn dữ liệu mẫu vào bảng Chi nhánh
-INSERT INTO warehouses (name, location) VALUES 
-(N'Chi nhánh 1', N'Hà Nội'),
-(N'Chi nhánh 2', N'Hồ Chí Minh'),
-(N'Chi nhánh 3', N'Đà Nẵng');
-GO
-
--- Stored Procedure: Cập nhật bảng tổng hợp tài chính
-CREATE PROCEDURE UpdateFinancialSummary
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Xóa dữ liệu cũ trước khi cập nhật
-    DELETE FROM financial_summary;
-
-    -- Cập nhật dữ liệu mới vào bảng tổng hợp tài chính
-    INSERT INTO financial_summary (branch_id, date, total_sales, total_expenses, created_at)
-    SELECT 
-        s.branch_id,
-        s.transaction_date AS date,
-        COALESCE(SUM(s.total_amount), 0) AS total_sales,
-        COALESCE((SELECT SUM(ip.total_cost) FROM inventory_purchases ip 
-                  WHERE ip.branch_id = s.branch_id AND ip.purchase_date = s.transaction_date), 0) + 
-        COALESCE((SELECT SUM(sa.total_salary) FROM salaries sa 
-                  WHERE sa.branch_id = s.branch_id AND sa.salary_month = EOMONTH(s.transaction_date)), 0) 
-        AS total_expenses,
-        GETDATE() AS created_at
-    FROM sales s
-    GROUP BY s.branch_id, s.transaction_date;
-END;
-GO
-
--- Stored Procedure: Lọc báo cáo tài chính theo ngày và chi nhánh
-CREATE PROCEDURE GetFinancialReport
-    @startDate DATE,  -- Ngày bắt đầu lọc
-    @endDate DATE,    -- Ngày kết thúc lọc
-    @branchId INT = NULL  -- ID chi nhánh (NULL = lấy toàn bộ)
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT 
-        f.branch_id,
-        b.name AS branch_name,
-        f.date,
-        f.total_sales,
-        f.total_expenses,
-        f.net_profit
-    FROM financial_summary f
-    JOIN warehouses b ON f.branch_id = b.id
-    WHERE 
-        f.date BETWEEN @startDate AND @endDate
-        AND (@branchId IS NULL OR f.branch_id = @branchId)
-    ORDER BY f.date DESC;
-END;
-GO
