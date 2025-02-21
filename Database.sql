@@ -340,5 +340,83 @@ CREATE TABLE financial_summary (
     
     FOREIGN KEY (branch_id) REFERENCES warehouses(id)
 );
+
+--Trung
+-- Create Employee Table
+CREATE TABLE Employee (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    FullName NVARCHAR(100) NOT NULL,
+    Gender NVARCHAR(10) CHECK (Gender IN ('Male', 'Female', 'Other')),
+    BirthDate DATE NOT NULL,
+    Address NVARCHAR(255),
+    IdentityNumber VARCHAR(20) UNIQUE NOT NULL, -- National ID
+    Hometown NVARCHAR(100),
+    CurrentAddress NVARCHAR(255),
+    PhoneNumber VARCHAR(15) UNIQUE NOT NULL,
+    StartDate DATE NOT NULL, -- Date of joining
+    SalaryTypeId INT NOT NULL, -- FK to SalaryType table
+    PositionId INT,            -- FK to Position table
+    BranchId INT,              -- FK to Branch table
+    FOREIGN KEY (SalaryTypeId) REFERENCES SalaryType(Id),
+    FOREIGN KEY (PositionId) REFERENCES Position(Id),
+    FOREIGN KEY (BranchId) REFERENCES Branch(Id)
+);
+
+-- Create Account Table (Without Role)
+CREATE TABLE Account (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeId INT UNIQUE NOT NULL,    -- Each employee has only one account
+    Username VARCHAR(50) UNIQUE NOT NULL,
+    PasswordHash VARCHAR(255) NOT NULL,  -- Store hashed password securely
+    FOREIGN KEY (EmployeeId) REFERENCES Employee(Id) ON DELETE CASCADE
+);
+
+-- Create Work Shift Schedule Table
+CREATE TABLE WorkShiftSchedule (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeId INT NOT NULL,           -- FK to Employee table
+    WorkDate DATE NOT NULL,            -- Work date
+    ShiftName NVARCHAR(50) NOT NULL,   -- Name of the work shift
+    StartTime TIME NOT NULL,           -- Start time of the shift
+    EndTime TIME NOT NULL,             -- End time of the shift
+    FOREIGN KEY (EmployeeId) REFERENCES Employee(Id)
+);
+
+-- Create Attendance Table
+CREATE TABLE Attendance (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeId INT NOT NULL,                    -- FK to Employee table
+    WorkDate DATE NOT NULL,                     -- Attendance date
+    CheckInTime TIME,                           -- Check-in time
+    CheckOutTime TIME,                          -- Check-out time
+    Status NVARCHAR(50) CHECK (Status IN ('On time', 'Late', 'No check-in', 'Leave')) NOT NULL,
+    Fine DECIMAL(18, 2) NOT NULL DEFAULT 0,     -- Violation penalty (if any)
+    DailySalary DECIMAL(18, 2) NOT NULL DEFAULT 0, -- Daily salary
+    
+    FOREIGN KEY (EmployeeId) REFERENCES Employee(Id) ON DELETE CASCADE
+);
+
+-- Create Salary Table
+CREATE TABLE Salary (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    
+    -- Employee Information
+    EmployeeId INT NOT NULL,                    -- FK to Employee table
+    BaseSalary DECIMAL(18, 2) NOT NULL DEFAULT 6000000, -- Fixed monthly salary
+    
+    -- Salary Calculation Information
+    TotalWorkingDays INT NOT NULL DEFAULT 0,    -- Total working days in the month
+    TotalFines DECIMAL(18, 2) NOT NULL DEFAULT 0, -- Total violation fines
+    TotalDailySalary DECIMAL(18, 2) NOT NULL DEFAULT 0, -- Total salary from daily work
+    NetMonthlySalary DECIMAL(18, 2) NOT NULL DEFAULT 0,  -- Net salary for the month
+    
+    -- Salary Period
+    StartDate DATE NOT NULL,                    -- Salary calculation start date
+    EndDate DATE NOT NULL,                      -- Salary calculation end date
+    SalaryMonth DATE NOT NULL,                  -- Salary month (monthly payroll identifier)
+    
+    FOREIGN KEY (EmployeeId) REFERENCES Employee(Id) ON DELETE CASCADE
+);
+
 GO
 
