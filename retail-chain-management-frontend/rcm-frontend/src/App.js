@@ -5,7 +5,7 @@ import AddProductComponent from './components/addProduct';
 import ProductManagementComponent from './components/listProduct';
 import Header from './headerComponent/header';
 import LoginPage from './components/login';
-import TransactionFilter from './components/fintermoney';
+import TransactionFilter from './components/finterMoney';
 
 function App() {
   return (
