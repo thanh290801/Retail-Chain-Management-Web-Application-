@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
-import { CalendarIcon } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -12,7 +11,7 @@ const Card = ({ children, className }) => (
 
 const TransactionFilter = () => {
     const [transactionType, setTransactionType] = useState('Tiền mặt,Ngân hàng');
-    const [moneyType, setMoneyType] = useState('Chi');
+    const [moneyType, setMoneyType] = useState('Chi,Thu');
     const [timeRange, setTimeRange] = useState('Tháng này');
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
