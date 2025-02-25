@@ -1,13 +1,19 @@
 import logo from './logo.svg';
 import './App.css';
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import AddProductComponent from './components/addProduct';
+import ProductManagementComponent from './components/listProduct';
 
 function App() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold text-blue-500">
-        Hello, Tailwind CSS with React!
-      </h1>
-    </div>
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route path='/addproduct' element= {<AddProductComponent/>} />
+          <Route path='/productmanage' element= {<ProductManagementComponent/>} />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 
