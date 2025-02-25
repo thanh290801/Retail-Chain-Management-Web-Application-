@@ -15,7 +15,16 @@ const TransactionFilter = () => {
     const [timeRange, setTimeRange] = useState('Tháng này');
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
+    
+    const [selectedBranches, setSelectedBranches] = useState([]);
 
+    const handleBranchChange = (branch) => {
+        if (selectedBranches.includes(branch)) {
+            setSelectedBranches(selectedBranches.filter((b) => b !== branch));
+        } else {
+            setSelectedBranches([...selectedBranches, branch]);
+        }
+    };
     const handleTransactionTypeChange = (type) => {
         if (type === 'Tất cả') {
             setTransactionType('Tiền mặt,Ngân hàng'); // Chọn cả Tiền mặt và Ngân hàng
@@ -31,11 +40,32 @@ const TransactionFilter = () => {
             setMoneyType(type);
         }
     };
+    
+    const branches = ['Chi nhánh 1', 'Chi nhánh 2', 'Chi nhánh 3'];
 
     const predefinedTimeRanges = ['Hôm nay', 'Tuần này', 'Tháng này', 'Lựa chọn khác'];
 
     return (
         <div className="space-y-4 p-4">
+
+            <Card>
+                <h2 className="text-lg font-semibold mb-2">Chi nhánh</h2>
+                <div className="grid grid-cols-1 gap-2">
+                    {branches.map((branch) => (
+                        <label key={branch} className="flex items-center">
+                            <input
+                                type="checkbox"
+                                value={branch}
+                                checked={selectedBranches.includes(branch)}
+                                onChange={() => handleBranchChange(branch)}
+                                className="mr-2"
+                            />
+                            {branch}
+                        </label>
+                    ))}
+                </div>
+            </Card>
+
             <Card>
                 <h2 className="text-lg font-semibold mb-2">Loại giao dịch</h2>
                 <RadioGroup value={transactionType} onChange={handleTransactionTypeChange}>
@@ -114,6 +144,7 @@ const TransactionFilter = () => {
                     </div>
                 )}
             </Card>
+            
         </div>
     );
 };
