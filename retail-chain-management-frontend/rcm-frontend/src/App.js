@@ -3,7 +3,10 @@ import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import AddProductComponent from './components/addProduct';
 import ProductManagementComponent from './components/listProduct';
+<<<<<<< HEAD
 import Main from './components/pos/main';
+=======
+>>>>>>> quanpm
 
 function App() {
   return (
@@ -12,7 +15,10 @@ function App() {
         <Routes>
           <Route path='/addproduct' element= {<AddProductComponent/>} />
           <Route path='/productmanage' element= {<ProductManagementComponent/>} />
+<<<<<<< HEAD
           <Route path='/pos' element= {<Main/>} />
+=======
+>>>>>>> quanpm
         </Routes>
       </BrowserRouter>
     </>
