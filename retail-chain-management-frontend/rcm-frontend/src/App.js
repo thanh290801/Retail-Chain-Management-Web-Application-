@@ -1,11 +1,9 @@
-import logo from './logo.svg';
 import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import AddProductComponent from './components/addProduct';
 import ProductManagementComponent from './components/listProduct';
 import Header from './headerComponent/header';
 import LoginPage from './components/login';
-import TransactionFilter from './components/finterMoney';
 
 function App() {
   return (
@@ -16,7 +14,6 @@ function App() {
           <Route path='/productmanage' element= {<ProductManagementComponent/>} />
           <Route path='/header' element= {<Header/>} />
           <Route path='/login' element= {<LoginPage/>} />
-          <Route path='/transactionfilter' element= {<TransactionFilter/>} />
         </Routes>
       </BrowserRouter>
     </>
