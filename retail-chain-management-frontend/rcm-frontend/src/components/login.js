@@ -16,7 +16,7 @@ const LoginPage = () => {
     const handleLogin = async (role) => {
         try {
             // Kiểm tra Role phù hợp với Backend ("Chủ" hoặc "Nhân viên")
-            const mappedRole = role === 'Owner' ? 'Ch?' : 'Nhân viên';
+            const mappedRole = role === 'Owner' ? 'Owner' : 'Staff';
 
             const response = await axios.post('http://localhost:5000/api/Auth/login', {
                 username,
@@ -30,9 +30,9 @@ const LoginPage = () => {
                 localStorage.setItem('username', response.data.username);
 
                 // Điều hướng dựa trên role trả về từ API
-                if (response.data.role === 'Ch?' && role === 'Owner') {
+                if (response.data.role === 'Owner' && role === 'Owner') {
                     navigate('/admin-dashboard');
-                } else if (response.data.role === 'Nhân viên' && role === 'Staff') {
+                } else if (response.data.role === 'Staff' && role === 'Staff') {
                     navigate('/pos');
                 } else {
                     setErrorMessage('Quyền truy cập không phù hợp.');
