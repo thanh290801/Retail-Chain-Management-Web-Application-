@@ -31,7 +31,7 @@ const LoginPage = () => {
 
                 // Điều hướng dựa trên role trả về từ API
                 if (response.data.role === 'Owner' && role === 'Owner') {
-                    navigate('/salesChartPage');
+                    navigate('/home');
                 } else if (response.data.role === 'Staff' && role === 'Staff') {
                     navigate('/check-in');
                 } else {

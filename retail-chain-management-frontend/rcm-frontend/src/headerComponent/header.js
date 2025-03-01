@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useEffect } from "react";
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,21 +27,20 @@ const Header = () => {
         setBranchDropdown(false);
         setAccountDropdown(false);
     };
-
-    const handleLogout = async () => {
-        try {
-            // Gọi API đăng xuất trên Backend
-            await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-    
-            // Xóa token ở FE
-            localStorage.removeItem('userToken');
-            sessionStorage.removeItem('userToken');
-    
-            // Điều hướng về trang đăng nhập
-            navigate('/login');
-        } catch (error) {
-            console.error('Đăng xuất thất bại:', error);
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
         }
+    }, [navigate]); // Chạy 1 lần khi Header được render
+
+    const handleLogout = () => {
+        // Xóa token khỏi localStorage
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        // Reload lại trang để đảm bảo trạng thái mới
+        window.location.href = "/login"; 
     };
     
     
@@ -140,15 +140,15 @@ const Header = () => {
                             <span className="material-icons">account_circle</span>
                         </button>
                         {accountDropdown && (
-                            <div className="absolute bg-white shadow-md rounded p-2">
-                                <Link to="/profile" className="block px-4 py-2 hover:bg-gray-200">Thông tin người dùng</Link>
-                                <button 
-                            onClick={handleLogout} 
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-200"
-                        >
-                            Đăng xuất
-                        </button>
-                         </div>
+                            <div className="absolute right-0 bg-white shadow-md rounded p-2">
+                             <Link to="/profile" className="block px-4 py-2 hover:bg-gray-200">Thông tin người dùng</Link>
+                             <button 
+                                onClick={handleLogout} 
+                                className="block w-full text-left px-4 py-2 hover:bg-gray-200"
+                            >
+                             Đăng xuất
+                             </button>
+                            </div>
                         )}
                     </div>
                 </div>

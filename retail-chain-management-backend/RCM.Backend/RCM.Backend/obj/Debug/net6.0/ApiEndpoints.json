@@ -94,6 +94,16 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "WarehousesController",
+    "Method": "GetWarehouses",
+    "RelativePath": "api/Warehouses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "RCM.Backend.Controllers.WeatherForecastController",
     "Method": "Get",
     "RelativePath": "WeatherForecast",
