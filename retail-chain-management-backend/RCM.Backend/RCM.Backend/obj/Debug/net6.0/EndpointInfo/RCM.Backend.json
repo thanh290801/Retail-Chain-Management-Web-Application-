@@ -17,6 +17,18 @@
         }
       }
     },
+    "/api/Account/me": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/api/Account/add": {
       "post": {
         "tags": [
@@ -103,18 +115,6 @@
       }
     },
     "/api/Products": {
-      "get": {
-        "tags": [
-          "Products"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/api/Products/categories": {
       "get": {
         "tags": [
           "Products"

@@ -42,6 +42,16 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "RCM.Backend.Controllers.AccountController",
+    "Method": "GetCurrentUser",
+    "RelativePath": "api/Account/me",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "AuthController",
     "Method": "Login",
     "RelativePath": "api/Auth/login",
@@ -61,16 +71,6 @@
     "ContainingType": "ProductsController",
     "Method": "GetProducts",
     "RelativePath": "api/Products",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "ProductsController",
-    "Method": "GetProductCategories",
-    "RelativePath": "api/Products/categories",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,

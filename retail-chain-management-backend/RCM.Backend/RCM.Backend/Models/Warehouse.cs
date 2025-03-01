@@ -7,10 +7,10 @@ public class Warehouse
     public int WarehousesId { get; set; }
 
     [Required]
-    public string Name { get; set; }
+    public string name { get; set; }
 
-    public string Address { get; set; }
+    public string address { get; set; }
 
-    public int Capacity { get; set; }
+    public int capacity { get; set; }
 }
 

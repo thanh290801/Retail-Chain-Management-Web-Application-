@@ -11,13 +11,19 @@ public class WarehousesController : ControllerBase
     {
         _context = context;
     }
-
     [HttpGet]
     public IActionResult GetWarehouses()
     {
         var warehouses = _context.Warehouses
-                                .Select(w => new { w.WarehousesId, w.Name })
+                                .Select(w => new { w.WarehousesId, w.name })
                                 .ToList();
+
+        if (warehouses == null || !warehouses.Any())
+        {
+            return NotFound("Không có chi nhánh nào trong hệ thống.");
+        }
+
         return Ok(warehouses);
     }
+
 }

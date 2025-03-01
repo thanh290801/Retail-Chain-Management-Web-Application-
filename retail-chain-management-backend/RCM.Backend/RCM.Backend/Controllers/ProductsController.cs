@@ -14,17 +14,8 @@ public class ProductsController : ControllerBase
     [HttpGet]
     public IActionResult GetProducts()
     {
-        var products = _context.Products.Select(p => new { p.ProductsId, p.Name }).ToList();
+        var products = _context.Products.Select(p => new { p.ProductsId, p.Name,p.Category }).ToList();
         return Ok(products);
     }
 
-    [HttpGet("categories")]
-    public IActionResult GetProductCategories()
-    {
-        var categories = _context.Products
-                                 .Select(p => p.Category)
-                                 .Distinct()
-                                 .ToList();
-        return Ok(categories);
-    }
 }
