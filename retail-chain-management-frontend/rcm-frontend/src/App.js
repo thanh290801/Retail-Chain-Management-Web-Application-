@@ -1,9 +1,10 @@
 import './App.css';
-import { BrowserRouter, Route, Routes,Navigate } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import AddProductComponent from './components/addProduct';
 import ProductManagementComponent from './components/listProduct';
 import Header from './headerComponent/header';
 import LoginPage from './components/login';
+import Main from './components/pos/main';
 
 import SalesChartPage from './sale-dashboadConponent/SalesChartPage';
 import Filter from './sale-dashboadConponent/Filter';
@@ -28,6 +29,8 @@ function App() {
 
           {/* Các trang cần đăng nhập */}
           <Route path="/home" element={<ProtectedRoute><SalesChartPage /></ProtectedRoute>} />
+          <Route path='/pos' element={<Main />} />
+
           <Route path="/addproduct" element={<ProtectedRoute><AddProductComponent /></ProtectedRoute>} />
           <Route path="/productmanage" element={<ProtectedRoute><ProductManagementComponent /></ProtectedRoute>} />
           <Route path="/header" element={<ProtectedRoute><Header /></ProtectedRoute>} />
