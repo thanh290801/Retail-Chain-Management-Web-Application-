@@ -1,8 +1,8 @@
 import logo from './logo.svg';
 import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import AddProductComponent from './components/addProduct';
-import ProductManagementComponent from './components/listProduct';
+import AddProductComponent from './components/warehouses/addProduct';
+import ProductManagementComponent from './components/warehouses/listProduct';
 
 function App() {
   return (
