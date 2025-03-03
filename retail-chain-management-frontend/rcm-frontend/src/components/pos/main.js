@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Form } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import Cart from './cart';
 import Calculator from './calculator';
+import { BsX } from 'react-icons/bs';
 import './main.css';
 
 const productList = [
@@ -12,12 +13,16 @@ const productList = [
 ];
 
 const Main = () => {
-    const [cartData, setCartData] = useState([]);
+    const [invoices, setInvoices] = useState({ 'Hóa đơn 1': [] });
+    const [currentInvoice, setCurrentInvoice] = useState('Hóa đơn 1');
     const [searchText, setSearchText] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
 
     const handleUpdateCart = (updatedCart) => {
-        setCartData(updatedCart);
+        setInvoices((prevInvoices) => ({
+            ...prevInvoices,
+            [currentInvoice]: updatedCart
+        }));
     };
 
     const handleSearchChange = (e) => {
@@ -26,22 +31,28 @@ const Main = () => {
     };
 
     const handleAddProductToCart = (product) => {
-        const existingProduct = cartData.find(item => item.id === product.id);
+        const existingProduct = invoices[currentInvoice]?.find(item => item.id === product.id);
         let updatedCart;
 
         if (existingProduct) {
-            updatedCart = cartData.map(item =>
+            updatedCart = invoices[currentInvoice].map(item =>
                 item.id === product.id
                     ? { ...item, quantity: (parseFloat(item.quantity) + 1).toString() }
                     : item
             );
         } else {
-            updatedCart = [...cartData, { ...product, quantity: '1' }];
+            updatedCart = [...invoices[currentInvoice], { ...product, quantity: '1' }];
         }
 
-        setCartData(updatedCart);
+        handleUpdateCart(updatedCart);
         setSearchText('');
         setShowSuggestions(false);
+    };
+
+    const handleClickOutside = (e) => {
+        if (!e.target.closest('.search-suggestions') && !e.target.closest('.form-control')) {
+            setShowSuggestions(false);
+        }
     };
 
     const filteredProducts = productList.filter(
@@ -50,13 +61,56 @@ const Main = () => {
             product.barcode === searchText
     );
 
-    const handleClickOutside = () => {
-        setShowSuggestions(false);
+    // Quản lý hóa đơn
+    const getNextInvoiceNumber = () => {
+        const usedNumbers = Object.keys(invoices)
+            .map((name) => parseInt(name.replace('Hóa đơn ', '')))
+            .sort((a, b) => a - b);
+
+        for (let i = 1; i <= usedNumbers.length; i++) {
+            if (!usedNumbers.includes(i)) {
+                return i;
+            }
+        }
+        return usedNumbers.length + 1;
     };
+
+    const handleAddNewInvoice = () => {
+        const newInvoiceNumber = getNextInvoiceNumber();
+        const newInvoiceId = `Hóa đơn ${newInvoiceNumber}`;
+        setInvoices({ ...invoices, [newInvoiceId]: [] });
+        setCurrentInvoice(newInvoiceId);
+    };
+
+    // Xóa hóa đơn
+const handleRemoveInvoice = (invoiceId) => {
+    const updatedInvoices = { ...invoices };
+    delete updatedInvoices[invoiceId];
+
+    if (Object.keys(updatedInvoices).length === 0) {
+        // Nếu xóa hết hóa đơn, tạo hóa đơn mới trống
+        const newInvoiceId = 'Hóa đơn 1';
+        updatedInvoices[newInvoiceId] = [];
+        setCurrentInvoice(newInvoiceId);
+    } else {
+        // Chuyển sang hóa đơn khác nếu hóa đơn hiện tại bị xóa
+        const remainingInvoices = Object.keys(updatedInvoices);
+        setCurrentInvoice(remainingInvoices[0]);
+    }
+
+    setInvoices(updatedInvoices);
+};
+
+
+    const handleSwitchInvoice = (invoiceId) => {
+        setCurrentInvoice(invoiceId);
+    };
+
+    const currentCartData = invoices[currentInvoice] || [];
 
     return (
         <Container fluid className='page-body' onClick={handleClickOutside}>
-            <Row className='tool-bar'>
+            <Row className='tool-bar align-items-center'>
                 <Col md={4} className="mt-2 position-relative">
                     <Form.Control
                         type="text"
@@ -75,34 +129,56 @@ const Main = () => {
                                 zIndex: 10,
                                 borderRadius: '4px'
                             }}
-                            onClick={(e) => e.stopPropagation()}
                         >
-                            {filteredProducts.length > 0 ? (
-                                filteredProducts.map(product => (
-                                    <div
-                                        key={product.id}
-                                        onClick={() => handleAddProductToCart(product)}
-                                        className="p-2 border-bottom cursor-pointer hover-bg-light"
-                                    >
-                                        {product.name} - {product.price.toLocaleString()} VND
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="p-2 text-muted">Không tìm thấy sản phẩm nào</div>
-                            )}
+                            {filteredProducts.map(product => (
+                                <div
+                                    key={product.id}
+                                    onClick={() => handleAddProductToCart(product)}
+                                    className="p-2 border-bottom cursor-pointer hover-bg-light"
+                                >
+                                    {product.name} - {product.price.toLocaleString()} VND
+                                </div>
+                            ))}
                         </div>
                     )}
                 </Col>
+
+                <Col md={8} className="d-flex justify-content-end align-items-center">
+                    <div className="d-flex flex-wrap align-items-center">
+                        {Object.keys(invoices).map((invoiceId) => (
+                            <div key={invoiceId} className="invoice-wrapper me-2">
+                                <Button
+                                    variant={invoiceId === currentInvoice ? 'primary' : 'outline-primary'}
+                                    className="invoice-button d-flex align-items-center"
+                                    onClick={() => handleSwitchInvoice(invoiceId)}
+                                >
+                                    <span>{invoiceId}</span>
+                                    <BsX
+                                        className="invoice-close-btn ms-2"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRemoveInvoice(invoiceId);
+                                        }}
+                                    />
+                                </Button>
+                            </div>
+                        ))}
+                        <Button variant="success" onClick={handleAddNewInvoice}>
+                            Thêm +
+                        </Button>
+                    </div>
+                </Col>
             </Row>
+
             <Row>
                 <Col md={8} className='mt-2'>
                     <Container className='item-card left-item'>
-                        <Cart cartData={cartData} onUpdateCart={handleUpdateCart} />
+                        <Cart cartData={currentCartData} onUpdateCart={handleUpdateCart} />
                     </Container>
                 </Col>
                 <Col md={4} className='mt-2'>
                     <Container className='item-card right-item'>
-                        <Calculator cartData={cartData} />
+                        <Calculator cartData={currentCartData} />
                     </Container>
                 </Col>
             </Row>
