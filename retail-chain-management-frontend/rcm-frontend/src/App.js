@@ -5,7 +5,7 @@ import ProductManagementComponent from './components/listProduct';
 
 import Header from './headerComponent/header';
 import LoginPage from './components/login';
-import Main from './components/pos/main';
+import Main from './components/pos/Main';
 
 
 function App() {
