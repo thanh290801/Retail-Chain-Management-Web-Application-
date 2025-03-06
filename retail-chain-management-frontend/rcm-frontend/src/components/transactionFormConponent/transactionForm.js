@@ -95,7 +95,8 @@ const TransactionForm = () => {
         navigate("/staffHome");
     };
 
-    return (
+    return (//đổi biên bản bàn giao tiền mặt
+
         <div className="max-w-lg mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
             <h2 className="text-xl font-bold text-center text-blue-600 mb-4">
                 {type === "receipt" ? "Phiếu Thu Tiền" : "Phiếu Chi Tiền"}
