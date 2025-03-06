@@ -33,7 +33,7 @@ const LoginPage = () => {
                 if (response.data.role === 'Owner' && role === 'Owner') {
                     navigate('/home');
                 } else if (response.data.role === 'Staff' && role === 'Staff') {
-                    navigate('/pos');
+                    navigate('/staffHome');
                 } else {
                     setErrorMessage('Quyền truy cập không phù hợp.');
                 }

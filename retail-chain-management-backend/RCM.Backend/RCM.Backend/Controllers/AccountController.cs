@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RCM.Backend.Models;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace RCM.Backend.Controllers
@@ -21,7 +22,15 @@ namespace RCM.Backend.Controllers
             [HttpGet("all")]
             public IActionResult GetAllAccounts()
             {
-                var accounts = _context.Account.ToList();
+                var accounts = _context.Account
+                .Include(a => a.Employee) // Load Employee liên kết với Account
+                   .Select(a => new
+                   {
+                       AccountID = a.AccountID,
+                       Username = a.Username,
+                       Fullname = a.Employee.FullName, // Lấy Fullname từ Employee
+                       Role = a.Role
+                   }).ToList();
                 return Ok(accounts);
             }
         [HttpGet("me")]
@@ -46,13 +55,15 @@ namespace RCM.Backend.Controllers
 
             // Truy vấn thông tin người dùng từ DB
             var user = _context.Account
-                               .Where(a => a.Username == username)
-                               .Select(a => new
-                               {
-                                   a.Username,
-                                   a.Role
-                               })
-                               .FirstOrDefault();
+                   .Include(a => a.Employee) // Load Employee liên kết với Account
+                   .Where(a => a.Username == username)
+                   .Select(a => new
+                   {
+                       Fullname = a.Employee.FullName, // Lấy Fullname từ Employee
+                       Role = a.Role
+                   })
+                   .FirstOrDefault();
+
 
             if (user == null)
                 return NotFound("Người dùng không tồn tại.");

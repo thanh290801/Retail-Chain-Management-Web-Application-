@@ -14,6 +14,10 @@ public class RCMDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Employee>()
+                .HasOne(e => e.Account)
+                .WithOne(a => a.Employee)
+                .HasForeignKey<Employee>(e => e.AccountID);
         // Chỉ định rõ ràng rằng DbSet<Account> ánh xạ tới bảng "Account" trong Database
         modelBuilder.Entity<Account>().ToTable("Account");
         modelBuilder.Entity<Employee>().ToTable("Employee");

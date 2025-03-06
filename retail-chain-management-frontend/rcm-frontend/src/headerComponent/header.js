@@ -145,8 +145,8 @@ const Header = () => {
                         </nav>
                     </div>
                     <div className="flex items-center space-x-4">
+                        <button onClick={() => navigate("/pos")} className="bg-white text-blue-600 px-4 py-2 rounded flex items-center">Bán hàng</button>
 
-                        <Link to="/sales" className="bg-white text-blue-600 px-4 py-2 rounded flex items-center">Bán hàng</Link>
                         <div
                             className="relative"
                             onMouseLeave={closeDropdown}

@@ -7,8 +7,8 @@ public class Employee
     [Key]
     public int EmployeeID { get; set; }
 
-    public int AccountID { get; set; }
     [ForeignKey("AccountID")]
+    public int AccountID { get; set; }
     public Account Account { get; set; }
 
     [Required]
@@ -25,5 +25,6 @@ public class Employee
     public string Hometown { get; set; }
 
     public bool IsActive { get; set; } = true;
+
 }
 

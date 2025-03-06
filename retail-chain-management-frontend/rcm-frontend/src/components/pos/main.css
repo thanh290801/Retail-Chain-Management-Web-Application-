@@ -46,6 +46,30 @@
     background-color: #dc3545;
 }
 
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    background-color: white;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.back-button:hover {
+    background-color: #f3f4f6;
+    transform: scale(1.05);
+}
+
+.back-button-icon {
+    margin-right: 6px;
+    font-size: 18px;
+}
+
 .item-card {
     border: 0.01px black solid;
     border-radius: 5px;

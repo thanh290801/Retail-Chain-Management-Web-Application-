@@ -4,6 +4,9 @@ import Cart from './cart';
 import Calculator from './calculator';
 import { BsX } from 'react-icons/bs';
 import './main.css';
+import { useNavigate } from "react-router-dom";
+import { IoArrowBackOutline } from "react-icons/io5";
+
 
 const productList = [
     { id: 1, name: 'Hoa Yến Mạch', price: 170000, unit: 'Bó', barcode: '123456789' },
@@ -13,6 +16,7 @@ const productList = [
 ];
 
 const Main = () => {
+    const navigate = useNavigate();
     const [invoices, setInvoices] = useState({ 'Hóa đơn 1': [] });
     const [currentInvoice, setCurrentInvoice] = useState('Hóa đơn 1');
     const [searchText, setSearchText] = useState('');
@@ -83,23 +87,23 @@ const Main = () => {
     };
 
     // Xóa hóa đơn
-const handleRemoveInvoice = (invoiceId) => {
-    const updatedInvoices = { ...invoices };
-    delete updatedInvoices[invoiceId];
+    const handleRemoveInvoice = (invoiceId) => {
+        const updatedInvoices = { ...invoices };
+        delete updatedInvoices[invoiceId];
 
-    if (Object.keys(updatedInvoices).length === 0) {
-        // Nếu xóa hết hóa đơn, tạo hóa đơn mới trống
-        const newInvoiceId = 'Hóa đơn 1';
-        updatedInvoices[newInvoiceId] = [];
-        setCurrentInvoice(newInvoiceId);
-    } else {
-        // Chuyển sang hóa đơn khác nếu hóa đơn hiện tại bị xóa
-        const remainingInvoices = Object.keys(updatedInvoices);
-        setCurrentInvoice(remainingInvoices[0]);
-    }
+        if (Object.keys(updatedInvoices).length === 0) {
+            // Nếu xóa hết hóa đơn, tạo hóa đơn mới trống
+            const newInvoiceId = 'Hóa đơn 1';
+            updatedInvoices[newInvoiceId] = [];
+            setCurrentInvoice(newInvoiceId);
+        } else {
+            // Chuyển sang hóa đơn khác nếu hóa đơn hiện tại bị xóa
+            const remainingInvoices = Object.keys(updatedInvoices);
+            setCurrentInvoice(remainingInvoices[0]);
+        }
 
-    setInvoices(updatedInvoices);
-};
+        setInvoices(updatedInvoices);
+    };
 
 
     const handleSwitchInvoice = (invoiceId) => {
@@ -109,9 +113,25 @@ const handleRemoveInvoice = (invoiceId) => {
     const currentCartData = invoices[currentInvoice] || [];
 
     return (
+
         <Container fluid className='page-body' onClick={handleClickOutside}>
+
             <Row className='tool-bar align-items-center'>
+
                 <Col md={4} className="mt-2 position-relative">
+                    <button
+                        onClick={() => {
+                            const userRole = localStorage.getItem("role"); // Lấy role từ localStorage
+                            if (userRole === "Owner") {
+                                navigate("/home"); // Nếu là chủ thì về trang Home
+                            } else {
+                                navigate("/staffHome"); // Nếu là nhân viên thì về trang StaffHome
+                            }
+                        }}
+                        className="back-button">
+                        <IoArrowBackOutline className="mr-2 text-xl" />
+                        Quay lại
+                    </button>
                     <Form.Control
                         type="text"
                         placeholder="Tìm kiếm sản phẩm hoặc quét mã vạch..."

@@ -10,6 +10,8 @@ using System.ComponentModel.DataAnnotations;
         public string PasswordHash { get; set; }
         public string Role { get; set; } // "Chủ" hoặc "Nhân viên"
         public bool IsActive { get; set; } = true;
+        public Employee Employee { get; set; } // Navigation Property
+
     }
 
 }

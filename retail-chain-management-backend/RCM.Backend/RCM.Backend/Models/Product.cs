@@ -12,9 +12,9 @@ public class Product
     [Required]
     public string Barcode { get; set; }
 
-    public string Unit { get; set; } // Thùng, hộp, gói...
+    public string Unit { get; set; }
 
-    public string Category { get; set; } // Nhóm hàng (Ví dụ: "Mỹ phẩm", "Sữa", "Nước ngọt")
+    public string Category { get; set; } 
 
     public bool IsEnabled { get; set; } = true;
 }
