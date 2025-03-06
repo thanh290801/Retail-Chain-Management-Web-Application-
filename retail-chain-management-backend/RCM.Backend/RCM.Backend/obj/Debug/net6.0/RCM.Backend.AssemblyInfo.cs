@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RCM.Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7c90102bcaea6ddc42537b16ae58e74f41cca0ee")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1c22facd5c435e5fee819edf57acd42139e03460")]
 [assembly: System.Reflection.AssemblyProductAttribute("RCM.Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RCM.Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

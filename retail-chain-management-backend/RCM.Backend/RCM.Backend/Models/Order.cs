@@ -1,30 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-namespace RCM.Backend.Models;
 
-public class Order
+namespace RCM.Backend.Models
 {
-    [Key]
-    public int OrderId { get; set; }
+    [Table("Order")]
+    public class Order
+    {
+        [Key]
+        public int OrderId { get; set; }
 
-    public DateTime CreatedDate { get; set; } = DateTime.Now;
+        [Required]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-    public int ShopId { get; set; }
-    [ForeignKey("ShopId")]
-    public Warehouse Warehouse { get; set; }
+        [Required]
+        public int ShopId { get; set; }
 
-    public decimal TotalAmount { get; set; }
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalAmount { get; set; }
 
-    public decimal Discount { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Discount { get; set; }
 
-    public decimal FinalAmount { get; set; }
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal FinalAmount { get; set; }
 
-    public string PaymentStatus { get; set; } = "Pending";
+        [Required]
+        [StringLength(20)]
+        public string PaymentStatus { get; set; } = "Pending"; // "Paid", "Refunded"
 
-    public DateTime InvoiceDate { get; set; } = DateTime.Now;
+        public int? WarehouseId { get; set; }
 
-    public ICollection<OrderDetail> OrderDetails { get; set; }
+        [ForeignKey("WarehouseId")]
+        public Warehouse Warehouse { get; set; }
+    }
 }
-

@@ -68,6 +68,36 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "RCM.Backend.Controllers.CashController",
+    "Method": "GetCashOnHand",
+    "RelativePath": "api/Cash/cash-on-hand",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RCM.Backend.Controllers.CashController",
+    "Method": "GetLowStockProducts",
+    "RelativePath": "api/Cash/low-stock",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RCM.Backend.Controllers.CashController",
+    "Method": "GetTodayRevenue",
+    "RelativePath": "api/Cash/today-revenue",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "ProductsController",
     "Method": "GetProducts",
     "RelativePath": "api/Products",

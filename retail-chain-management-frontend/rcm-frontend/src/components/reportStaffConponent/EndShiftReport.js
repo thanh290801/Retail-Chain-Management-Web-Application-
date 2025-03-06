@@ -159,9 +159,9 @@ const EndShiftReport = () => {
                                 </option>
                             ))}
                     </select>
-                    <p><strong>(1+2) Tổng doanh thu:</strong> {todayRevenue.toLocaleString()} đ</p>
                     <p><strong>(1) Thanh toán tiền mặt:</strong> {cashOnHand.toLocaleString()} đ</p>
                     <p><strong>(2) Thanh toán chuyển khoản:</strong> {(todayRevenue - cashOnHand).toLocaleString()} đ</p>
+                    <p><strong>(1+2) Tổng doanh thu:</strong> {todayRevenue.toLocaleString()} đ</p>
                     <p><strong>(3) Tiền quỹ tiền mặt đầu ca:</strong> {cashStart.toLocaleString()} đ</p>
                     <p><strong>(4) Tổng chi trong ca:</strong> {cashSpent.toLocaleString()} đ</p>
                     <p><strong>(1+3-4) Tổng quỹ tiền mặt cuối ca:</strong> {(cashStart + cashOnHand - cashSpent).toLocaleString()} đ</p>

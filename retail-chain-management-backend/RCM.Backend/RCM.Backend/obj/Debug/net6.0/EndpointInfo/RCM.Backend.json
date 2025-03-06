@@ -114,6 +114,42 @@
         }
       }
     },
+    "/api/Cash/cash-on-hand": {
+      "get": {
+        "tags": [
+          "Cash"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Cash/today-revenue": {
+      "get": {
+        "tags": [
+          "Cash"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Cash/low-stock": {
+      "get": {
+        "tags": [
+          "Cash"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/api/Products": {
       "get": {
         "tags": [

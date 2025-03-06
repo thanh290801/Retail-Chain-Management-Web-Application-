@@ -130,7 +130,7 @@ const StaffHomeComponent = () => {
                         {menus.transactions && (
                             <div className="absolute left-0 mt-2 w-40 bg-white shadow-lg rounded-lg">
                                 <button onClick={() => navigate("/history-pos")} className="block w-full px-4 py-2 text-left  text-blue-600 hover:bg-gray-100">Lịch sử giao dịch</button>
-                                <button onClick={() => navigate("/transactionForm")} className="block w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100"> Tạo phiếu thu/chi</button>
+                                <button onClick={() => navigate("/soQuy")} className="block w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100"> Sổ quỹ </button>
                             </div>
                         )}
                     </div>

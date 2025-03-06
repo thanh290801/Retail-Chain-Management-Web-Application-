@@ -11,7 +11,8 @@ public class RCMDbContext : DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderDetail> OrderDetails { get; set; }
-
+    public DbSet<CashFund> CashFund { get; set; }
+    public DbSet<StockLevel> StockLevels { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Employee>()
