@@ -1,39 +1,33 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace RCM.Backend.Models
 {
-    [Table("Order")]
-    public class Order
+    public partial class Order
     {
-        [Key]
+        public Order()
+        {
+            FundTransactionHistories = new HashSet<FundTransactionHistory>();
+            OrderDetails = new HashSet<OrderDetail>();
+            Payments = new HashSet<Payment>();
+            Refunds = new HashSet<Refund>();
+        }
+
         public int OrderId { get; set; }
-
-        [Required]
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-
-        [Required]
+        public DateTime CreatedDate { get; set; }
         public int ShopId { get; set; }
-
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
         public decimal Discount { get; set; }
-
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
+        public int Employeeid { get; set; }
         public decimal FinalAmount { get; set; }
+        public string PaymentStatus { get; set; } = null!;
+        public DateTime? InvoiceDate { get; set; }
 
-        [Required]
-        [StringLength(20)]
-        public string PaymentStatus { get; set; } = "Pending"; // "Paid", "Refunded"
-
-        public int? WarehouseId { get; set; }
-
-        [ForeignKey("WarehouseId")]
-        public Warehouse Warehouse { get; set; }
+        public virtual Employee Employee { get; set; } = null!;
+        public virtual Warehouse Shop { get; set; } = null!;
+        public virtual ICollection<FundTransactionHistory> FundTransactionHistories { get; set; }
+        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+        public virtual ICollection<Payment> Payments { get; set; }
+        public virtual ICollection<Refund> Refunds { get; set; }
     }
 }

@@ -135,7 +135,7 @@ const TransactionForm = () => {
                 />
 
                 <div className="flex justify-between mt-4">
-                    <button type="button" className="px-4 py-2 bg-gray-500 text-white rounded-lg" onClick={() => navigate("/staffHome")}>
+                    <button type="button" className="px-4 py-2 bg-gray-500 text-white rounded-lg" onClick={() => navigate("/cashBook")}>
                         Hủy
                     </button>
                     <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">

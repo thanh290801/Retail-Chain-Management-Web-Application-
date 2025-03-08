@@ -1,44 +1,12 @@
 [
   {
     "ContainingType": "RCM.Backend.Controllers.AccountController",
-    "Method": "AddAccount",
-    "RelativePath": "api/Account/add",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "account",
-        "Type": "RCM.Backend.Models.Account",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.AccountController",
     "Method": "GetAllAccounts",
     "RelativePath": "api/Account/all",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.AccountController",
-    "Method": "DeleteAccount",
-    "RelativePath": "api/Account/delete/{id}",
-    "HttpMethod": "DELETE",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
     "ReturnTypes": []
   },
   {
@@ -65,72 +33,6 @@
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.CashController",
-    "Method": "GetCashOnHand",
-    "RelativePath": "api/Cash/cash-on-hand",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.CashController",
-    "Method": "GetLowStockProducts",
-    "RelativePath": "api/Cash/low-stock",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.CashController",
-    "Method": "GetTodayRevenue",
-    "RelativePath": "api/Cash/today-revenue",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "ProductsController",
-    "Method": "GetProducts",
-    "RelativePath": "api/Products",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "SalesController",
-    "Method": "GetSalesDashboard",
-    "RelativePath": "api/Sales/dashboard",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "SalesFilterRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "WarehousesController",
-    "Method": "GetWarehouses",
-    "RelativePath": "api/Warehouses",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
     "ReturnTypes": []
   },
   {

@@ -1,24 +1,18 @@
-﻿namespace RCM.Backend.Models;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
-public class OrderDetail
+namespace RCM.Backend.Models
 {
-    [Key]
-    public int Id { get; set; }
+    public partial class OrderDetail
+    {
+        public int OrderDetailId { get; set; }
+        public int OrderId { get; set; }
+        public int ProductId { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal TotalPrice { get; set; }
 
-    public int OrderId { get; set; }
-    [ForeignKey("OrderId")]
-    public Order Order { get; set; }
-
-    public int ProductId { get; set; }
-    [ForeignKey("ProductId")]
-    public Product Product { get; set; }
-
-    public decimal Quantity { get; set; }
-
-    public decimal UnitPrice { get; set; }
-
-    public decimal TotalPrice { get; set; }
+        public virtual Order Order { get; set; } = null!;
+        public virtual Product Product { get; set; } = null!;
+    }
 }
-

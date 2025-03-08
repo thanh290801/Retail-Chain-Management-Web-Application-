@@ -46,15 +46,15 @@ const StaffHomeComponent = () => {
             console.error("Lỗi khi lấy thông tin nhân viên:", error);
         }
     };
-
     const fetchCashOnHand = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/api/finance/cash");
+            const response = await axios.get("http://localhost:5000/api/cash/cash-on-hand");
             setCashOnHand(response.data.cashOnHand);
         } catch (error) {
-            console.error("Lỗi khi lấy số tiền mặt:", error);
+            console.error("Lỗi khi lấy số dư quỹ:", error);
         }
     };
+
 
     const fetchTodayRevenue = async () => {
         try {
@@ -129,8 +129,8 @@ const StaffHomeComponent = () => {
                         </button>
                         {menus.transactions && (
                             <div className="absolute left-0 mt-2 w-40 bg-white shadow-lg rounded-lg">
-                                <button onClick={() => navigate("/history-pos")} className="block w-full px-4 py-2 text-left  text-blue-600 hover:bg-gray-100">Lịch sử giao dịch</button>
-                                <button onClick={() => navigate("/soQuy")} className="block w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100"> Sổ quỹ </button>
+                                <button onClick={() => navigate("/history-pos")} className="block w-full px-4 py-2 text-left  text-blue-600 hover:bg-gray-100">Lịch sử đơn hàng</button>
+                                <button onClick={() => navigate("/cashBook")} className="block w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100"> Sổ quỹ </button>
                             </div>
                         )}
                     </div>

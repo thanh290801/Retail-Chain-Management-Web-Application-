@@ -9,6 +9,7 @@ import StaffHomeComponent from './components/staffHomeConponent/staffHome';
 import SalesChartPage from './sale-dashboadConponent/SalesChartPage';
 import EndDayReport from './components/reportStaffConponent/EndShiftReport';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
+import CashBookComponent from './components/cashbookConponent/cashBook';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -35,6 +36,7 @@ function App() {
           <Route path="/header" element={<ProtectedRoute><Header /></ProtectedRoute>} />
           <Route path="/endDaytReport" element={<ProtectedRoute><EndDayReport /></ProtectedRoute>} />
           <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
+          <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>

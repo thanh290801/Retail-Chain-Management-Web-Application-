@@ -1,14 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RCM.Backend.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using RCM.Backend.Services;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using RCM.Backend.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<RCMDbContext>(options =>
+builder.Services.AddDbContext<RetailChainContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Đăng ký các service cho Dependency Injection
 builder.Services.AddScoped<IJwtService, JwtService>();
