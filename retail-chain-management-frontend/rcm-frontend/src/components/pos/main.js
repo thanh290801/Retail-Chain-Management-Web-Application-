@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Form, Button, ButtonGroup, Modal } from 'react-bootstrap';
 import Cart from './Cart';
@@ -5,6 +6,9 @@ import Calculator from './Calculator';
 import ReturnInvoiceModal from './ReturnInvoiceModal'; // Không dùng dấu ngoặc nhọn {}
 import { BsX, BsPlus } from 'react-icons/bs';
 import './main.css';
+import { useNavigate } from "react-router-dom";
+import { IoArrowBackOutline } from "react-icons/io5";
+
 
 const productList = [
     { id: 1, name: 'Tương ớt Chinsu 1kg', price: 28000, unit: 'Chai', barcode: '8936136161150' },
@@ -306,6 +310,7 @@ const Main = () => {
                     />
                 </Col>
             </Row>
+
             <Row>
                 <Col md={8} className='mt-2'>
                 <Cart 

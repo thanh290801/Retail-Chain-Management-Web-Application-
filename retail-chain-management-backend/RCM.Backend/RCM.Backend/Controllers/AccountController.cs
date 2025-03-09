@@ -1,46 +1,91 @@
-﻿
-    using Microsoft.AspNetCore.Mvc;
-    using RCM.Backend.Models;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using RCM.Backend.Models;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace RCM.Backend.Controllers
 {
     [ApiController]
-        [Route("api/[controller]")]
-        public class AccountController : ControllerBase
+    [Route("api/[controller]")]
+    public class AccountController : ControllerBase
+    {
+        private readonly RetailChainContext _context;
+
+        public AccountController(RetailChainContext context)
         {
-            private readonly RCMDbContext _context;
+            _context = context;
+        }
 
-            public AccountController(RCMDbContext context)
+        // ✅ API: Lấy tất cả tài khoản (KHÔNG GIỚI HẠN ADMIN)
+        [HttpGet("all")]
+        [Authorize] // ⚡ Chỉ yêu cầu đăng nhập, không cần Admin
+        public async Task<IActionResult> GetAllAccounts()
+        {
+            try
             {
-                _context = context;
-            }
+                var accounts = await _context.Accounts
+                    .Include(a => a.Employee) // ✅ Sửa lỗi Include
+                    .Select(a => new
+                    {
+                        AccountId = a.AccountId, // ✅ Đổi tên đúng chuẩn
+                        Username = a.Username,
+                        Fullname = a.Employee != null ? a.Employee.FullName : "Chưa có nhân viên",
+                        Role = a.Role
+                    })
+                    .ToListAsync();
 
-            [HttpGet("all")]
-            public IActionResult GetAllAccounts()
-            {
-                var accounts = _context.Account.ToList();
                 return Ok(accounts);
             }
-
-            [HttpPost("add")]
-            public IActionResult AddAccount([FromBody] Account account)
+            catch (Exception ex)
             {
-                _context.Account.Add(account);
-                _context.SaveChanges();
-                return Ok("Thêm tài khoản thành công.");
+                return StatusCode(500, new { message = "Lỗi máy chủ nội bộ", error = ex.Message });
             }
+        }
 
-            [HttpDelete("delete/{id}")]
-            public IActionResult DeleteAccount(int id)
+        // ✅ API: Lấy thông tin người dùng hiện tại (dựa trên token)
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
             {
-                var account = _context.Account.Find(id);
-                if (account == null) return NotFound("Không tìm thấy tài khoản.");
+                // 📌 Lấy thông tin Claims từ Token
+                var identity = User.Identity as ClaimsIdentity;
+                if (identity == null || !identity.IsAuthenticated)
+                {
+                    return Unauthorized(new { message = "Bạn chưa đăng nhập." });
+                }
 
-                _context.Account.Remove(account);
-                _context.SaveChanges();
-                return Ok("Xóa tài khoản thành công.");
+                // 📌 Lấy username từ Claims
+                var username = identity.FindFirst(ClaimTypes.Name)?.Value;
+                if (string.IsNullOrEmpty(username))
+                {
+                    return Unauthorized(new { message = "Không thể lấy thông tin người dùng từ Token." });
+                }
+
+                // 📌 Truy vấn thông tin người dùng từ Database
+                var user = await _context.Accounts
+                    .Include(a => a.Employee) // ✅ Sửa lỗi Include
+                    .Where(a => a.Username == username)
+                    .Select(a => new
+                    {
+                        Fullname = a.Employee != null ? a.Employee.FullName : "Chưa có nhân viên",
+                        Role = a.Role
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (user == null)
+                    return NotFound(new { message = "Người dùng không tồn tại." });
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi máy chủ nội bộ", error = ex.Message });
             }
         }
     }
-
-
+}
