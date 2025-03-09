@@ -1,14 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RCM.Backend.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using RCM.Backend.Services;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using RCM.Backend.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<RCMDbContext>(options =>
+builder.Services.AddDbContext<RetailChainContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Đăng ký các service cho Dependency Injection
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -29,6 +28,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -44,6 +45,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -57,7 +59,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

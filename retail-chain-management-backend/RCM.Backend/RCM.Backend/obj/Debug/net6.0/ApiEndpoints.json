@@ -1,22 +1,6 @@
 [
   {
     "ContainingType": "RCM.Backend.Controllers.AccountController",
-    "Method": "AddAccount",
-    "RelativePath": "api/Account/add",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "account",
-        "Type": "RCM.Backend.Models.Account",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.AccountController",
     "Method": "GetAllAccounts",
     "RelativePath": "api/Account/all",
     "HttpMethod": "GET",
@@ -27,18 +11,12 @@
   },
   {
     "ContainingType": "RCM.Backend.Controllers.AccountController",
-    "Method": "DeleteAccount",
-    "RelativePath": "api/Account/delete/{id}",
-    "HttpMethod": "DELETE",
+    "Method": "GetCurrentUser",
+    "RelativePath": "api/Account/me",
+    "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
