@@ -1,8 +1,14 @@
 import './App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import AddProductComponent from './components/addProduct';
-import ProductManagementComponent from './components/listProduct';
 import StockCheckComponent from './components/warehouses/stockCheck';
+import ProductListComponent from './components/warehouses/listAllProduct';
+import ProductStockComponent from './components/warehouses/listProduct';
+import WarehouseManagementComponent from './components/warehouses/warehouseManagement';
+import OrderCheckComponent from './components/warehouses/orderCheck';
+import WarehouseTransferComponent from './components/warehouses/WareHouseTransfer';
+import OrderListComponent from './components/warehouses/orderList';
+import AddProductComponent from './components/warehouses/addProduct';
+
 
 function App() {
   return (
