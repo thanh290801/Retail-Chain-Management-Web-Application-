@@ -1,61 +1,64 @@
+
+.page-body{
+    background-color: #f8f9fa;
+    height: 100%;
+}
 .tool-bar {
-    background-color: darkturquoise;
-    height: 100px;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    background-color: #007bff;
+    padding: 8px 15px;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
-
-.search-bar {
-    padding-left: 10px;
-}
-
-.invoice-bar {
-    padding-right: 10px;
-}
-
-.invoice-wrapper {
-    position: relative;
-    padding-right: 10px;
-}
-
-.invoice-button {
-    position: relative;
-    padding-right: 25px;
-    border-radius: 20px;
+.invoice-tabs {
     display: flex;
     align-items: center;
-    gap: 5px;
-    width: 140px;
+    background: #007bff;
+    border-radius: 8px;
+    padding: 5px;
+    overflow-x: auto;
+    max-width: 100%;
 }
 
-.invoice-close-btn {
-    font-size: 18px;
-    color: #dc3545;
-    background-color: white;
-    border-radius: 50%;
-    padding: 2px;
-    cursor: pointer;
-    border: 1px solid #dc3545;
-}
-
-.invoice-close-btn:hover {
+.invoice-tab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #007bff;
     color: white;
-    background-color: #dc3545;
-}
-
-.item-card {
-    border: 0.01px black solid;
+    border: none;
+    padding: 8px 15px;
+    font-weight: bold;
     border-radius: 5px;
-    padding: 10px 20px 20px 10px;
-    height: 600px;
-    overflow: auto;
-    margin-bottom: 30px;
+    margin-right: 5px;
+    transition: background 0.2s;
 }
 
-.page-body {
-    overflow-y: auto;
-    height: auto;
+.invoice-tab.active {
+    background-color: #0056b3;
+    border-bottom: 3px solid white;
+}
+
+.invoice-tab:hover {
+    background-color: #0056b3;
+}
+
+.invoice-close {
+    margin-left: 8px;
+    cursor: pointer;
+    color: white;
+    transition: 0.2s;
+    border: 1px solid;
+    border-radius: 10px;
+}
+
+.invoice-close:hover {
+    color: #ff0303;
+}
+
+.header{
+    height: 20px;
+}
+.order-history{
+    width: 800px;
 }

@@ -1,29 +1,45 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+
+using System;
+using System.Collections.Generic;
 
 namespace RCM.Backend.Models
 {
-    public class Product
+    public partial class Product
     {
-        [Key]
+        public Product()
+        {
+            BatchDetails = new HashSet<BatchDetail>();
+            OrderDetails = new HashSet<OrderDetail>();
+            ProductPriceHistories = new HashSet<ProductPriceHistory>();
+            Promotions = new HashSet<Promotion>();
+            PurchaseOrderItems = new HashSet<PurchaseOrderItem>();
+            StockAdjustmentDetails = new HashSet<StockAdjustmentDetail>();
+            StockAuditDetails = new HashSet<StockAuditDetail>();
+            StockLevels = new HashSet<StockLevel>();
+            SupplierProducts = new HashSet<SupplierProduct>();
+            WarehouseTransferDetails = new HashSet<WarehouseTransferDetail>();
+        }
+
         public int ProductsId { get; set; }
-
-        [Required]
-        public string Name { get; set; }
-
-        [Required]
-        public string Barcode { get; set; }
-
-        public string Unit { get; set; }
+        public string Name { get; set; } = null!;
+        public string Barcode { get; set; } = null!;
+        public string Unit { get; set; } = null!;
         public decimal? Weight { get; set; }
         public decimal? Volume { get; set; }
-
-        [Column("image_url")]
         public string? ImageUrl { get; set; }
+        public string? Category { get; set; }
+        public bool? IsEnabled { get; set; }
 
-        public string Category { get; set; }
+        public virtual ICollection<BatchDetail> BatchDetails { get; set; }
+        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+        public virtual ICollection<ProductPriceHistory> ProductPriceHistories { get; set; }
+        public virtual ICollection<Promotion> Promotions { get; set; }
+        public virtual ICollection<PurchaseOrderItem> PurchaseOrderItems { get; set; }
+        public virtual ICollection<StockAdjustmentDetail> StockAdjustmentDetails { get; set; }
+        public virtual ICollection<StockAuditDetail> StockAuditDetails { get; set; }
+        public virtual ICollection<StockLevel> StockLevels { get; set; }
+        public virtual ICollection<SupplierProduct> SupplierProducts { get; set; }
+        public virtual ICollection<WarehouseTransferDetail> WarehouseTransferDetails { get; set; }
 
-        [Column("is_enabled")]  // Ánh xạ thuộc tính C# với tên cột chính xác trong DB
-        public bool IsEnabled { get; set; } = true;
     }
 }

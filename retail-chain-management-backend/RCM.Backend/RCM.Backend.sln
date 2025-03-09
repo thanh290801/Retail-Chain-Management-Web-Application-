@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35514.174 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCM.Backend", "RCM.Backend\RCM.Backend.csproj", "{1D92C30B-A037-441C-9CAC-723699009232}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RCM.Backend", "RCM.Backend\RCM.Backend.csproj", "{2D419311-8E48-4204-A329-C9E09CB218DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1D92C30B-A037-441C-9CAC-723699009232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1D92C30B-A037-441C-9CAC-723699009232}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1D92C30B-A037-441C-9CAC-723699009232}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1D92C30B-A037-441C-9CAC-723699009232}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D419311-8E48-4204-A329-C9E09CB218DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D419311-8E48-4204-A329-C9E09CB218DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D419311-8E48-4204-A329-C9E09CB218DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D419311-8E48-4204-A329-C9E09CB218DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

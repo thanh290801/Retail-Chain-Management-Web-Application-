@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "o3PI2BZ2y7gJvy0UTD3U9PxqTL7Lt7y8qEi9lKHguutq2rr+HGODjyJVv/CiRE0tXPcX29vnTR5fpEKiEWH1vQ==",
+  "dgSpecHash": "126aSGuPabMnJkCitNI1yRW4PrvudlXWkarOEYdLyNSCYwFM+LXlBX8qY5QgE6UnHcI/IVo4DMnrFJNUACZ+nA==",
   "success": true,
   "projectFilePath": "C:\\Users\\ktleg\\Documents\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\RCM.Backend.csproj",
   "expectedPackageFiles": [
@@ -62,5 +62,12 @@
     "C:\\Users\\ktleg\\.nuget\\packages\\system.text.json\\6.0.11\\system.text.json.6.0.11.nupkg.sha512",
     "C:\\Users\\ktleg\\.nuget\\packages\\system.windows.extensions\\4.7.0\\system.windows.extensions.4.7.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Problem reading the cache file C:\\Users\\ktleg\\Documents\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\obj\\project.nuget.cache : Invalid property identifier character: <. Path 'version', line 3, position 0."
+    }
+  ]
 }
