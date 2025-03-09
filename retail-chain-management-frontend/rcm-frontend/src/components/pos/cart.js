@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Container, Row, Col, Card, InputGroup, FormControl } from 'react-bootstrap';
+import { Button, Container, Row, Col, Card, InputGroup, FormControl, Table } from 'react-bootstrap';
 import { BsTrash } from 'react-icons/bs';
 
-const Cart = ({ cartData, onUpdateCart }) => {
+const Cart = ({ cartData, onUpdateCart, quantityInputRefs, isReturn }) => {
     const [cart, setCart] = useState(cartData);
 
     useEffect(() => {
@@ -11,23 +11,17 @@ const Cart = ({ cartData, onUpdateCart }) => {
 
     const handleQuantityChange = (id, value) => {
         let numericValue = value.replace(/[^0-9.]/g, '');
-
-        const dotCount = (numericValue.match(/\./g) || []).length;
-        if (dotCount > 1) {
-            return;
-        }
-
-        if (numericValue.includes('.')) {
-            const [integerPart, decimalPart] = numericValue.split('.');
-            if (decimalPart.length > 3) {
-                return;
-            }
-        }
-
-        const updatedCart = cart.map(item =>
+        const updatedCart = cart.map(item => 
             item.id === id ? { ...item, quantity: numericValue } : item
         );
+        setCart(updatedCart);
+        onUpdateCart(updatedCart);
+    };
 
+    const handleReturnQuantityChange = (id, value) => {
+        const updatedCart = cart.map(item => 
+            item.id === id ? { ...item, returnQuantity: Math.min(Number(value), item.quantity) } : item
+        );
         setCart(updatedCart);
         onUpdateCart(updatedCart);
     };
@@ -39,48 +33,83 @@ const Cart = ({ cartData, onUpdateCart }) => {
     };
 
     return (
-        <Container className="mt-4">
-            {cart.map(item => (
-                <Card key={item.id} className="mb-3 p-2">
-                    <Row className="align-items-center">
-                        <Col xs={3} className="fw-bold">{item.name}</Col>
-                        <Col xs={1} className="text-center text-muted">{item.unit}</Col>
-                        <Col xs={3}>
-                            <InputGroup className="d-flex align-items-center">
-                                <Button
-                                    variant="outline-secondary"
-                                    onClick={() => handleQuantityChange(item.id, (parseFloat(item.quantity) - 1).toString())}
-                                >-</Button>
+        <Container>
+            {/* Nếu là Phiếu Trả Hàng, hiển thị dạng bảng */}
+            {isReturn ? (
+                <Table bordered hover responsive>
+                    <thead>
+                        <tr>
+                            <th>Tên sản phẩm</th>
+                            <th>Số lượng mua</th>
+                            <th>Số lượng trả</th>
+                            <th>Giá</th>
+                            <th>Tổng</th>
+                            {/* <th>Hành động</th> */}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {cart.map(item => (
+                            <tr key={item.id}>
+                                <td className="fw-bold">{item.name}</td>
+                                <td className="text-center fw-bold">{item.quantity}</td>
 
-                                <FormControl
-                                    type="text"
-                                    inputMode="decimal"
-                                    value={item.quantity}
-                                    onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                                    className="mx-2 text-center quantity-input"
-                                />
+                                {/* Số lượng trả lại */}
+                                <td className="text-center">
+                                    <InputGroup>
+                                    <FormControl
+                                        type="number"
+                                        min="0"
+                                        max={item.quantity} // Không cho nhập quá số lượng gốc
+                                        value={item.returnQuantity || 0}
+                                        onChange={(e) => {
+                                            const newReturnQty = Math.min(Number(e.target.value), item.quantity);
+                                            handleReturnQuantityChange(item.id, newReturnQty);
+                                        }}
+                                    />
+                                    </InputGroup>
+                                </td>
 
-                                <Button
-                                    variant="outline-secondary"
-                                    onClick={() => handleQuantityChange(item.id, (parseFloat(item.quantity) + 1).toString())}
-                                >+</Button>
-                            </InputGroup>
-                        </Col>
-                        <Col xs={2} className="text-end">{(item.price ?? 0).toLocaleString()} VND</Col>
-                        <Col xs={2} className="text-end fw-bold">
-                            {((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)).toLocaleString()} VND
-                        </Col>
-                        <Col xs={1} className="text-center">
-                            <Button
-                                variant="outline-danger"
-                                onClick={() => handleRemoveItem(item.id)}
-                            >
-                                <BsTrash size={20} variant="outline-danger" />
-                            </Button>
-                        </Col>
-                    </Row>
-                </Card>
-            ))}
+                                <td className="text-end">{(item.price ?? 0).toLocaleString()} VND</td>
+                                <td className="text-end fw-bold">
+                                    {((parseFloat(item.price) || 0) * (parseFloat(item.returnQuantity) || 0)).toLocaleString()} VND
+                                </td>
+                                
+                                {/* <td className="text-center">
+                                    <Button variant="outline-danger" onClick={() => handleRemoveItem(item.id)}>
+                                        <BsTrash size={20} />
+                                    </Button>
+                                </td> */}
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
+            ) : (
+                // Nếu là Hóa Đơn Bán Hàng, hiển thị dạng Card
+                cart.map(item => (
+                    <Card key={item.id} className="mb-3 p-2">
+                        <Row className="align-items-center">
+                            <Col xs={3} className="fw-bold">{item.name}</Col>
+                            <Col xs={3}>
+                                <InputGroup>
+                                    <FormControl
+                                        type="text"
+                                        value={item.quantity}
+                                        onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                                        ref={(el) => quantityInputRefs.current[item.id] = el}
+                                    />
+                                </InputGroup>
+                            </Col>
+                            <Col xs={2} className="text-end">{(item.price ?? 0).toLocaleString()} VND</Col>
+                            <Col xs={2} className="text-end fw-bold">{((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)).toLocaleString()} VND</Col>
+                            <Col xs={1} className="text-center">
+                                <Button variant="outline-danger" onClick={() => handleRemoveItem(item.id)}>
+                                    <BsTrash size={20} />
+                                </Button>
+                            </Col>
+                        </Row>
+                    </Card>
+                ))
+            )}
         </Container>
     );
 };
