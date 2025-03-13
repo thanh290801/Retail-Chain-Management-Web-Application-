@@ -9,7 +9,7 @@ import SalesChartPage from './sale-dashboadConponent/SalesChartPage';
 import EndDayReport from './components/reportStaffConponent/EndShiftReport';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
 import CashBookComponent from './components/cashbookConponent/cashBook';
-import Main from './components/pos/Main';
+import Main from './components/pos/main';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");

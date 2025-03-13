@@ -1,62 +1,30 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\",
+  "WorkspaceRootPath": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|e:\\capstone project sp25\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\saleinvoicecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\saleinvoicecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|e:\\capstone project sp25\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|e:\\capstone project sp25\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\returninvoicecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\returninvoicecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|e:\\capstone project sp25\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\dtos\\productdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\dtos\\productdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|e:\\capstone project sp25\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\services\\userservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\services\\userservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|e:\\capstone project sp25\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\loginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\loginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\authresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\authresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\account.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\account.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\retailchaincontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\retailchaincontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\employee.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\employee.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\services\\iuserservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\services\\iuserservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\refunddetail.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\refunddetail.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|d:\\doantotnghiep\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\services\\ijwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2D419311-8E48-4204-A329-C9E09CB218DF}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\services\\ijwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -106,188 +74,79 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:1:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "launchSettings.json",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Properties\\launchSettings.json",
-              "RelativeDocumentMoniker": "RCM.Backend\\Properties\\launchSettings.json",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Properties\\launchSettings.json",
-              "RelativeToolTip": "RCM.Backend\\Properties\\launchSettings.json",
-              "ViewState": "AgIAAAIAAAAAAAAAAAAuwBEAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-03-08T17:13:07.569Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "Employee.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Employee.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Models\\Employee.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Employee.cs",
-              "RelativeToolTip": "RCM.Backend\\Models\\Employee.cs",
-              "ViewState": "AgIAABgAAAAAAAAAAAA/wC0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:50:53.397Z",
-              "EditorCaption": ""
+              "Name": "ST:3:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "UserService.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\UserService.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Services\\UserService.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\UserService.cs",
-              "RelativeToolTip": "RCM.Backend\\Services\\UserService.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAowBgAAAAJAAAAAAAAAA==",
+              "Title": "ReturnInvoiceController.cs",
+              "DocumentMoniker": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\ReturnInvoiceController.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\ReturnInvoiceController.cs",
+              "ToolTip": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\ReturnInvoiceController.cs",
+              "RelativeToolTip": "RCM.Backend\\Controllers\\ReturnInvoiceController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:42:00.797Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-09T09:28:13.458Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "AccountController.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AccountController.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AccountController.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AccountController.cs",
-              "RelativeToolTip": "RCM.Backend\\Controllers\\AccountController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFsAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 3,
+              "Title": "ProductDTO.cs",
+              "DocumentMoniker": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\ProductDTO.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\DTOs\\ProductDTO.cs",
+              "ToolTip": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\ProductDTO.cs",
+              "RelativeToolTip": "RCM.Backend\\DTOs\\ProductDTO.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:35:01.965Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "Account.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Account.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Models\\Account.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Account.cs",
-              "RelativeToolTip": "RCM.Backend\\Models\\Account.cs",
-              "ViewState": "AgIAAAUAAAAAAAAAAAAcwBQAAAArAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:29:25.4Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Program.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Program.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Program.cs",
-              "RelativeToolTip": "RCM.Backend\\Program.cs",
-              "ViewState": "AgIAADAAAAAAAAAAAAAwwEEAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:43:01.792Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-09T09:22:10.328Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\appsettings.json",
-              "RelativeDocumentMoniker": "RCM.Backend\\appsettings.json",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\appsettings.json",
-              "RelativeToolTip": "RCM.Backend\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAABpAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-03-08T16:43:00.19Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "AuthResponse.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\AuthResponse.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Models\\AuthResponse.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\AuthResponse.cs",
-              "RelativeToolTip": "RCM.Backend\\Models\\AuthResponse.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Title": "Program.cs",
+              "DocumentMoniker": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Program.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Program.cs",
+              "ToolTip": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Program.cs",
+              "RelativeToolTip": "RCM.Backend\\Program.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAAkwBcAAAAxAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T17:03:16.322Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-09T09:01:09.534Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "LoginRequest.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\LoginRequest.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Models\\LoginRequest.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\LoginRequest.cs",
-              "RelativeToolTip": "RCM.Backend\\Models\\LoginRequest.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T17:03:29.334Z",
-              "EditorCaption": ""
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "RCM.Backend\\Properties\\launchSettings.json",
+              "ToolTip": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Properties\\launchSettings.json",
+              "RelativeToolTip": "RCM.Backend\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAiwB8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-03-09T08:59:25.109Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "AuthController.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AuthController.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AuthController.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AuthController.cs",
-              "RelativeToolTip": "RCM.Backend\\Controllers\\AuthController.cs",
-              "ViewState": "AgIAAAIAAAAAAAAAAAAowBEAAAAXAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:41:03.993Z",
-              "EditorCaption": ""
+              "Title": "appsettings.json",
+              "DocumentMoniker": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\appsettings.json",
+              "RelativeDocumentMoniker": "RCM.Backend\\appsettings.json",
+              "ToolTip": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\appsettings.json",
+              "RelativeToolTip": "RCM.Backend\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-03-09T08:58:53.696Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "RetailChainContext.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\RetailChainContext.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Models\\RetailChainContext.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\RetailChainContext.cs",
-              "RelativeToolTip": "RCM.Backend\\Models\\RetailChainContext.cs",
-              "ViewState": "AgIAACEBAAAAAAAAAAAgwDsBAAAPAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "SaleInvoiceController.cs",
+              "DocumentMoniker": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\SaleInvoiceController.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\SaleInvoiceController.cs",
+              "ToolTip": "E:\\Capstone Project SP25\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\SaleInvoiceController.cs",
+              "RelativeToolTip": "RCM.Backend\\Controllers\\SaleInvoiceController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAD4BAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:34:26.787Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "IUserService.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\IUserService.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Services\\IUserService.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\IUserService.cs",
-              "RelativeToolTip": "RCM.Backend\\Services\\IUserService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:41:59.538Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "RefundDetail.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\RefundDetail.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Models\\RefundDetail.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\RefundDetail.cs",
-              "RelativeToolTip": "RCM.Backend\\Models\\RefundDetail.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:36:28.98Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "IJwtService.cs",
-              "DocumentMoniker": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\IJwtService.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Services\\IJwtService.cs",
-              "ToolTip": "D:\\DoAnTotNghiep\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\IJwtService.cs",
-              "RelativeToolTip": "RCM.Backend\\Services\\IJwtService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-08T16:41:56.52Z",
+              "WhenOpened": "2025-03-09T08:40:04.758Z",
               "EditorCaption": ""
             }
           ]
