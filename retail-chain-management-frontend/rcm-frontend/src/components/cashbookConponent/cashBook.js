@@ -1,70 +1,62 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const CashBookComponent = () => {
+import CashBook from "./listCashBook";
+const CashBookStaff = () => {
     const navigate = useNavigate();
-    const [cashOnHand, setCashOnHand] = useState(0);
-    const [totalIncome, setTotalIncome] = useState(0); // Tổng thu
-    const [totalExpense, setTotalExpense] = useState(0); // Tổng chi
-    const [transactions, setTransactions] = useState([]);
-    const [search, setSearch] = useState("");
-    const [filterType, setFilterType] = useState("all"); // 'all' | 'Thu' | 'Chi'
+    const [cashFundData, setCashFundData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [cashData, setCashData] = useState(null);
+
+    // Mặc định: Hiển thị giao dịch trong tháng hiện tại
+
 
     useEffect(() => {
-        fetchCashOnHand();
-        fetchTodayTransactions();
-    }, []);
-
-    // Lấy số dư tiền mặt trong quỹ
-    const fetchCashOnHand = async () => {
+        fetchCashBalance();
+        fetchCashsummary();
+    }, []);// Tự động gọi API khi filter thay đổi
+    const fetchCashBalance = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/api/cash/cash-on-hand");
-            setCashOnHand(response.data.cashOnHand);
-        } catch (error) {
-            console.error("Lỗi khi lấy số dư quỹ:", error);
-        }
-    };
+            const token = localStorage.getItem("token");
 
-    // Lấy danh sách giao dịch trong ngày hôm nay
-    const fetchTodayTransactions = async () => {
-        try {
-            const response = await axios.get("http://localhost:5000/api/cash/today-transactions");
-            setTransactions(response.data);
-
-            // Tính tổng thu và tổng chi
-            let income = 0, expense = 0;
-            response.data.forEach((t) => {
-                if (t.transactionType === "Thu") {
-                    income += t.amount;
-                } else if (t.transactionType === "Chi") {
-                    expense += t.amount;
-                }
+            const response = await axios.get("https://localhost:5000/api/Financial/branch-cash-balance", {
+                headers: { Authorization: `Bearer ${token}` },
             });
 
-            setTotalIncome(income);
-            setTotalExpense(expense);
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách giao dịch:", error);
+            setCashData(response.data);
+        } catch (err) {
+            setError(err.response?.data?.message || "Lỗi khi lấy dữ liệu");
+        } finally {
+            setLoading(false);
         }
     };
 
-    // Tìm kiếm theo mã giao dịch
-    const handleSearch = (e) => {
-        setSearch(e.target.value);
+    const fetchCashsummary = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) throw new Error("Token không tồn tại!");
+            console.log("token", token);
+            const response = await axios.get("https://localhost:5000/api/CashBookStaff/cashbook-staff-summary", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setCashFundData(response.data);
+            console.log("📌 Tổng Quan Tài Chính:", response.data);
+
+        } catch (err) {
+            setError(err.response?.data?.message || "Lỗi khi lấy dữ liệu");
+        } finally {
+            setLoading(false)
+        }
     };
 
-    // Lọc giao dịch theo mã và loại giao dịch
-    const filteredTransactions = transactions.filter((t) =>
-        t.transactionCode.toLowerCase().includes(search.toLowerCase()) &&
-        (filterType === "all" || t.transactionType === filterType)
-    );
+
 
     return (
         <div className="min-h-screen bg-gray-100 p-6">
             {/* Header */}
             <div className="flex justify-between items-center bg-blue-600 p-4 rounded-lg shadow-md text-white">
-                <h2 className="text-2xl font-bold">📘 Sổ Quỹ</h2>
+                <h2 className="text-2xl font-bold">📘 Sổ Quỹ Nhân Viên</h2>
                 <div className="flex space-x-4">
                     <button
                         onClick={() => navigate("/transactionForm")}
@@ -79,77 +71,59 @@ const CashBookComponent = () => {
                 </div>
             </div>
 
+
+
             {/* Thông tin tài chính */}
-            <div className="mt-6 bg-white p-6 rounded-lg shadow-md text-center">
-                <h2 className="text-xl font-bold text-gray-700">Tổng Quan Tài Chính Hôm Nay</h2>
-                <div className="flex justify-around mt-4">
-                    <div className="p-4 bg-green-100 text-green-700 rounded-lg shadow-md w-1/3">
-                        <h3 className="text-lg font-semibold">💰 Tiền mặt trong quỹ</h3>
-                        <p className="text-2xl font-bold">{cashOnHand.toLocaleString()} đ</p>
-                    </div>
-                    <div className="p-4 bg-blue-100 text-blue-700 rounded-lg shadow-md w-1/3">
-                        <h3 className="text-lg font-semibold">📥 Tổng thu hôm nay</h3>
-                        <p className="text-2xl font-bold">{totalIncome.toLocaleString()} đ</p>
-                    </div>
-                    <div className="p-4 bg-red-100 text-red-700 rounded-lg shadow-md w-1/3">
-                        <h3 className="text-lg font-semibold">📤 Tổng chi hôm nay</h3>
-                        <p className="text-2xl font-bold">{totalExpense.toLocaleString()} đ</p>
+            {loading ? (
+                <p>Đang tải...</p>
+            ) : error ? (
+                <p className="text-red-500">{error}</p>
+            ) : (
+                <div className="mt-6 bg-white p-6 rounded-lg shadow-md text-center">
+                    <h2 className="text-xl font-bold text-gray-700">Quỹ tiền mặt hôm nay</h2>
+                    <div className="flex justify-around mt-4">
+                        {/* Dùng grid để căn chỉnh 4 thẻ tài chính */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                            {/* 💰 Tồn quỹ đầu ngày */}
+                            <div className="p-6 bg-green-200 text-green-800 rounded-lg shadow-md">
+                                <h3 className="text-lg font-semibold">💰 Tồn quỹ tiền mặt đầu ngày</h3>
+                                <p className="text-3xl font-bold">
+                                    {cashData?.openingCashBalance?.toLocaleString() || "0"} VNĐ
+                                </p>
+                            </div>
+
+                            {/* 💰 Tồn quỹ hiện tại */}
+                            <div className="p-6 bg-blue-200 text-green-800 rounded-lg shadow-md">
+                                <h3 className="text-lg font-semibold">💰 Tồn quỹ tiền mặt</h3>
+                                <p className="text-3xl font-bold">
+                                    {cashData?.cashBalance?.toLocaleString() || "0"} VNĐ
+                                </p>
+                            </div>
+
+                            {/* 📊 Tổng thu */}
+                            <div className="p-6 bg-green-200 text-green-800 rounded-lg shadow-md">
+                                <h3 className="text-lg font-semibold">📊 Tổng thu tiền mặt</h3>
+                                <p className="text-3xl font-bold">
+                                    {cashData?.cashThu?.toLocaleString() || "0"} VNĐ
+                                </p>
+                            </div>
+
+                            {/* 📊 Tổng chi */}
+                            <div className="p-6 bg-red-200 text-green-800 rounded-lg shadow-md">
+                                <h3 className="text-lg font-semibold">📊 Tổng chi tiền mặt</h3>
+                                <p className="text-3xl font-bold">
+                                    {cashData?.cashChi?.toLocaleString() || "0"} VNĐ
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
+            <CashBook />
 
-            {/* Bộ lọc tìm kiếm & loại giao dịch */}
-            <div className="mt-4 flex justify-between items-center">
-                <input
-                    type="text"
-                    placeholder="🔍 Tìm theo mã giao dịch..."
-                    className="p-2 border rounded-md w-1/3"
-                    value={search}
-                    onChange={handleSearch}
-                />
-                <select
-                    className="p-2 border rounded-md"
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                >
-                    <option value="all">Tất cả</option>
-                    <option value="Thu">Thu</option>
-                    <option value="Chi">Chi</option>
-                </select>
-            </div>
 
-            {/* Danh sách giao dịch */}
-            <div className="mt-4 bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-bold text-gray-700 mb-4">Lịch sử giao dịch hôm nay</h2>
-                {filteredTransactions.length > 0 ? (
-                    <table className="w-full border-collapse border border-gray-300">
-                        <thead>
-                            <tr className="bg-gray-200">
-                                <th className="border p-2">Mã GD</th>
-                                <th className="border p-2">Loại</th>
-                                <th className="border p-2">Số tiền</th>
-                                <th className="border p-2">Mô tả</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredTransactions.map((t, index) => (
-                                <tr key={index} className="text-center">
-                                    <td className="border p-2">{t.transactionCode}</td>
-                                    <td className={`border p-2 font-bold ${t.transactionType === "Thu" ? "text-green-600" : "text-red-600"}`}>
-                                        {t.transactionType}
-                                    </td>
-                                    <td className="border p-2">{t.amount.toLocaleString()} đ</td>
-                                    <td className="border p-2">{t.description}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <p className="text-gray-500 text-center">Không có giao dịch nào hôm nay.</p>
-                )}
-            </div>
         </div>
     );
 };
 
-export default CashBookComponent;
+export default CashBookStaff;

@@ -123,7 +123,7 @@ const Main = () => {
                         onClick={() => {
                             const userRole = localStorage.getItem("role"); // Lấy role từ localStorage
                             if (userRole === "Owner") {
-                                navigate("/home"); // Nếu là chủ thì về trang Home
+                                navigate("/header"); // Nếu là chủ thì về trang Home
                             } else {
                                 navigate("/staffHome"); // Nếu là nhân viên thì về trang StaffHome
                             }

@@ -8,6 +8,7 @@ namespace RCM.Backend.Models
         public PurchaseOrder()
         {
             BatchDetails = new HashSet<BatchDetail>();
+            PurchaseCosts = new HashSet<PurchaseCost>();
             PurchaseOrderItems = new HashSet<PurchaseOrderItem>();
         }
 
@@ -19,6 +20,7 @@ namespace RCM.Backend.Models
 
         public virtual Supplier? Supplier { get; set; }
         public virtual ICollection<BatchDetail> BatchDetails { get; set; }
+        public virtual ICollection<PurchaseCost> PurchaseCosts { get; set; }
         public virtual ICollection<PurchaseOrderItem> PurchaseOrderItems { get; set; }
     }
 }
