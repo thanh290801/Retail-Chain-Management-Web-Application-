@@ -11,5 +11,6 @@ namespace RCM.Backend.Services
         bool AddAccount(Account account);
         bool DeleteAccount(int id);
         bool UpdateAccount(Account account);
+
     }
 }

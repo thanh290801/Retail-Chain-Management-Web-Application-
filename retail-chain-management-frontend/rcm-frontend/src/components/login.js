@@ -15,23 +15,28 @@ const LoginPage = () => {
 
     const handleLogin = async (role) => {
         try {
-            // Kiểm tra Role phù hợp với Backend ("Chủ" hoặc "Nhân viên")
             const mappedRole = role === 'Owner' ? 'Owner' : 'Staff';
 
-            const response = await axios.post('http://localhost:5000/api/Auth/login', {
+            const response = await axios.post('https://localhost:5000/api/Auth/login', {
                 username,
                 password,
                 role: mappedRole
             });
+
+            console.log("Response:", response); // ✅ LOG response để debug
+
+            // Kiểm tra nếu response có data
+            if (!response || !response.data) {
+                throw new Error('API không trả về dữ liệu hợp lệ.');
+            }
 
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('role', response.data.role);
                 localStorage.setItem('username', response.data.username);
 
-                // Điều hướng dựa trên role trả về từ API
                 if (response.data.role === 'Owner' && role === 'Owner') {
-                    navigate('/home');
+                    navigate('/header');
                 } else if (response.data.role === 'Staff' && role === 'Staff') {
                     navigate('/staffHome');
                 } else {
@@ -41,9 +46,11 @@ const LoginPage = () => {
                 setErrorMessage('Lỗi đăng nhập, vui lòng thử lại.');
             }
         } catch (error) {
+            console.error("Lỗi đăng nhập:", error.response?.data || error.message);
             setErrorMessage('Tên đăng nhập hoặc mật khẩu không đúng.');
         }
     };
+
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">

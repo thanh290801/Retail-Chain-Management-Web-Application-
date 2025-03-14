@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using RCM.Backend.Models;
+using Newtonsoft.Json;
+using System.Security.Claims;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,7 +26,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -32,13 +33,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            RequireExpirationTime=true,
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"])),
+            RoleClaimType = ClaimTypes.Role, // ✅ Đảm bảo API lấy role đúng
+            NameClaimType = ClaimTypes.Name // ✅ Đảm bảo API lấy Name đúng
         };
     });
 builder.Services.AddControllers();
@@ -56,6 +60,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();

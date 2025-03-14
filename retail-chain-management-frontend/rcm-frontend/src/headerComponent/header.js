@@ -58,7 +58,7 @@ const Header = () => {
                 return;
             }
 
-            const response = await axios.get("http://localhost:5000/api/account/me", {
+            const response = await axios.get("http://localhost:5000/api/Account/me", {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -140,7 +140,7 @@ const Header = () => {
                                 )}
                             </div>
 
-                            <Link to="/soquy" className="text-white flex items-center">Sổ quỹ</Link>
+                            <Link to="/cashBook" className="text-white flex items-center">Sổ quỹ</Link>
                             <Link to="/baocao" className="text-white flex items-center">Báo cáo</Link>
                         </nav>
                     </div>
