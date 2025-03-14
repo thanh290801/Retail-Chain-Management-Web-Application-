@@ -139,6 +139,102 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
+    "Method": "GetProductByBarcode",
+    "RelativePath": "api/sale-invoice/barcode",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BBarcodeSearchRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
+    "Method": "CreateOrder",
+    "RelativePath": "api/sale-invoice/order/create",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BOrderRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
+    "Method": "RefundOrder",
+    "RelativePath": "api/sale-invoice/order/refund",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BRefundRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
+    "Method": "GetOrdersWithFilters",
+    "RelativePath": "api/sale-invoice/order/search",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BOrderSearchRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
+    "Method": "GetOrderDetailsByOrderId",
+    "RelativePath": "api/sale-invoice/orderdetails/search",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BOrderDetailSearchRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
+    "Method": "SearchProducts",
+    "RelativePath": "api/sale-invoice/search",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BProductSearchRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "RCM.Backend.Controllers.WeatherForecastController",
     "Method": "Get",
     "RelativePath": "WeatherForecast",
