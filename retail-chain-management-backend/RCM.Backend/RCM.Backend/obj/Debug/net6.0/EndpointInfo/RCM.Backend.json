@@ -1,0 +1,2476 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "RCM.Backend",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/Account/all": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Employee"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Employee"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Employee"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Account/me": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/CashBookStaff/cashbook-list": {
+      "get": {
+        "tags": [
+          "CashBookStaff"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/CashBookStaff/cashbook-staff-summary": {
+      "get": {
+        "tags": [
+          "CashBookStaff"
+        ],
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "transactionType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/CashBookStaff/cashbook-staff-history": {
+      "get": {
+        "tags": [
+          "CashBookStaff"
+        ],
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "transactionType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/CashHandover": {
+      "post": {
+        "tags": [
+          "CashHandover"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashHandover"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashHandover"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashHandover"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Financial/branch-cash-balance": {
+      "get": {
+        "tags": [
+          "Financial"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/sale-invoice/barcode": {
+      "post": {
+        "tags": [
+          "SaleInvoice"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BarcodeSearchRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BarcodeSearchRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BarcodeSearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/sale-invoice/search": {
+      "post": {
+        "tags": [
+          "SaleInvoice"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductSearchRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductSearchRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductSearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/sale-invoice/order/search": {
+      "post": {
+        "tags": [
+          "SaleInvoice"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderSearchRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderSearchRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderSearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/sale-invoice/orderdetails/search": {
+      "post": {
+        "tags": [
+          "SaleInvoice"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderDetailSearchRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderDetailSearchRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderDetailSearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/sale-invoice/order/create": {
+      "post": {
+        "tags": [
+          "SaleInvoice"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/sale-invoice/order/refund": {
+      "post": {
+        "tags": [
+          "SaleInvoice"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/WeatherForecast": {
+      "get": {
+        "tags": [
+          "WeatherForecast"
+        ],
+        "operationId": "GetWeatherForecast",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeatherForecast"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeatherForecast"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeatherForecast"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Account": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "passwordHash": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          },
+          "productPriceHistories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPriceHistory"
+            },
+            "nullable": true
+          },
+          "stockAdjustments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustment"
+            },
+            "nullable": true
+          },
+          "stockAuditRecordAuditors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAuditRecord"
+            },
+            "nullable": true
+          },
+          "stockAuditRecordCoAuditors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAuditRecord"
+            },
+            "nullable": true
+          },
+          "warehouseTransfers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WarehouseTransfer"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AttendanceRecord": {
+        "type": "object",
+        "properties": {
+          "attendanceRecordsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employeeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "checkIn": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "checkOut": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BankTransaction": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fundId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactionCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "transactionDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "transactionType": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "sourceType": {
+            "type": "string",
+            "nullable": true
+          },
+          "employeeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "branchID": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          },
+          "fund": {
+            "$ref": "#/components/schemas/Fund"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "fundTransactionHistories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FundTransactionHistory"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BarcodeSearchRequest": {
+        "type": "object",
+        "properties": {
+          "barcode": {
+            "type": "string",
+            "nullable": true
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Batch": {
+        "type": "object",
+        "properties": {
+          "batchesId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "receivedDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "cashHandovers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashHandover"
+            },
+            "nullable": true
+          },
+          "warehouse": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "batchDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BatchDetail"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BatchDetail": {
+        "type": "object",
+        "properties": {
+          "batchDetailsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "batchId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "purchaseOrderId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "batch": {
+            "$ref": "#/components/schemas/Batch"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "purchaseOrder": {
+            "$ref": "#/components/schemas/PurchaseOrder"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CashHandover": {
+        "required": [
+          "amount",
+          "branchID",
+          "createdBy",
+          "employee",
+          "employeeID",
+          "receiverID",
+          "transactionDate",
+          "transactionType"
+        ],
+        "type": "object",
+        "properties": {
+          "handoverID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactionDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "employeeID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "receiverID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "branchID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "transactionType": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 255,
+            "type": "string",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "personName": {
+            "maxLength": 100,
+            "type": "string",
+            "nullable": true
+          },
+          "note": {
+            "maxLength": 500,
+            "type": "string",
+            "nullable": true
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          },
+          "receiver": {
+            "$ref": "#/components/schemas/Employee"
+          },
+          "branch": {
+            "$ref": "#/components/schemas/Batch"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CashTransaction": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fundId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactionCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "transactionDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "transactionType": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "sourceType": {
+            "type": "string",
+            "nullable": true
+          },
+          "employeeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "branchID": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "handoverID": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "handover": {
+            "$ref": "#/components/schemas/CashHandover"
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          },
+          "fund": {
+            "$ref": "#/components/schemas/Fund"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "fundTransactionHistories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FundTransactionHistory"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DailySalesReport": {
+        "type": "object",
+        "properties": {
+          "reportId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reportDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "totalSales": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "warehouse": {
+            "$ref": "#/components/schemas/Warehouse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Employee": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accountId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "profileImage": {
+            "type": "string",
+            "nullable": true
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "gender": {
+            "type": "string",
+            "nullable": true
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "identityNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "hometown": {
+            "type": "string",
+            "nullable": true
+          },
+          "workShiftId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "fixedSalary": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "branchId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "isCheckedIn": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "account": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "branch": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "cashHandoversGiven": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashHandover"
+            },
+            "nullable": true
+          },
+          "cashHandoversReceived": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashHandover"
+            },
+            "nullable": true
+          },
+          "attendanceRecords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttendanceRecord"
+            },
+            "nullable": true
+          },
+          "bankTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankTransaction"
+            },
+            "nullable": true
+          },
+          "cashHandoverEmployees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashHandover"
+            },
+            "nullable": true
+          },
+          "cashHandoverReceivers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashHandover"
+            },
+            "nullable": true
+          },
+          "cashTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashTransaction"
+            },
+            "nullable": true
+          },
+          "endShifts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EndShift"
+            },
+            "nullable": true
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            },
+            "nullable": true
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Refund"
+            },
+            "nullable": true
+          },
+          "salaries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Salary"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EndShift": {
+        "type": "object",
+        "properties": {
+          "shiftId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employeeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "branchId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "totalSales": {
+            "type": "number",
+            "format": "double"
+          },
+          "cashCollected": {
+            "type": "number",
+            "format": "double"
+          },
+          "bankCollected": {
+            "type": "number",
+            "format": "double"
+          },
+          "cashAtStart": {
+            "type": "number",
+            "format": "double"
+          },
+          "cashAtEnd": {
+            "type": "number",
+            "format": "double"
+          },
+          "branch": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Fund": {
+        "type": "object",
+        "properties": {
+          "fundId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "branchId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fundType": {
+            "type": "string",
+            "nullable": true
+          },
+          "balance": {
+            "type": "number",
+            "format": "double"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "branch": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "bankTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankTransaction"
+            },
+            "nullable": true
+          },
+          "cashTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashTransaction"
+            },
+            "nullable": true
+          },
+          "fundTransactionHistories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FundTransactionHistory"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FundTransactionHistory": {
+        "type": "object",
+        "properties": {
+          "transactionHistoryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fundId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactionDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "transactionType": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "sourceType": {
+            "type": "string",
+            "nullable": true
+          },
+          "relatedOrderId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "relatedRefundId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "relatedCashTransactionId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "relatedBankTransactionId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "branchId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "branch": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "fund": {
+            "$ref": "#/components/schemas/Fund"
+          },
+          "relatedBankTransaction": {
+            "$ref": "#/components/schemas/BankTransaction"
+          },
+          "relatedCashTransaction": {
+            "$ref": "#/components/schemas/CashTransaction"
+          },
+          "relatedOrder": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "relatedRefund": {
+            "$ref": "#/components/schemas/Refund"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "branchId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "employeeid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "finalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "invoiceDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          },
+          "shop": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "bankTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankTransaction"
+            },
+            "nullable": true
+          },
+          "cashTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashTransaction"
+            },
+            "nullable": true
+          },
+          "fundTransactionHistories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FundTransactionHistory"
+            },
+            "nullable": true
+          },
+          "orderDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderDetail"
+            },
+            "nullable": true
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Refund"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderDetail": {
+        "type": "object",
+        "properties": {
+          "orderDetailId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderDetailSearchRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderProduct": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderRequest": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shopId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "finalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderProduct"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OrderSearchRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "employeeId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "barcode": {
+            "type": "string",
+            "nullable": true
+          },
+          "productName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "productsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "barcode": {
+            "type": "string",
+            "nullable": true
+          },
+          "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "weight": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "volume": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "category": {
+            "type": "string",
+            "nullable": true
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "batchDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BatchDetail"
+            },
+            "nullable": true
+          },
+          "orderDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderDetail"
+            },
+            "nullable": true
+          },
+          "productPriceHistories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPriceHistory"
+            },
+            "nullable": true
+          },
+          "promotions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Promotion"
+            },
+            "nullable": true
+          },
+          "purchaseOrderItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderItem"
+            },
+            "nullable": true
+          },
+          "stockAdjustmentDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustmentDetail"
+            },
+            "nullable": true
+          },
+          "stockAuditDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAuditDetail"
+            },
+            "nullable": true
+          },
+          "stockLevels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockLevel"
+            },
+            "nullable": true
+          },
+          "supplierProducts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupplierProduct"
+            },
+            "nullable": true
+          },
+          "warehouseTransferDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WarehouseTransferDetail"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductPriceHistory": {
+        "type": "object",
+        "properties": {
+          "priceHistoryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "priceType": {
+            "type": "string",
+            "nullable": true
+          },
+          "oldPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "newPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "changedBy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "changeDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "changedByNavigation": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "warehouse": {
+            "$ref": "#/components/schemas/Warehouse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductRefund": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductSearchRequest": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "nullable": true
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Promotion": {
+        "type": "object",
+        "properties": {
+          "promotionsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "discountPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "warehouse": {
+            "$ref": "#/components/schemas/Warehouse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PurchaseCost": {
+        "type": "object",
+        "properties": {
+          "costId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "purchaseOrderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCost": {
+            "type": "number",
+            "format": "double"
+          },
+          "branchId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recordedDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "branch": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "purchaseOrder": {
+            "$ref": "#/components/schemas/PurchaseOrder"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PurchaseOrder": {
+        "type": "object",
+        "properties": {
+          "purchaseOrdersId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "orderDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/Supplier"
+          },
+          "batchDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BatchDetail"
+            },
+            "nullable": true
+          },
+          "purchaseCosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseCost"
+            },
+            "nullable": true
+          },
+          "purchaseOrderItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrderItem"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PurchaseOrderItem": {
+        "type": "object",
+        "properties": {
+          "purchaseOrderItemsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "purchaseOrderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantityOrdered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantityReceived": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "purchaseOrder": {
+            "$ref": "#/components/schemas/PurchaseOrder"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Refund": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employeeid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refundDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refundAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "refundStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "fundTransactionHistories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FundTransactionHistory"
+            },
+            "nullable": true
+          },
+          "refundDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RefundDetail"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RefundDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refundId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "refund": {
+            "$ref": "#/components/schemas/Refund"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RefundRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employeeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRefundAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "refundProducts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductRefund"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Salary": {
+        "type": "object",
+        "properties": {
+          "salaryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "employeeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fixedSalary": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "bonusSalary": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "penalty": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "finalSalary": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockAdjustment": {
+        "type": "object",
+        "properties": {
+          "stockAdjustmentsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "auditorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "adjustmentDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "auditor": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "warehouse": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "stockAdjustmentDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustmentDetail"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockAdjustmentDetail": {
+        "type": "object",
+        "properties": {
+          "stockAdjustmentDetailsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "adjustmentId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "previousQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "adjustedQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "adjustment": {
+            "$ref": "#/components/schemas/StockAdjustment"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockAuditDetail": {
+        "type": "object",
+        "properties": {
+          "stockAuditDetailsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "auditId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recordedQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "audit": {
+            "$ref": "#/components/schemas/StockAuditRecord"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockAuditRecord": {
+        "type": "object",
+        "properties": {
+          "stockAuditRecordsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "auditorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coAuditorId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "auditDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "auditor": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "coAuditor": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "warehouse": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "stockAuditDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAuditDetail"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockLevel": {
+        "type": "object",
+        "properties": {
+          "stockLevelsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warehouseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "purchasePrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "wholesalePrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "retailPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "warehouse": {
+            "$ref": "#/components/schemas/Warehouse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Supplier": {
+        "type": "object",
+        "properties": {
+          "suppliersId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPerson": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "purchaseOrders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrder"
+            },
+            "nullable": true
+          },
+          "supplierProducts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupplierProduct"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SupplierProduct": {
+        "type": "object",
+        "properties": {
+          "supplierProductsId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/Supplier"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Warehouse": {
+        "type": "object",
+        "properties": {
+          "warehousesId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "batches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Batch"
+            },
+            "nullable": true
+          },
+          "cashHandovers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CashHandover"
+            },
+            "nullable": true
+          },
+          "dailySalesReports": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailySalesReport"
+            },
+            "nullable": true
+          },
+          "employees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Employee"
+            },
+            "nullable": true
+          },
+          "endShifts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EndShift"
+            },
+            "nullable": true
+          },
+          "fundTransactionHistories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FundTransactionHistory"
+            },
+            "nullable": true
+          },
+          "funds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Fund"
+            },
+            "nullable": true
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            },
+            "nullable": true
+          },
+          "productPriceHistories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPriceHistory"
+            },
+            "nullable": true
+          },
+          "promotions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Promotion"
+            },
+            "nullable": true
+          },
+          "purchaseCosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseCost"
+            },
+            "nullable": true
+          },
+          "stockAdjustments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustment"
+            },
+            "nullable": true
+          },
+          "stockAuditRecords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAuditRecord"
+            },
+            "nullable": true
+          },
+          "stockLevels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockLevel"
+            },
+            "nullable": true
+          },
+          "warehouseTransferFromWarehouses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WarehouseTransfer"
+            },
+            "nullable": true
+          },
+          "warehouseTransferToWarehouses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WarehouseTransfer"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WarehouseTransfer": {
+        "type": "object",
+        "properties": {
+          "transferId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fromWarehouseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "toWarehouseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transferDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdByNavigation": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "fromWarehouse": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "toWarehouse": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "warehouseTransferDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WarehouseTransferDetail"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WarehouseTransferDetail": {
+        "type": "object",
+        "properties": {
+          "transferDetailId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transferId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "transfer": {
+            "$ref": "#/components/schemas/WarehouseTransfer"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WeatherForecast": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "temperatureC": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "temperatureF": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
