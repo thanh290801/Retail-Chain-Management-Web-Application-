@@ -16,7 +16,9 @@ namespace RCM.Backend.Models
         public int? RelatedCashTransactionId { get; set; }
         public int? RelatedBankTransactionId { get; set; }
         public string? Notes { get; set; }
+        public int BranchId { get; set; }
 
+        public virtual Warehouse Branch { get; set; } = null!;
         public virtual Fund Fund { get; set; } = null!;
         public virtual BankTransaction? RelatedBankTransaction { get; set; }
         public virtual CashTransaction? RelatedCashTransaction { get; set; }

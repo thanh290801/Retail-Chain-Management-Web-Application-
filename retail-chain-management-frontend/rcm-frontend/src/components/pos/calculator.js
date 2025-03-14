@@ -151,9 +151,9 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                     }))
                 })
             });
-    
+
             const data = await response.json();
-    
+
             if (response.ok && data.refundId) {
                 alert(`✅ Hoàn tiền thành công! Mã phiếu hoàn tiền: ${data.refundId}`);
                 onCashUpdate(0, 0);
@@ -164,7 +164,7 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
             console.error("❌ Lỗi khi gọi API hoàn tiền:", error);
             alert("❌ Lỗi khi gửi yêu cầu hoàn tiền.");
         }
-    };    
+    };
 
     return (
         <Card className="p-3">
@@ -199,7 +199,6 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                                 Chuyển khoản
                             </ToggleButton>
                         </ToggleButtonGroup>
-
                         {paymentMethod === 'cash' && (
                             <Form.Group className="mb-3">
                                 <div className="d-grid gap-2 p-2"
@@ -224,7 +223,6 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                                         </Button>
                                     ))}
                                 </div>
-
                                 <Form.Control
                                     type="number"
                                     min="0"

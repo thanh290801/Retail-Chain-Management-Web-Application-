@@ -74,16 +74,15 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
             const response = await axios.post(`${API_BASE_URL}/orderdetails/search`, {
                 orderId: order.orderId // ✅ Gửi `orderId` vào body
             });
-    
             if (response.data) {
                 handleCreateReturnInvoice(order, response.data); // ✅ Tạo phiếu trả hàng với dữ liệu từ API
             }
         } catch (error) {
             console.error("❌ Lỗi khi lấy chi tiết hóa đơn:", error);
         }
-    
+
         onHide(); // ✅ Đóng modal sau khi chọn
-    };    
+    };
 
     return (
         <Modal show={show} onHide={onHide} centered size="lg">
@@ -171,10 +170,10 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
                                 maxDate={new Date()}
                             />
                         </Form.Group>
-                    </Col>
+                    </Col >
 
                     {/* Cột phải: Danh sách hóa đơn */}
-                    <Col md={8}>
+                    < Col md={8} >
                         <Table bordered hover responsive>
                             <thead className="bg-primary text-white">
                                 <tr>
@@ -183,8 +182,8 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
                                     <th>Nhân viên</th>
                                     <th>Tổng cộng</th>
                                     <th>Chọn</th>
-                                </tr>
-                            </thead>
+                                </tr >
+                            </thead >
                             <tbody>
                                 {loading ? (
                                     <tr>
@@ -213,17 +212,17 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
                                         <td colSpan="5" className="text-center text-danger">
                                             ❌ Không tìm thấy hóa đơn phù hợp.
                                         </td>
-                                    </tr>
+                                    </tr >
                                 )}
-                            </tbody>
-                        </Table>
-                    </Col>
-                </Row>
-            </Modal.Body>
+                            </tbody >
+                        </Table >
+                    </Col >
+                </Row >
+            </Modal.Body >
             <Modal.Footer>
                 <Button variant="secondary" onClick={onHide}>Đóng</Button>
             </Modal.Footer>
-        </Modal>
+        </Modal >
     );
 };
 

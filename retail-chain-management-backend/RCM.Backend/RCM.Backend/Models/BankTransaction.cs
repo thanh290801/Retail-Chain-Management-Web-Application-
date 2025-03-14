@@ -8,7 +8,6 @@ namespace RCM.Backend.Models
         public BankTransaction()
         {
             FundTransactionHistories = new HashSet<FundTransactionHistory>();
-            Payments = new HashSet<Payment>();
         }
 
         public int TransactionId { get; set; }
@@ -19,10 +18,12 @@ namespace RCM.Backend.Models
         public decimal Amount { get; set; }
         public string SourceType { get; set; } = null!;
         public int EmployeeId { get; set; }
+        public int? OrderId { get; set; }
+        public int? BranchID { get; set; }
 
         public virtual Employee Employee { get; set; } = null!;
         public virtual Fund Fund { get; set; } = null!;
+        public virtual Order? Order { get; set; }
         public virtual ICollection<FundTransactionHistory> FundTransactionHistories { get; set; }
-        public virtual ICollection<Payment> Payments { get; set; }
     }
 }
