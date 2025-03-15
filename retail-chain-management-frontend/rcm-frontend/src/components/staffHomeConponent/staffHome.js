@@ -11,7 +11,6 @@ const StaffHomeComponent = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [menus, setMenus] = useState({
 
-        sales: false,
         transactions: false,
         inventory: false,
         warehouse: false,
@@ -84,10 +83,10 @@ const StaffHomeComponent = () => {
                 {/* Chức năng Menu */}
                 <div className="flex space-x-4">
                     <button onClick={() => navigate("/checkin")} className="px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold shadow-md">Check-in</button>
+                    <button onClick={() => navigate("/pos")} className="px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold shadow-md">Bán hàng</button>
 
                     {/* Menu Dropdown */}
                     {[
-                        { label: "Bán hàng / Trả hàng", menuKey: "sales", links: [{ label: "Bán hàng", path: "/pos" }, { label: "Hoàn trả", path: "/refund" }] },
                         { label: "Lịch sử giao dịch", menuKey: "transactions", links: [{ label: "Lịch sử đơn hàng", path: "/history-pos" }, { label: "Sổ quỹ", path: "/cashBook" }] },
                         { label: "Kho hàng", menuKey: "warehouse", links: [{ label: "Kho hàng", path: "/kho" }, { label: "Phiếu kiểm kho", path: "/kiem-kho" }] },
                         { label: "Nhập hàng", menuKey: "inventory", links: [{ label: "Danh sách đơn nhập", path: "/listOrder" }, { label: "Tạo phiếu nhập kho", path: "/them-phieu-nhapkho" }] },

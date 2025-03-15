@@ -10,7 +10,7 @@ import { data, useNavigate } from "react-router-dom";
 import { IoArrowBackOutline } from "react-icons/io5";
 import axios from 'axios';
 
-const API_BASE_URL = "http://localhost:5000/api/sale-invoice";
+const API_BASE_URL = "https://localhost:5000/api/sale-invoice";
 
 // const productList = [
 //     { id: 1, name: 'Tương ớt Chinsu 1kg', price: 28000, unit: 'Chai', barcode: '8936136161150' },
@@ -41,6 +41,7 @@ const Main = () => {
     const [invoices, setInvoices] = useState({
         'Hóa đơn 1': { cart: [], cashGiven: 0, change: 0, paymentMethod: 'cash' }
     });
+    const navigate = useNavigate();
     const [currentInvoice, setCurrentInvoice] = useState('Hóa đơn 1');
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -281,7 +282,9 @@ const Main = () => {
     return (
         <Container fluid>
             <Row className='tool-bar align-items-center page-body'>
+
                 <Col md={3} className="mt-2 position-relative">
+
                     <Form.Control
                         ref={searchInputRef}
                         type="text"
