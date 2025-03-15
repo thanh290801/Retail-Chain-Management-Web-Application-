@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Card, Form, Button, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import axios from 'axios';
 
 const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, paymentMethod, onPaymentMethodChange }) => {
     const [totalItems, setTotalItems] = useState(0);
@@ -45,25 +46,29 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
 
     const generateVietQR = useCallback(async () => {
         try {
-            const response = await fetch("https://api.vietqr.io/v2/generate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    accountNo: "8106205176266",
-                    accountName: "Nguyen Thanh Huy",
-                    acqId: "970405",
-                    amount: totalPrice,
-                    addInfo: `Thanh toán đơn hàng ${Date.now()}`,
-                    format: "compact",
-                    template: "compact"
-                }),
-            });
+            if (totalPrice > 0) {
+                const response = await fetch("https://api.vietqr.io/v2/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        accountNo: "8106205176266",
+                        accountName: "Nguyen Thanh Huy",
+                        acqId: "970405",
+                        amount: totalPrice,
+                        addInfo: `Thanh toán đơn hàng ${Date.now()}`,
+                        format: "compact",
+                        template: "compact"
+                    }),
+                });
 
-            const data = await response.json();
-            if (response.ok && data.data.qrDataURL) {
-                setQrCode(data.data.qrDataURL);
+                const data = await response.json();
+                if (response.ok && data.data.qrDataURL) {
+                    setQrCode(data.data.qrDataURL);
+                } else {
+                    console.error("Không thể tạo QR:", data.message || "Lỗi không xác định.");
+                }
             } else {
-                console.error("Không thể tạo QR:", data.message || "Lỗi không xác định.");
+                console.log("vui lòng thêm sản phẩm");
             }
         } catch (error) {
             console.error("Lỗi khi gọi API VietQR:", error);
@@ -101,29 +106,20 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
 
     const handlePayment = async () => {
         try {
-            const response = await fetch("https://localhost:5000/api/order/create", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    EmployeeId: 1, // ID nhân viên (sửa lại theo hệ thống thực tế)
-                    ShopId: 1, // ID cửa hàng
-                    TotalAmount: totalPrice, // Tổng tiền trước giảm giá
-                    Discount: 0, // Giảm giá (nếu có)
-                    FinalAmount: totalPrice, // Tổng tiền sau giảm giá
-                    PaymentMethod: paymentMethod === "cash" ? "Cash" : "Bank", // Phương thức thanh toán
-                    Products: cartData.map((item) => ({
-                        ProductId: item.id,
-                        Quantity: item.quantity,
-                        UnitPrice: item.price
-                    }))
-                })
+            const { data } = await axios.post("https://localhost:5000/api/sale-invoice/order/create", {
+                EmployeeId: 1,
+                ShopId: 1,
+                TotalAmount: totalPrice,
+                PaymentMethod: paymentMethod === "cash" ? "Cash" : "Bank",
+                Products: cartData.map((item) => ({
+                    ProductId: item.id,
+                    Quantity: item.quantity,
+                    UnitPrice: item.price
+                }))
             });
 
-            const data = await response.json();
-
-            if (response.ok && data.orderId) {
+            if (data.orderId) {
                 alert(`✅ Thanh toán thành công! Mã hóa đơn: ${data.orderId}`);
-                // Reset giỏ hàng sau khi thanh toán thành công
                 onCashUpdate(0, 0);
             } else {
                 alert(`❌ Lỗi khi thanh toán: ${data.message || "Không thể tạo hóa đơn."}`);
@@ -136,25 +132,19 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
 
     const handleRefund = async () => {
         try {
-            const response = await fetch("https://localhost:5000/api/order/refund", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    EmployeeId: 1, // ID nhân viên
-                    ShopId: 1, // ID cửa hàng
-                    TotalAmount: totalPrice, // Tổng tiền hoàn
-                    PaymentMethod: "Cash", // Hoàn tiền chỉ dùng tiền mặt
-                    Products: cartData.map((item) => ({
-                        ProductId: item.id,
-                        ReturnQuantity: item.returnQuantity || 0,
-                        UnitPrice: item.price
-                    }))
-                })
+            const { data } = await axios.post("https://localhost:5000/api/sale-invoice/order/refund", {
+                EmployeeId: 1,
+                ShopId: 1,
+                TotalAmount: totalPrice,
+                PaymentMethod: "Cash",
+                Products: cartData.map((item) => ({
+                    ProductId: item.id,
+                    ReturnQuantity: item.returnQuantity || 0,
+                    UnitPrice: item.price
+                }))
             });
 
-            const data = await response.json();
-
-            if (response.ok && data.refundId) {
+            if (data.refundId) {
                 alert(`✅ Hoàn tiền thành công! Mã phiếu hoàn tiền: ${data.refundId}`);
                 onCashUpdate(0, 0);
             } else {
@@ -199,7 +189,6 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                                 Chuyển khoản
                             </ToggleButton>
                         </ToggleButtonGroup>
-
                         {paymentMethod === 'cash' && (
                             <Form.Group className="mb-3">
                                 <div className="d-grid gap-2 p-2"
@@ -224,7 +213,6 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                                         </Button>
                                     ))}
                                 </div>
-
                                 <Form.Control
                                     type="number"
                                     min="0"
@@ -233,6 +221,10 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                                     placeholder="Nhập số tiền khách đưa"
                                     className="mt-2 p-2 fs-5"
                                 />
+                                <Form.Label>Tiền thừa</Form.Label>
+                                <div className="text-end fw-bold fs-4 text-success">
+                                    {(change || 0).toLocaleString()} VND
+                                </div>
                             </Form.Group>
                         )}
 

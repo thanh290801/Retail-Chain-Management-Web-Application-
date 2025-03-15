@@ -47,8 +47,6 @@ namespace RCM.Backend.Controllers
             public int EmployeeId { get; set; }
             public int ShopId { get; set; }
             public decimal TotalAmount { get; set; }
-            public decimal Discount { get; set; }
-            public decimal FinalAmount { get; set; }
             public string PaymentMethod { get; set; } = "Cash";
             public List<OrderProduct> Products { get; set; } = new List<OrderProduct>();
         }
@@ -284,26 +282,16 @@ namespace RCM.Backend.Controllers
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
 
+                        // Truyền đúng 5 tham số mà SP yêu cầu
                         cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId);
                         cmd.Parameters.AddWithValue("@ShopId", request.ShopId);
                         cmd.Parameters.AddWithValue("@TotalAmount", request.TotalAmount);
-                        cmd.Parameters.AddWithValue("@Discount", request.Discount);
-                        cmd.Parameters.AddWithValue("@FinalAmount", request.FinalAmount);
                         cmd.Parameters.AddWithValue("@PaymentMethod", request.PaymentMethod);
                         cmd.Parameters.AddWithValue("@Products", JsonConvert.SerializeObject(request.Products));
 
                         // Thêm tham số output để lấy OrderId
-                        SqlParameter outputParam = new SqlParameter("@NewOrderId", SqlDbType.Int)
-                        {
-                            Direction = ParameterDirection.Output
-                        };
-                        cmd.Parameters.Add(outputParam);
-
-                        await cmd.ExecuteNonQueryAsync();
-
-                        // Lấy OrderId từ SP
-                        int newOrderId = (int)outputParam.Value;
-                        return Ok(new { orderId = newOrderId, message = "Hóa đơn đã được tạo thành công." });
+                        
+                        return Ok(new {  message = "Hóa đơn đã được tạo thành công." });
                     }
                 }
             }
@@ -316,6 +304,7 @@ namespace RCM.Backend.Controllers
                 return StatusCode(500, new { message = "Lỗi hệ thống khi tạo hóa đơn", error = ex.Message });
             }
         }
+
 
         //Tạo refund
         [HttpPost("order/refund")]

@@ -1400,14 +1400,6 @@
             "type": "number",
             "format": "double"
           },
-          "discount": {
-            "type": "number",
-            "format": "double"
-          },
-          "finalAmount": {
-            "type": "number",
-            "format": "double"
-          },
           "paymentMethod": {
             "type": "string",
             "nullable": true
