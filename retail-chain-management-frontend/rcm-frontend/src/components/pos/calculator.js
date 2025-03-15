@@ -118,12 +118,8 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                 }))
             });
 
-            if (data.orderId) {
-                alert(`✅ Thanh toán thành công! Mã hóa đơn: ${data.orderId}`);
+                alert(`✅ Thanh toán thành công! Mã hóa đơn:`);
                 onCashUpdate(0, 0);
-            } else {
-                alert(`❌ Lỗi khi thanh toán: ${data.message || "Không thể tạo hóa đơn."}`);
-            }
         } catch (error) {
             console.error("❌ Lỗi kết nối API thanh toán:", error);
             alert("❌ Lỗi khi gửi yêu cầu thanh toán.");
