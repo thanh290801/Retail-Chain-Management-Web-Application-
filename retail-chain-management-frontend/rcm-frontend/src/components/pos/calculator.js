@@ -101,7 +101,7 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
 
     const handlePayment = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/order/create", {
+            const response = await fetch("https://localhost:5000/api/order/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -136,7 +136,7 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
 
     const handleRefund = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/order/refund", {
+            const response = await fetch("https://localhost:5000/api/order/refund", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -151,9 +151,9 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                     }))
                 })
             });
-    
+
             const data = await response.json();
-    
+
             if (response.ok && data.refundId) {
                 alert(`✅ Hoàn tiền thành công! Mã phiếu hoàn tiền: ${data.refundId}`);
                 onCashUpdate(0, 0);
@@ -164,7 +164,7 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
             console.error("❌ Lỗi khi gọi API hoàn tiền:", error);
             alert("❌ Lỗi khi gửi yêu cầu hoàn tiền.");
         }
-    };    
+    };
 
     return (
         <Card className="p-3">

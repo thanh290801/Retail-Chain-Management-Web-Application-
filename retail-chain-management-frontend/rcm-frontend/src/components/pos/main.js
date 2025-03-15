@@ -10,7 +10,7 @@ import { data, useNavigate } from "react-router-dom";
 import { IoArrowBackOutline } from "react-icons/io5";
 import axios from 'axios';
 
-const API_BASE_URL = "http://localhost:5000/api/sale-invoice";
+const API_BASE_URL = "https://localhost:5000/api/sale-invoice";
 
 // const productList = [
 //     { id: 1, name: 'Tương ớt Chinsu 1kg', price: 28000, unit: 'Chai', barcode: '8936136161150' },
