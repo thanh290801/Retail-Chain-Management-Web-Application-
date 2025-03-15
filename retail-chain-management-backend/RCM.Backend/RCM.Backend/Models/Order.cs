@@ -7,15 +7,16 @@ namespace RCM.Backend.Models
     {
         public Order()
         {
+            BankTransactions = new HashSet<BankTransaction>();
+            CashTransactions = new HashSet<CashTransaction>();
             FundTransactionHistories = new HashSet<FundTransactionHistory>();
             OrderDetails = new HashSet<OrderDetail>();
-            Payments = new HashSet<Payment>();
             Refunds = new HashSet<Refund>();
         }
 
         public int OrderId { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int ShopId { get; set; }
+        public int BranchId { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal Discount { get; set; }
         public int Employeeid { get; set; }
@@ -25,9 +26,10 @@ namespace RCM.Backend.Models
 
         public virtual Employee Employee { get; set; } = null!;
         public virtual Warehouse Shop { get; set; } = null!;
+        public virtual ICollection<BankTransaction> BankTransactions { get; set; }
+        public virtual ICollection<CashTransaction> CashTransactions { get; set; }
         public virtual ICollection<FundTransactionHistory> FundTransactionHistories { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-        public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<Refund> Refunds { get; set; }
     }
 }

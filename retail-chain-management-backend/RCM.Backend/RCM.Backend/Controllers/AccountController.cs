@@ -19,30 +19,25 @@ namespace RCM.Backend.Controllers
             _context = context;
         }
 
-        // ✅ API: Lấy tất cả tài khoản (KHÔNG GIỚI HẠN ADMIN)
         [HttpGet("all")]
-        [Authorize] // ⚡ Chỉ yêu cầu đăng nhập, không cần Admin
-        public async Task<IActionResult> GetAllAccounts()
+        public async Task<ActionResult<IEnumerable<Employee>>> GetAllEmployees()
         {
-            try
-            {
-                var accounts = await _context.Accounts
-                    .Include(a => a.Employee) // ✅ Sửa lỗi Include
-                    .Select(a => new
-                    {
-                        AccountId = a.AccountId, // ✅ Đổi tên đúng chuẩn
-                        Username = a.Username,
-                        Fullname = a.Employee != null ? a.Employee.FullName : "Chưa có nhân viên",
-                        Role = a.Role
-                    })
-                    .ToListAsync();
+            var employees = await _context.Employees
+                .Select(emp => new
+                {
+                    emp.EmployeeId,
+                    emp.FullName,
+                    emp.BranchId,
+                    emp.IsActive
+                })
+                .ToListAsync();
 
-                return Ok(accounts);
-            }
-            catch (Exception ex)
+            if (employees == null || employees.Count == 0)
             {
-                return StatusCode(500, new { message = "Lỗi máy chủ nội bộ", error = ex.Message });
+                return NotFound("Không có nhân viên nào trong hệ thống.");
             }
+
+            return Ok(employees);
         }
 
         // ✅ API: Lấy thông tin người dùng hiện tại (dựa trên token)

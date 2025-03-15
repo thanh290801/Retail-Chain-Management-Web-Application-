@@ -10,29 +10,30 @@ namespace RCM.Backend.Models
         public RetailChainContext()
         {
         }
-
         public RetailChainContext(DbContextOptions<RetailChainContext> options)
-            : base(options)
+       : base(options)
         {
         }
+       
 
         public virtual DbSet<Account> Accounts { get; set; } = null!;
         public virtual DbSet<AttendanceRecord> AttendanceRecords { get; set; } = null!;
         public virtual DbSet<BankTransaction> BankTransactions { get; set; } = null!;
         public virtual DbSet<Batch> Batches { get; set; } = null!;
         public virtual DbSet<BatchDetail> BatchDetails { get; set; } = null!;
+        public virtual DbSet<CashHandover> CashHandovers { get; set; } = null!;
         public virtual DbSet<CashTransaction> CashTransactions { get; set; } = null!;
         public virtual DbSet<DailySalesReport> DailySalesReports { get; set; } = null!;
         public virtual DbSet<Employee> Employees { get; set; } = null!;
+        public virtual DbSet<EndShift> EndShifts { get; set; } = null!;
         public virtual DbSet<Fund> Funds { get; set; } = null!;
         public virtual DbSet<FundTransactionHistory> FundTransactionHistories { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
-        public virtual DbSet<Payment> Payments { get; set; } = null!;
-        public virtual DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
         public virtual DbSet<Product> Products { get; set; } = null!;
         public virtual DbSet<ProductPriceHistory> ProductPriceHistories { get; set; } = null!;
         public virtual DbSet<Promotion> Promotions { get; set; } = null!;
+        public virtual DbSet<PurchaseCost> PurchaseCosts { get; set; } = null!;
         public virtual DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
         public virtual DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; } = null!;
         public virtual DbSet<Refund> Refunds { get; set; } = null!;
@@ -50,14 +51,7 @@ namespace RCM.Backend.Models
         public virtual DbSet<WarehouseTransfer> WarehouseTransfers { get; set; } = null!;
         public virtual DbSet<WarehouseTransferDetail> WarehouseTransferDetails { get; set; } = null!;
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=DESKTOP-IGHRD48;Database=RetailChain;User Id=sa;Password=123;");
-            }
-        }
+       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -65,7 +59,7 @@ namespace RCM.Backend.Models
             {
                 entity.ToTable("Account");
 
-                entity.HasIndex(e => e.Username, "UQ__Account__536C85E43EC42083")
+                entity.HasIndex(e => e.Username, "UQ__Account__536C85E44CDF8093")
                     .IsUnique();
 
                 entity.Property(e => e.AccountId).HasColumnName("AccountID");
@@ -82,7 +76,7 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<AttendanceRecord>(entity =>
             {
                 entity.HasKey(e => e.AttendanceRecordsId)
-                    .HasName("PK__Attendan__6D2B1F0CC7749894");
+                    .HasName("PK__Attendan__6D2B1F0C2BCE139A");
 
                 entity.Property(e => e.CheckIn).HasColumnType("datetime");
 
@@ -92,17 +86,17 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.AttendanceRecords)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Attendanc__Emplo__2B0A656D");
+                    .HasConstraintName("FK__Attendanc__Emplo__1332DBDC");
             });
 
             modelBuilder.Entity<BankTransaction>(entity =>
             {
                 entity.HasKey(e => e.TransactionId)
-                    .HasName("PK__Bank_Tra__55433A4B8BBDA6CB");
+                    .HasName("PK__Bank_Tra__55433A4B4199705D");
 
                 entity.ToTable("Bank_Transactions");
 
-                entity.HasIndex(e => e.TransactionCode, "UQ__Bank_Tra__D85E70262512E663")
+                entity.HasIndex(e => e.TransactionCode, "UQ__Bank_Tra__D85E7026E3A5B03A")
                     .IsUnique();
 
                 entity.Property(e => e.TransactionId).HasColumnName("TransactionID");
@@ -127,19 +121,25 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.BankTransactions)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Bank_Tran__Emplo__2BFE89A6");
+                    .HasConstraintName("FK__Bank_Tran__Emplo__14270015");
 
                 entity.HasOne(d => d.Fund)
                     .WithMany(p => p.BankTransactions)
                     .HasForeignKey(d => d.FundId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Bank_Tran__FundI__2CF2ADDF");
+                    .HasConstraintName("FK__Bank_Tran__FundI__151B244E");
+
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.BankTransactions)
+                    .HasForeignKey(d => d.OrderId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Bank_Transactions_Order");
             });
 
             modelBuilder.Entity<Batch>(entity =>
             {
                 entity.HasKey(e => e.BatchesId)
-                    .HasName("PK__batches__D7870D5C9977AF31");
+                    .HasName("PK__batches__D7870D5C266E7D08");
 
                 entity.ToTable("batches");
 
@@ -153,13 +153,13 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.Batches)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__batches__warehou__30C33EC3");
+                    .HasConstraintName("FK__batches__warehou__19DFD96B");
             });
 
             modelBuilder.Entity<BatchDetail>(entity =>
             {
                 entity.HasKey(e => e.BatchDetailsId)
-                    .HasName("PK__batch_de__04D3CE30F4190EA4");
+                    .HasName("PK__batch_de__04D3CE308939DB35");
 
                 entity.ToTable("batch_details");
 
@@ -176,28 +176,62 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Batch)
                     .WithMany(p => p.BatchDetails)
                     .HasForeignKey(d => d.BatchId)
-                    .HasConstraintName("FK__batch_det__batch__2DE6D218");
+                    .HasConstraintName("FK__batch_det__batch__17036CC0");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.BatchDetails)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__batch_det__produ__2EDAF651");
+                    .HasConstraintName("FK__batch_det__produ__17F790F9");
 
                 entity.HasOne(d => d.PurchaseOrder)
                     .WithMany(p => p.BatchDetails)
                     .HasForeignKey(d => d.PurchaseOrderId)
                     .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK__batch_det__purch__2FCF1A8A");
+                    .HasConstraintName("FK__batch_det__purch__18EBB532");
+            });
+
+            modelBuilder.Entity<CashHandover>(entity =>
+            {
+                entity.HasKey(e => e.HandoverID);
+                entity.ToTable("CashHandovers");
+
+                entity.Property(e => e.TransactionDate).HasColumnType("datetime").HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.TransactionType).HasMaxLength(10).IsRequired();
+                entity.Property(e => e.Description).HasMaxLength(255);
+                entity.Property(e => e.BranchID).HasColumnName("BranchID");
+                entity.Property(e => e.EmployeeID).HasColumnName("EmployeeID");
+                entity.Property(e => e.ReceiverID).HasColumnName("ReceiverID");
+
+                entity.HasOne(d => d.Branch)
+                    .WithMany(p => p.CashHandovers)
+                    .HasForeignKey(d => d.BranchID)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CashHandover_Branch");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.CashHandoversGiven)
+                    .HasForeignKey(d => d.EmployeeID)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CashHandover_Employee");
+                entity.ToTable("Cash_Handover"); // 🔹 Đảm bảo tên đúng với DB
+
+                entity.HasOne(d => d.Receiver)
+                    .WithMany(p => p.CashHandoversReceived)
+                    .HasForeignKey(d => d.ReceiverID)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_CashHandover_Receiver");
+               
             });
 
             modelBuilder.Entity<CashTransaction>(entity =>
             {
                 entity.HasKey(e => e.TransactionId)
-                    .HasName("PK__Cash_Tra__55433A4B62FE195C");
+                    .HasName("PK__Cash_Tra__55433A4BA248B2C9");
 
                 entity.ToTable("Cash_Transactions");
 
-                entity.HasIndex(e => e.TransactionCode, "UQ__Cash_Tra__D85E7026722FF998")
+                entity.HasIndex(e => e.TransactionCode, "UQ__Cash_Tra__D85E702649F8578C")
                     .IsUnique();
 
                 entity.Property(e => e.TransactionId).HasColumnName("TransactionID");
@@ -222,19 +256,26 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.CashTransactions)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Cash_Tran__Emplo__31B762FC");
+                    .HasConstraintName("FK__Cash_Tran__Emplo__1AD3FDA4");
 
                 entity.HasOne(d => d.Fund)
                     .WithMany(p => p.CashTransactions)
                     .HasForeignKey(d => d.FundId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Cash_Tran__FundI__32AB8735");
+                    .HasConstraintName("FK__Cash_Tran__FundI__1BC821DD");
+                entity.ToTable("Cash_Transactions"); // 🔹 Đảm bảo tên đúng với DB
+
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.CashTransactions)
+                    .HasForeignKey(d => d.OrderId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Cash_Transactions_Order");
             });
 
             modelBuilder.Entity<DailySalesReport>(entity =>
             {
                 entity.HasKey(e => e.ReportId)
-                    .HasName("PK__daily_sa__D5BD48E5F9D9809C");
+                    .HasName("PK__daily_sa__D5BD48E5E6DC59C9");
 
                 entity.ToTable("daily_sales_reports");
 
@@ -260,14 +301,14 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.DailySalesReports)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__daily_sal__wareh__339FAB6E");
+                    .HasConstraintName("FK__daily_sal__wareh__1DB06A4F");
             });
 
             modelBuilder.Entity<Employee>(entity =>
             {
                 entity.ToTable("Employee");
 
-                entity.HasIndex(e => e.IdentityNumber, "UQ__Employee__6354A73F71FDBC04")
+                entity.HasIndex(e => e.IdentityNumber, "UQ__Employee__6354A73F3C4542A3")
                     .IsUnique();
 
                 entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
@@ -290,9 +331,7 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.Hometown).HasMaxLength(100);
 
-                entity.Property(e => e.IdentityNumber)
-                    .HasMaxLength(20)
-                    .IsUnicode(false);
+                entity.Property(e => e.IdentityNumber).HasMaxLength(20);
 
                 entity.Property(e => e.IsActive).HasDefaultValueSql("((1))");
 
@@ -308,16 +347,56 @@ namespace RCM.Backend.Models
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
-                entity.HasOne(e => e.Account)
-                    .WithOne(a => a.Employee)
+                entity.HasOne(d => d.Account)
+                    .WithOne(p => p.Employee)
                     .HasForeignKey<Employee>(e => e.AccountId)
-                    .HasConstraintName("FK_Employee_Account");
-
-               
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK__Employee__Accoun__1EA48E88");
+                    
                 entity.HasOne(d => d.Branch)
                     .WithMany(p => p.Employees)
                     .HasForeignKey(d => d.BranchId)
-                    .HasConstraintName("FK__Employee__Branch__3587F3E0");
+                    .HasConstraintName("FK__Employee__Branch__1F98B2C1");
+            });
+
+            modelBuilder.Entity<EndShift>(entity =>
+            {
+                entity.HasKey(e => e.ShiftId)
+                    .HasName("PK__End_Shif__C0A838E1A7893DFA");
+
+                entity.ToTable("End_Shifts");
+
+                entity.Property(e => e.ShiftId).HasColumnName("ShiftID");
+
+                entity.Property(e => e.BankCollected).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.BranchId).HasColumnName("BranchID");
+
+                entity.Property(e => e.CashAtEnd).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.CashAtStart).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.CashCollected).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
+
+                entity.Property(e => e.EndTime).HasColumnType("datetime");
+
+                entity.Property(e => e.StartTime).HasColumnType("datetime");
+
+                entity.Property(e => e.TotalSales).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.Branch)
+                    .WithMany(p => p.EndShifts)
+                    .HasForeignKey(d => d.BranchId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__End_Shift__Branc__55009F39");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.EndShifts)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__End_Shift__Emplo__540C7B00");
             });
 
             modelBuilder.Entity<Fund>(entity =>
@@ -340,19 +419,23 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.Funds)
                     .HasForeignKey(d => d.BranchId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Fund__BranchID__367C1819");
+                    .HasConstraintName("FK__Fund__BranchID__208CD6FA");
             });
 
             modelBuilder.Entity<FundTransactionHistory>(entity =>
             {
                 entity.HasKey(e => e.TransactionHistoryId)
-                    .HasName("PK__Fund_Tra__599D2092763CC4D3");
+                    .HasName("PK__Fund_Tra__599D20926A6340A0");
 
                 entity.ToTable("Fund_Transaction_History");
 
                 entity.Property(e => e.TransactionHistoryId).HasColumnName("TransactionHistoryID");
 
                 entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.BranchId)
+                    .HasColumnName("BranchID")
+                    .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.FundId).HasColumnName("FundID");
 
@@ -374,31 +457,37 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.TransactionType).HasMaxLength(50);
 
+                entity.HasOne(d => d.Branch)
+                    .WithMany(p => p.FundTransactionHistories)
+                    .HasForeignKey(d => d.BranchId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Fund_Tran__Branc__5BAD9CC8");
+
                 entity.HasOne(d => d.Fund)
                     .WithMany(p => p.FundTransactionHistories)
                     .HasForeignKey(d => d.FundId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Fund_Tran__FundI__37703C52");
+                    .HasConstraintName("FK__Fund_Tran__FundI__2180FB33");
 
                 entity.HasOne(d => d.RelatedBankTransaction)
                     .WithMany(p => p.FundTransactionHistories)
                     .HasForeignKey(d => d.RelatedBankTransactionId)
-                    .HasConstraintName("FK__Fund_Tran__Relat__3B40CD36");
+                    .HasConstraintName("FK__Fund_Tran__Relat__25518C17");
 
                 entity.HasOne(d => d.RelatedCashTransaction)
                     .WithMany(p => p.FundTransactionHistories)
                     .HasForeignKey(d => d.RelatedCashTransactionId)
-                    .HasConstraintName("FK__Fund_Tran__Relat__3A4CA8FD");
+                    .HasConstraintName("FK__Fund_Tran__Relat__245D67DE");
 
                 entity.HasOne(d => d.RelatedOrder)
                     .WithMany(p => p.FundTransactionHistories)
                     .HasForeignKey(d => d.RelatedOrderId)
-                    .HasConstraintName("FK__Fund_Tran__Relat__3864608B");
+                    .HasConstraintName("FK__Fund_Tran__Relat__22751F6C");
 
                 entity.HasOne(d => d.RelatedRefund)
                     .WithMany(p => p.FundTransactionHistories)
                     .HasForeignKey(d => d.RelatedRefundId)
-                    .HasConstraintName("FK__Fund_Tran__Relat__395884C4");
+                    .HasConstraintName("FK__Fund_Tran__Relat__236943A5");
             });
 
             modelBuilder.Entity<Order>(entity =>
@@ -427,11 +516,10 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.PaymentStatus)
                     .HasMaxLength(20)
-                    .IsUnicode(false)
                     .HasColumnName("payment_status")
                     .HasDefaultValueSql("('Pending')");
 
-                entity.Property(e => e.ShopId).HasColumnName("shop_id");
+                entity.Property(e => e.BranchId).HasColumnName("shop_id");
 
                 entity.Property(e => e.TotalAmount)
                     .HasColumnType("decimal(18, 2)")
@@ -441,12 +529,12 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.Employeeid)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Order__employeei__3C34F16F");
+                    .HasConstraintName("FK__Order__employeei__2645B050");
 
                 entity.HasOne(d => d.Shop)
                     .WithMany(p => p.Orders)
-                    .HasForeignKey(d => d.ShopId)
-                    .HasConstraintName("FK__Order__shop_id__3D2915A8");
+                    .HasForeignKey(d => d.BranchId)
+                    .HasConstraintName("FK__Order__shop_id__2739D489");
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
@@ -472,80 +560,23 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.OrderDetails)
                     .HasForeignKey(d => d.OrderId)
-                    .HasConstraintName("FK__OrderDeta__order__3E1D39E1");
+                    .HasConstraintName("FK__OrderDeta__order__282DF8C2");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.OrderDetails)
                     .HasForeignKey(d => d.ProductId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__OrderDeta__produ__3F115E1A");
-            });
-
-            modelBuilder.Entity<Payment>(entity =>
-            {
-                entity.ToTable("Payment");
-
-                entity.Property(e => e.AmountPaid).HasColumnType("decimal(18, 2)");
-
-                entity.Property(e => e.BankTransactionId).HasColumnName("BankTransactionID");
-
-                entity.Property(e => e.CashTransactionId).HasColumnName("CashTransactionID");
-
-                entity.Property(e => e.OrderId).HasColumnName("OrderID");
-
-                entity.Property(e => e.PaymentDate)
-                    .HasColumnType("date")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.PaymentMethodId).HasColumnName("PaymentMethodID");
-
-                entity.Property(e => e.PaymentStatus).HasMaxLength(20);
-
-                entity.Property(e => e.TransactionId)
-                    .HasMaxLength(255)
-                    .HasColumnName("TransactionID");
-
-                entity.HasOne(d => d.BankTransaction)
-                    .WithMany(p => p.Payments)
-                    .HasForeignKey(d => d.BankTransactionId)
-                    .HasConstraintName("FK__Payment__BankTra__40058253");
-
-                entity.HasOne(d => d.CashTransaction)
-                    .WithMany(p => p.Payments)
-                    .HasForeignKey(d => d.CashTransactionId)
-                    .HasConstraintName("FK__Payment__CashTra__40F9A68C");
-
-                entity.HasOne(d => d.Order)
-                    .WithMany(p => p.Payments)
-                    .HasForeignKey(d => d.OrderId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Payment__OrderID__41EDCAC5");
-
-                entity.HasOne(d => d.PaymentMethod)
-                    .WithMany(p => p.Payments)
-                    .HasForeignKey(d => d.PaymentMethodId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Payment__Payment__42E1EEFE");
-            });
-
-            modelBuilder.Entity<PaymentMethod>(entity =>
-            {
-                entity.ToTable("PaymentMethod");
-
-                entity.HasIndex(e => e.MethodName, "UQ__PaymentM__218CFB1749B42727")
-                    .IsUnique();
-
-                entity.Property(e => e.MethodName).HasMaxLength(50);
+                    .HasConstraintName("FK__OrderDeta__produ__29221CFB");
             });
 
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.ProductsId)
-                    .HasName("PK__products__BB48EDE5E42F3252");
+                    .HasName("PK__products__BB48EDE53546B7C9");
 
                 entity.ToTable("products");
 
-                entity.HasIndex(e => e.Barcode, "UQ__products__C16E36F8461601EC")
+                entity.HasIndex(e => e.Barcode, "UQ__products__C16E36F89CB99731")
                     .IsUnique();
 
                 entity.Property(e => e.Barcode)
@@ -584,7 +615,7 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<ProductPriceHistory>(entity =>
             {
                 entity.HasKey(e => e.PriceHistoryId)
-                    .HasName("PK__product___A927CB2B2E04A79F");
+                    .HasName("PK__product___A927CB2B7D6C4632");
 
                 entity.ToTable("product_price_history");
 
@@ -617,23 +648,23 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.ProductPriceHistories)
                     .HasForeignKey(d => d.ChangedBy)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__product_p__chang__43D61337");
+                    .HasConstraintName("FK__product_p__chang__2A164134");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.ProductPriceHistories)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__product_p__produ__44CA3770");
+                    .HasConstraintName("FK__product_p__produ__2B0A656D");
 
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.ProductPriceHistories)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__product_p__wareh__45BE5BA9");
+                    .HasConstraintName("FK__product_p__wareh__2BFE89A6");
             });
 
             modelBuilder.Entity<Promotion>(entity =>
             {
                 entity.HasKey(e => e.PromotionsId)
-                    .HasName("PK__promotio__DBE22B92435E6284");
+                    .HasName("PK__promotio__DBE22B926CC88F65");
 
                 entity.ToTable("promotions");
 
@@ -664,18 +695,50 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.Promotions)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__promotion__produ__46B27FE2");
+                    .HasConstraintName("FK__promotion__produ__2CF2ADDF");
 
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.Promotions)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__promotion__wareh__47A6A41B");
+                    .HasConstraintName("FK__promotion__wareh__2DE6D218");
+            });
+
+            modelBuilder.Entity<PurchaseCost>(entity =>
+            {
+                entity.HasKey(e => e.CostId)
+                    .HasName("PK__Purchase__8285231E199497A0");
+
+                entity.ToTable("Purchase_Costs");
+
+                entity.Property(e => e.CostId).HasColumnName("CostID");
+
+                entity.Property(e => e.BranchId).HasColumnName("BranchID");
+
+                entity.Property(e => e.PurchaseOrderId).HasColumnName("PurchaseOrderID");
+
+                entity.Property(e => e.RecordedDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.TotalCost).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.Branch)
+                    .WithMany(p => p.PurchaseCosts)
+                    .HasForeignKey(d => d.BranchId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Purchase___Branc__59C55456");
+
+                entity.HasOne(d => d.PurchaseOrder)
+                    .WithMany(p => p.PurchaseCosts)
+                    .HasForeignKey(d => d.PurchaseOrderId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Purchase___Purch__58D1301D");
             });
 
             modelBuilder.Entity<PurchaseOrder>(entity =>
             {
                 entity.HasKey(e => e.PurchaseOrdersId)
-                    .HasName("PK__purchase__9736EF3E6F74B63D");
+                    .HasName("PK__purchase__9736EF3E0E02E571");
 
                 entity.ToTable("purchase_orders");
 
@@ -700,13 +763,13 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.PurchaseOrders)
                     .HasForeignKey(d => d.SupplierId)
                     .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK__purchase___suppl__4A8310C6");
+                    .HasConstraintName("FK__purchase___suppl__30C33EC3");
             });
 
             modelBuilder.Entity<PurchaseOrderItem>(entity =>
             {
                 entity.HasKey(e => e.PurchaseOrderItemsId)
-                    .HasName("PK__purchase__4120509FB64AFDEC");
+                    .HasName("PK__purchase__4120509F987B5ACF");
 
                 entity.ToTable("purchase_order_items");
 
@@ -725,12 +788,12 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.PurchaseOrderItems)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__purchase___produ__489AC854");
+                    .HasConstraintName("FK__purchase___produ__2EDAF651");
 
                 entity.HasOne(d => d.PurchaseOrder)
                     .WithMany(p => p.PurchaseOrderItems)
                     .HasForeignKey(d => d.PurchaseOrderId)
-                    .HasConstraintName("FK__purchase___purch__498EEC8D");
+                    .HasConstraintName("FK__purchase___purch__2FCF1A8A");
             });
 
             modelBuilder.Entity<Refund>(entity =>
@@ -754,7 +817,6 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.RefundStatus)
                     .HasMaxLength(20)
-                    .IsUnicode(false)
                     .HasColumnName("refund_status")
                     .HasDefaultValueSql("('Pending')");
 
@@ -762,12 +824,12 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.Refunds)
                     .HasForeignKey(d => d.Employeeid)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Refund__employee__4B7734FF");
+                    .HasConstraintName("FK__Refund__employee__31B762FC");
 
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.Refunds)
                     .HasForeignKey(d => d.OrderId)
-                    .HasConstraintName("FK__Refund__order_id__4C6B5938");
+                    .HasConstraintName("FK__Refund__order_id__32AB8735");
             });
 
             modelBuilder.Entity<RefundDetail>(entity =>
@@ -795,7 +857,7 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Refund)
                     .WithMany(p => p.RefundDetails)
                     .HasForeignKey(d => d.RefundId)
-                    .HasConstraintName("FK__RefundDet__refun__4D5F7D71");
+                    .HasConstraintName("FK__RefundDet__refun__339FAB6E");
             });
 
             modelBuilder.Entity<Salary>(entity =>
@@ -810,7 +872,7 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.Salaries)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Salary__Employee__4E53A1AA");
+                    .HasConstraintName("FK__Salary__Employee__3493CFA7");
             });
 
             modelBuilder.Entity<SalesReport>(entity =>
@@ -845,7 +907,7 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<StockAdjustment>(entity =>
             {
                 entity.HasKey(e => e.StockAdjustmentsId)
-                    .HasName("PK__stock_ad__0205693470D9F7DF");
+                    .HasName("PK__stock_ad__02056934A2CC7278");
 
                 entity.ToTable("stock_adjustments");
 
@@ -866,18 +928,18 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.StockAdjustments)
                     .HasForeignKey(d => d.AuditorId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__stock_adj__audit__51300E55");
+                    .HasConstraintName("FK__stock_adj__audit__37703C52");
 
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.StockAdjustments)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__stock_adj__wareh__5224328E");
+                    .HasConstraintName("FK__stock_adj__wareh__3864608B");
             });
 
             modelBuilder.Entity<StockAdjustmentDetail>(entity =>
             {
                 entity.HasKey(e => e.StockAdjustmentDetailsId)
-                    .HasName("PK__stock_ad__5443DBDD2C162AA7");
+                    .HasName("PK__stock_ad__5443DBDD4462A4A5");
 
                 entity.ToTable("stock_adjustment_details");
 
@@ -896,18 +958,18 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Adjustment)
                     .WithMany(p => p.StockAdjustmentDetails)
                     .HasForeignKey(d => d.AdjustmentId)
-                    .HasConstraintName("FK__stock_adj__adjus__4F47C5E3");
+                    .HasConstraintName("FK__stock_adj__adjus__3587F3E0");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.StockAdjustmentDetails)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__stock_adj__produ__503BEA1C");
+                    .HasConstraintName("FK__stock_adj__produ__367C1819");
             });
 
             modelBuilder.Entity<StockAuditDetail>(entity =>
             {
                 entity.HasKey(e => e.StockAuditDetailsId)
-                    .HasName("PK__stock_au__814DB738A3F8D183");
+                    .HasName("PK__stock_au__814DB73880CB823C");
 
                 entity.ToTable("stock_audit_details");
 
@@ -920,18 +982,18 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Audit)
                     .WithMany(p => p.StockAuditDetails)
                     .HasForeignKey(d => d.AuditId)
-                    .HasConstraintName("FK__stock_aud__audit__531856C7");
+                    .HasConstraintName("FK__stock_aud__audit__395884C4");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.StockAuditDetails)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__stock_aud__produ__540C7B00");
+                    .HasConstraintName("FK__stock_aud__produ__3A4CA8FD");
             });
 
             modelBuilder.Entity<StockAuditRecord>(entity =>
             {
                 entity.HasKey(e => e.StockAuditRecordsId)
-                    .HasName("PK__stock_au__1C0D2BE344CE2C99");
+                    .HasName("PK__stock_au__1C0D2BE39B5091B5");
 
                 entity.ToTable("stock_audit_records");
 
@@ -950,24 +1012,24 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.StockAuditRecordAuditors)
                     .HasForeignKey(d => d.AuditorId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__stock_aud__audit__55009F39");
+                    .HasConstraintName("FK__stock_aud__audit__3B40CD36");
 
                 entity.HasOne(d => d.CoAuditor)
                     .WithMany(p => p.StockAuditRecordCoAuditors)
                     .HasForeignKey(d => d.CoAuditorId)
                     .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK__stock_aud__co_au__55F4C372");
+                    .HasConstraintName("FK__stock_aud__co_au__3C34F16F");
 
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.StockAuditRecords)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__stock_aud__wareh__56E8E7AB");
+                    .HasConstraintName("FK__stock_aud__wareh__3D2915A8");
             });
 
             modelBuilder.Entity<StockLevel>(entity =>
             {
                 entity.HasKey(e => e.StockLevelsId)
-                    .HasName("PK__stock_le__76AB5D158F31ACE3");
+                    .HasName("PK__stock_le__76AB5D154C530077");
 
                 entity.ToTable("stock_levels");
 
@@ -998,18 +1060,18 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.StockLevels)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__stock_lev__produ__57DD0BE4");
+                    .HasConstraintName("FK__stock_lev__produ__3E1D39E1");
 
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.StockLevels)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__stock_lev__wareh__58D1301D");
+                    .HasConstraintName("FK__stock_lev__wareh__3F115E1A");
             });
 
             modelBuilder.Entity<Supplier>(entity =>
             {
                 entity.HasKey(e => e.SuppliersId)
-                    .HasName("PK__supplier__8AB703A43970B8CE");
+                    .HasName("PK__supplier__8AB703A41651418F");
 
                 entity.ToTable("suppliers");
 
@@ -1037,7 +1099,7 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<SupplierProduct>(entity =>
             {
                 entity.HasKey(e => e.SupplierProductsId)
-                    .HasName("PK__supplier__6892C21EB7FECBE4");
+                    .HasName("PK__supplier__6892C21E7DA8FDF4");
 
                 entity.ToTable("supplier_products");
 
@@ -1048,18 +1110,18 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.SupplierProducts)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__supplier___produ__59C55456");
+                    .HasConstraintName("FK__supplier___produ__40058253");
 
                 entity.HasOne(d => d.Supplier)
                     .WithMany(p => p.SupplierProducts)
                     .HasForeignKey(d => d.SupplierId)
-                    .HasConstraintName("FK__supplier___suppl__5AB9788F");
+                    .HasConstraintName("FK__supplier___suppl__40F9A68C");
             });
 
             modelBuilder.Entity<Warehouse>(entity =>
             {
                 entity.HasKey(e => e.WarehousesId)
-                    .HasName("PK__warehous__00D1C583ACB2C5DE");
+                    .HasName("PK__warehous__00D1C5834998BF21");
 
                 entity.ToTable("warehouses");
 
@@ -1077,7 +1139,7 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<WarehouseTransfer>(entity =>
             {
                 entity.HasKey(e => e.TransferId)
-                    .HasName("PK__warehous__954901711BC2EB1A");
+                    .HasName("PK__warehous__95490171AEE0C503");
 
                 entity.ToTable("warehouse_transfers");
 
@@ -1107,25 +1169,25 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.WarehouseTransfers)
                     .HasForeignKey(d => d.CreatedBy)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__warehouse__creat__5D95E53A");
+                    .HasConstraintName("FK__warehouse__creat__43D61337");
 
                 entity.HasOne(d => d.FromWarehouse)
                     .WithMany(p => p.WarehouseTransferFromWarehouses)
                     .HasForeignKey(d => d.FromWarehouseId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__warehouse__from___5E8A0973");
+                    .HasConstraintName("FK__warehouse__from___44CA3770");
 
                 entity.HasOne(d => d.ToWarehouse)
                     .WithMany(p => p.WarehouseTransferToWarehouses)
                     .HasForeignKey(d => d.ToWarehouseId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__warehouse__to_wa__5F7E2DAC");
+                    .HasConstraintName("FK__warehouse__to_wa__45BE5BA9");
             });
 
             modelBuilder.Entity<WarehouseTransferDetail>(entity =>
             {
                 entity.HasKey(e => e.TransferDetailId)
-                    .HasName("PK__warehous__F9BF690FCF0E6732");
+                    .HasName("PK__warehous__F9BF690F617D07B2");
 
                 entity.ToTable("warehouse_transfer_details");
 
@@ -1140,12 +1202,12 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.WarehouseTransferDetails)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__warehouse__produ__5BAD9CC8");
+                    .HasConstraintName("FK__warehouse__produ__41EDCAC5");
 
                 entity.HasOne(d => d.Transfer)
                     .WithMany(p => p.WarehouseTransferDetails)
                     .HasForeignKey(d => d.TransferId)
-                    .HasConstraintName("FK__warehouse__trans__5CA1C101");
+                    .HasConstraintName("FK__warehouse__trans__42E1EEFE");
             });
 
             OnModelCreatingPartial(modelBuilder);

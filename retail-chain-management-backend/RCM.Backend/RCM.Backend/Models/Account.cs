@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RCM.Backend.Models
 {
-    public partial class Account
+   public class Account
     {
         public Account()
         {
@@ -19,11 +19,14 @@ namespace RCM.Backend.Models
         public string PasswordHash { get; set; } = null!;
         public string Role { get; set; } = null!;
         public bool? IsActive { get; set; }
-        public virtual Employee? Employee { get; set; }  // ✅ Thêm dòng này
+
+        public virtual Employee? Employee { get; set; }
+
         public virtual ICollection<ProductPriceHistory> ProductPriceHistories { get; set; }
         public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
         public virtual ICollection<StockAuditRecord> StockAuditRecordAuditors { get; set; }
         public virtual ICollection<StockAuditRecord> StockAuditRecordCoAuditors { get; set; }
         public virtual ICollection<WarehouseTransfer> WarehouseTransfers { get; set; }
     }
+
 }

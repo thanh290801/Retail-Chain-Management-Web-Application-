@@ -3,10 +3,11 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import Header from './headerComponent/header';
 import LoginPage from './components/login';
 import StaffHomeComponent from './components/staffHomeConponent/staffHome';
-import SalesChartPage from './sale-dashboadConponent/SalesChartPage';
 import EndDayReport from './components/reportStaffConponent/EndShiftReport';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
 import CashBookComponent from './components/cashbookConponent/cashBook';
+import FundTransactionReport from './components/cashbookConponent/historyTrans';
+
 import Main from './components/pos/main';
 import ProductStockComponent from './components/warehouses/listProduct';
 import WarehouseManagementComponent from './components/warehouses/warehouseManagement';
@@ -19,6 +20,8 @@ import AddProductComponent from './components/warehouses/addProduct';
 import ProductStockForOwner from './components/warehouses/listProductForBoss';
 import LowStockProducts from './components/warehouses/lowStockProduct';
 import PurchaseOrder from './components/warehouses/PurchaseOrder';
+import FundTransactionReport from './components/cashbookConponent/historyTrans';
+
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -39,7 +42,6 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* Các trang cần đăng nhập */}
-          <Route path="/home" element={<ProtectedRoute><SalesChartPage /></ProtectedRoute>} />
           <Route path='/pos' element={<Main />} />
           <Route path="/staffHome" element={<ProtectedRoute><StaffHomeComponent /></ProtectedRoute>} />
           <Route path='/addproduct' element= {<AddProductComponent/>} />
@@ -57,6 +59,7 @@ function App() {
           <Route path="/endDaytReport" element={<ProtectedRoute><EndDayReport /></ProtectedRoute>} />
           <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
           <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />
+          <Route path="/fundTransactionReport" element={<ProtectedRoute><FundTransactionReport /></ProtectedRoute>} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
 

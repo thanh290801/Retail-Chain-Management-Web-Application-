@@ -37,7 +37,6 @@ public class JwtService : IJwtService
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Username),
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role),
             new Claim("AccountId", user.AccountId.ToString()), // Thêm AccountID vào token
             new Claim("BranchID", branchId.ToString()), // Thêm BranchID vào token
         };
@@ -51,9 +50,9 @@ public class JwtService : IJwtService
             issuer: _configuration["JwtSettings:Issuer"],
             audience: _configuration["JwtSettings:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddHours(2),
+            expires: DateTime.UtcNow.AddHours(2),
             signingCredentials: creds);
-
+       
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
