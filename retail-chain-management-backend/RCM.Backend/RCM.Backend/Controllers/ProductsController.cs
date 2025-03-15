@@ -7,10 +7,10 @@ using RCM.Backend.Models; // Đảm bảo namespace đúng với Product
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly RCMDbContext _context;
+    private readonly RetailChainContext _context;
 
     // Constructor đúng tên class
-    public ProductsController(RCMDbContext context)
+    public ProductsController(RetailChainContext context)
     {
         _context = context;
     }
@@ -73,4 +73,163 @@ public class ProductsController : ControllerBase
              product
             });
     }
+
+    // API GET: /api/products/warehouse/{employeeId} (Lấy tất cả sản phẩm trong kho nhân viên làm việc)
+[HttpGet("warehouse/{employeeId}")]
+public async Task<ActionResult<IEnumerable<object>>> GetAllProductsByEmployeeWarehouse(int employeeId)
+{
+    // Lấy WarehouseId của nhân viên
+    var employee = await _context.Employees
+        .Where(e => e.EmployeeId == employeeId)
+        .Select(e => e.BranchId) // Lấy kho mà nhân viên đó làm việc
+        .FirstOrDefaultAsync();
+
+    if (employee == null)
+    {
+        return NotFound(new { message = "Không tìm thấy nhân viên hoặc nhân viên chưa được gán kho." });
+    }
+
+    int warehouseId = employee.Value; // ID kho nhân viên làm việc
+
+    // Lấy danh sách sản phẩm trong kho đó (bao gồm cả Quantity = 0)
+    var productsInStock = await _context.StockLevels
+        .Where(s => s.WarehouseId == warehouseId) // Không lọc Quantity > 0
+        .Join(_context.Products,
+            stock => stock.ProductId,
+            product => product.ProductsId,
+            (stock, product) => new
+            {
+                product.ProductsId,
+                product.Name,
+                product.Barcode,
+                stock.Quantity,          // Tồn kho thực tế
+                stock.MinQuantity,       // Số lượng tồn kho tối thiểu
+                stock.PurchasePrice,     // Giá nhập
+                stock.WholesalePrice,    // Giá bán buôn
+                stock.RetailPrice,       // Giá bán lẻ
+                product.Unit,
+                product.ImageUrl,
+                product.Category
+            })
+        .ToListAsync();
+
+    return Ok(productsInStock);
+}
+    
+   [HttpPost("update-price")]
+public async Task<IActionResult> UpdateProductPrice([FromBody] List<UpdatePriceRequest> priceUpdates)
+{
+    if (priceUpdates == null || !priceUpdates.Any())
+    {
+        return BadRequest(new { message = "Không có dữ liệu cập nhật." });
+    }
+
+    var priceHistoryEntries = new List<ProductPriceHistory>();
+
+    foreach (var update in priceUpdates)
+    {
+        var stock = await _context.StockLevels
+            .FirstOrDefaultAsync(s => s.ProductId == update.ProductId && s.WarehouseId == update.WarehouseId);
+
+        if (stock == null)
+        {
+            return NotFound(new { message = $"Không tìm thấy sản phẩm {update.ProductId} trong kho {update.WarehouseId}." });
+        }
+
+        decimal? oldPrice = null;
+
+        switch (update.PriceType)
+        {
+            case "NewPurchasePrice":
+                oldPrice = stock.PurchasePrice;
+                stock.PurchasePrice = update.NewPrice;
+                break;
+            case "NewWholesalePrice":
+                oldPrice = stock.WholesalePrice;
+                stock.WholesalePrice = update.NewPrice;
+                break;
+            case "NewRetailPrice":
+                oldPrice = stock.RetailPrice;
+                stock.RetailPrice = update.NewPrice;
+                break;
+            default:
+                return BadRequest(new { message = "Loại giá không hợp lệ." });
+        }
+
+        // Chỉ lưu vào history nếu có sự thay đổi
+        if (oldPrice != update.NewPrice)
+        {
+            priceHistoryEntries.Add(new ProductPriceHistory
+            {
+                ProductId = update.ProductId,
+                PriceType = update.PriceType,
+                OldPrice = oldPrice.Value,
+                NewPrice = update.NewPrice,
+                ChangedBy = update.ChangedBy,
+                ChangeDate = DateTime.UtcNow,
+                WarehouseId = update.WarehouseId
+            });
+        }
+    }
+
+    if (priceHistoryEntries.Any())
+    {
+        _context.ProductPriceHistories.AddRange(priceHistoryEntries);
+    }
+
+    await _context.SaveChangesAsync();
+    return Ok(new { message = "Cập nhật giá thành công!" });
+}
+
+// Model DTO nhận từ frontend
+public class UpdatePriceRequest
+{
+    public int ProductId { get; set; }
+    public int WarehouseId { get; set; }
+    public string PriceType { get; set; }
+    public decimal NewPrice { get; set; }
+    public int ChangedBy { get; set; }
+}
+
+[HttpGet("low-stock")]
+public async Task<ActionResult<IEnumerable<object>>> GetLowStockProducts(
+    [FromQuery] int? warehouseId, [FromQuery] int? supplierId)
+{
+    var query = _context.StockLevels
+        .Where(s => s.Quantity < s.MinQuantity) // Lọc sản phẩm sắp hết hàng
+        .Join(_context.Products,
+            stock => stock.ProductId,
+            product => product.ProductsId,
+            (stock, product) => new
+            {
+                product.ProductsId,
+                product.Name,
+                product.Unit,
+                stock.Quantity,
+                stock.MinQuantity,
+                stock.WarehouseId
+            });
+
+    // Lọc theo warehouseId nếu có
+    if (warehouseId.HasValue)
+    {
+        query = query.Where(p => p.WarehouseId == warehouseId);
+    }
+
+    // Lọc theo supplierId nếu có
+    if (supplierId.HasValue)
+    {
+        query = query.Join(_context.SupplierProducts,
+            product => product.ProductsId,
+            supplier => supplier.ProductId,
+            (product, supplier) => new { product, supplier })
+        .Where(ps => ps.supplier.SupplierId == supplierId)
+        .Select(ps => ps.product);
+    }
+
+    var results = await query.ToListAsync();
+
+    return Ok(results);
+}
+
 }

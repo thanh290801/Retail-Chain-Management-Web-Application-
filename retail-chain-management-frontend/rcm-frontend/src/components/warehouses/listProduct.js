@@ -1,30 +1,82 @@
 import React, { useEffect, useState } from 'react';
+import { jwtDecode } from 'jwt-decode'; // Giải mã token
 
 const ProductStockComponent = () => {
     const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [showLowStock, setShowLowStock] = useState(false);
+    const [isEditingminQuantity, setIsEditingminQuantity] = useState(false);
 
     useEffect(() => {
-        // Fake dữ liệu tồn kho với tồn kho tối thiểu cho từng sản phẩm
-        const fakeStock = [
-            { id: 'SP000025', name: 'Hộp phở bò phở cổ', category: 'Thực phẩm ăn liền', unit: 'Thùng', stock: 120, minStock: 30, image: 'https://www.havietfoods.vn/upload/Pho%20Bo%20(goi).jpg' },
-            { id: 'SP000026', name: 'Bánh Oreo', category: 'Bánh kẹo', unit: 'Hộp', stock: 50, minStock: 20, image: 'https://example.com/oreo.jpg' },
-            { id: 'SP000027', name: 'Nước ngọt Coca Cola', category: 'Đồ uống', unit: 'Lon', stock: 10, minStock: 50, image: 'https://example.com/coca.jpg' } // Tồn kho thấp
-        ];
-        setProducts(fakeStock);
+        const token = localStorage.getItem('token');
+        let employeeId = null;
+
+        if (token) {
+            try {
+                const decodedToken = jwtDecode(token);
+                console.log("Dữ liệu token:", decodedToken);
+                employeeId = decodedToken.EmployeeID; // Lấy EmployeeID từ token
+            } catch (error) {
+                console.error('Lỗi khi giải mã token:', error);
+            }
+        }
+
+        if (employeeId) {
+            fetch(`http://localhost:5000/api/products/warehouse/${employeeId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Dữ liệu từ API:", data);
+                    setProducts(data.map(product => ({
+                        ...product,
+                        minQuantity: product.minQuantity || 50 // Mặc định 50 nếu không có dữ liệu
+                    })));
+                })
+                .catch(error => console.error('Lỗi lấy dữ liệu kho:', error));
+        }
     }, []);
 
-    const handleMinStockChange = (index, value) => {
-        const updatedProducts = [...products];
-        updatedProducts[index].minStock = Number(value);
-        setProducts(updatedProducts);
+    // Cập nhật số lượng tồn kho tối thiểu
+    const handleminQuantityChange = (index, value) => {
+        if (isEditingminQuantity) {
+            const updatedProducts = [...products];
+            updatedProducts[index].minQuantity = Number(value);
+            setProducts(updatedProducts);
+        }
+    };
+
+    // Gọi API cập nhật số lượng tồn kho tối thiểu
+    const handleSaveminQuantity = () => {
+        const token = localStorage.getItem('token');
+
+        const updateData = products.map(product => ({
+            productId: product.productsId,
+            minQuantity: product.minQuantity
+        }));
+
+        fetch('http://localhost:5000/api/stocklevels/update-min-quantity', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(updateData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            setIsEditingminQuantity(false);
+        })
+        .catch(error => console.error('Lỗi khi cập nhật tồn kho tối thiểu:', error));
     };
 
     const filteredProducts = products.filter(product => 
         (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.id.includes(searchTerm)) &&
-        (!showLowStock || product.stock < product.minStock)
+        product.productsId.toString().includes(searchTerm)) &&
+        (!showLowStock || product.quantity < product.minQuantity)
     );
 
     return (
@@ -47,6 +99,18 @@ const ProductStockComponent = () => {
                     <label>Chỉ hiển thị sản phẩm sắp hết hàng</label>
                 </div>
             </div>
+            <button 
+                className="mb-4 bg-blue-500 text-white px-4 py-2 rounded" 
+                onClick={() => {
+                    if (isEditingminQuantity) {
+                        handleSaveminQuantity();
+                    } else {
+                        setIsEditingminQuantity(true);
+                    }
+                }}
+            >
+                {isEditingminQuantity ? 'Lưu tồn kho tối thiểu' : 'Chỉnh sửa tồn kho tối thiểu'}
+            </button>
             <table className="w-full bg-white shadow-md rounded">
                 <thead className="bg-gray-100">
                     <tr>
@@ -57,25 +121,34 @@ const ProductStockComponent = () => {
                         <th className="p-2">Đơn vị</th>
                         <th className="p-2">Tồn kho</th>
                         <th className="p-2">Tồn kho tối thiểu</th>
+                        <th className="p-2">Giá nhập</th>
+                        <th className="p-2">Giá bán buôn</th>
+                        <th className="p-2">Giá bán lẻ</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filteredProducts.map((product, index) => (
-                        <tr key={product.id} className={product.stock < product.minStock ? 'bg-red-100' : ''}>
-                            <td className="p-2">{product.id}</td>
-                            <td className="p-2"><img src={product.image} alt="Ảnh sản phẩm" width="50" /></td>
+                        <tr key={product.productsId} className={product.quantity < product.minQuantity ? 'bg-red-100' : ''}>
+                            <td className="p-2">{product.productsId}</td>
+                            <td className="p-2">
+                                <img src={product.imageUrl || "https://via.placeholder.com/50"} alt="Ảnh sản phẩm" width="50" />
+                            </td>
                             <td className="p-2">{product.name}</td>
                             <td className="p-2">{product.category}</td>
                             <td className="p-2">{product.unit}</td>
-                            <td className={`p-2 font-semibold ${product.stock < product.minStock ? 'text-red-600' : ''}`}>{product.stock}</td>
+                            <td className={`p-2 font-semibold ${product.quantity < product.minQuantity ? 'text-red-600' : ''}`}>{product.quantity}</td>
                             <td className="p-2">
                                 <input 
                                     type="number" 
                                     className="w-16 p-1 border rounded text-center" 
-                                    value={product.minStock} 
-                                    onChange={(e) => handleMinStockChange(index, e.target.value)}
+                                    value={product.minQuantity} 
+                                    onChange={(e) => handleminQuantityChange(index, e.target.value)}
+                                    disabled={!isEditingminQuantity}
                                 />
                             </td>
+                            <td className="p-2">{product.purchasePrice.toLocaleString()} đ</td>
+                            <td className="p-2">{product.wholesalePrice.toLocaleString()} đ</td>
+                            <td className="p-2">{product.retailPrice.toLocaleString()} đ</td>
                         </tr>
                     ))}
                 </tbody>

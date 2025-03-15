@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using RCM.Backend.Models;
 using System.Data;
 
 namespace RCM.Backend.Controllers
@@ -10,8 +11,8 @@ namespace RCM.Backend.Controllers
     [Route("[controller]")]
     public class SaleInvoiceController : ControllerBase
     {
-        private readonly RCMDbContext _context;
-        public SaleInvoiceController(RCMDbContext context)
+        private readonly RetailChainContext _context;
+        public SaleInvoiceController(RetailChainContext context)
         {
             _context = context;
         }

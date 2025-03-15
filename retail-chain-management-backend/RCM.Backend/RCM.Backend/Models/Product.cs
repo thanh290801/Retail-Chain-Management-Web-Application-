@@ -28,7 +28,7 @@ namespace RCM.Backend.Models
         public decimal? Volume { get; set; }
         public string? ImageUrl { get; set; }
         public string? Category { get; set; }
-        public bool? IsEnabled { get; set; }
+        public bool IsEnabled { get; set; }
 
         public virtual ICollection<BatchDetail> BatchDetails { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
