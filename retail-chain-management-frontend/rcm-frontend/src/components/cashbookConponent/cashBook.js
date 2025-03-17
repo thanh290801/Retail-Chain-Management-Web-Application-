@@ -4,51 +4,41 @@ import { useNavigate } from "react-router-dom";
 import CashBook from "./listCashBook";
 const CashBookStaff = () => {
     const navigate = useNavigate();
-    const [cashFundData, setCashFundData] = useState(null);
+    const [FundData, setFinancialData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [cashData, setCashData] = useState(null);
 
     // Mặc định: Hiển thị giao dịch trong tháng hiện tại
 
 
     useEffect(() => {
-        fetchCashBalance();
-        fetchCashsummary();
+        fetchFinancialSummary();
     }, []);// Tự động gọi API khi filter thay đổi
-    const fetchCashBalance = async () => {
+    const fetchFinancialSummary = async () => {
         try {
             const token = localStorage.getItem("token");
+            if (!token) {
+                navigate("/login");
+                return;
+            }
 
-            const response = await axios.get("https://localhost:5000/api/Financial/branch-cash-balance", {
+            const response = await axios.get("https://localhost:5000/api/finance/summaryStaff", {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            setCashData(response.data);
+            setFinancialData(response.data);
         } catch (err) {
-            setError(err.response?.data?.message || "Lỗi khi lấy dữ liệu");
+            if (err.response?.status === 401) {
+                localStorage.removeItem("token");
+                navigate("/login");
+            } else {
+                setError(err.response?.data?.message || "Lỗi khi lấy dữ liệu tài chính.");
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchCashsummary = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token không tồn tại!");
-            console.log("token", token);
-            const response = await axios.get("https://localhost:5000/api/CashBookStaff/cashbook-staff-summary", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setCashFundData(response.data);
-            console.log("📌 Tổng Quan Tài Chính:", response.data);
-
-        } catch (err) {
-            setError(err.response?.data?.message || "Lỗi khi lấy dữ liệu");
-        } finally {
-            setLoading(false)
-        }
-    };
 
 
 
@@ -88,7 +78,7 @@ const CashBookStaff = () => {
                             <div className="p-6 bg-green-200 text-green-800 rounded-lg shadow-md">
                                 <h3 className="text-lg font-semibold">💰 Tồn quỹ tiền mặt đầu ngày</h3>
                                 <p className="text-3xl font-bold">
-                                    {cashData?.openingCashBalance?.toLocaleString() || "0"} VNĐ
+                                    {FundData?.openingBalance?.toLocaleString() || "0"} VNĐ
                                 </p>
                             </div>
 
@@ -96,7 +86,7 @@ const CashBookStaff = () => {
                             <div className="p-6 bg-blue-200 text-green-800 rounded-lg shadow-md">
                                 <h3 className="text-lg font-semibold">💰 Tồn quỹ tiền mặt</h3>
                                 <p className="text-3xl font-bold">
-                                    {cashData?.cashBalance?.toLocaleString() || "0"} VNĐ
+                                    {FundData?.currentBalance?.toLocaleString() || "0"} VNĐ
                                 </p>
                             </div>
 
@@ -104,7 +94,7 @@ const CashBookStaff = () => {
                             <div className="p-6 bg-green-200 text-green-800 rounded-lg shadow-md">
                                 <h3 className="text-lg font-semibold">📊 Tổng thu tiền mặt</h3>
                                 <p className="text-3xl font-bold">
-                                    {cashData?.cashThu?.toLocaleString() || "0"} VNĐ
+                                    {FundData?.totalthu?.toLocaleString() || "0"} VNĐ
                                 </p>
                             </div>
 
@@ -112,7 +102,7 @@ const CashBookStaff = () => {
                             <div className="p-6 bg-red-200 text-green-800 rounded-lg shadow-md">
                                 <h3 className="text-lg font-semibold">📊 Tổng chi tiền mặt</h3>
                                 <p className="text-3xl font-bold">
-                                    {cashData?.cashChi?.toLocaleString() || "0"} VNĐ
+                                    {FundData?.totalchi?.toLocaleString() || "0"} VNĐ
                                 </p>
                             </div>
                         </div>
