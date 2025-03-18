@@ -34,7 +34,7 @@ public class CashHandoverController : ControllerBase
 
         DateTime today = DateTime.Today;
         DateTime tomorrow = today.AddDays(1);
-
+        
         // Truy vấn tất cả giao dịch tiền mặt hôm nay
         var cashbookTransactions = await _context.Transactions
             .Where(t => t.TransactionDate >= today && t.TransactionDate < tomorrow && t.BranchId == branchId)

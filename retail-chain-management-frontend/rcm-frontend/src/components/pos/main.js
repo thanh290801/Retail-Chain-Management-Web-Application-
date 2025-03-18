@@ -201,7 +201,7 @@ const Main = () => {
 
             if (response.data) {
                 const product = {
-                    id: response.data.ProductsId || response.data.id,
+                    id: response.data.productsId || response.data.id,
                     name: response.data.productName || response.data.name,
                     price: response.data.finalPrice || response.data.price || 0,
                     unit: response.data.unit || 'Cái',
@@ -312,9 +312,9 @@ const Main = () => {
 
                         {/* ✅ Hiển thị danh sách sản phẩm gợi ý */}
                         {!isLoading && !notFound && suggestedProducts.length > 0 && suggestedProducts.map(product => (
-                            <div key={product.ProductsId}
+                            <div key={product.productsId}
                                 onClick={() => handleAddProductToCart({
-                                    id: product.ProductsId,
+                                    id: product.productsId,
                                     name: product.productName,
                                     price: product.finalPrice || 0,
                                     unit: product.unit || 'Cái',

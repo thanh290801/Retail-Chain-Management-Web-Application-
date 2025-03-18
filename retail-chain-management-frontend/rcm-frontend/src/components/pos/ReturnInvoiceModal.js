@@ -4,7 +4,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000/api/sale-invoice";
+const API_BASE_URL = "https://localhost:5000/api/sale-invoice";
 
 const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -74,16 +74,16 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
             const response = await axios.post(`${API_BASE_URL}/orderdetails/search`, {
                 orderId: order.orderId // ✅ Gửi `orderId` vào body
             });
-    
+
             if (response.data) {
                 handleCreateReturnInvoice(order, response.data); // ✅ Tạo phiếu trả hàng với dữ liệu từ API
             }
         } catch (error) {
             console.error("❌ Lỗi khi lấy chi tiết hóa đơn:", error);
         }
-    
+
         onHide(); // ✅ Đóng modal sau khi chọn
-    };    
+    };
 
     return (
         <Modal show={show} onHide={onHide} centered size="lg">
@@ -200,7 +200,7 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
                                             <td>{order.employeeName}</td>
                                             <td>{order.totalAmount ? order.totalAmount.toLocaleString() : "0"} VND</td>
                                             <Button
-                                                variant="outline-success"
+                                                variant="success"
                                                 size="sm"
                                                 onClick={() => handleSelectOrder(order)}
                                             >
