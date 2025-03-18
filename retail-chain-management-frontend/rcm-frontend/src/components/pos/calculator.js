@@ -9,25 +9,26 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
     const [qrCode, setQrCode] = useState("");
 
     useEffect(() => {
-        let totalItems = cartData.reduce((total, item) =>
-            total + (isReturn ? (item.returnQuantity || 0) : (item.quantity || 0)), 0
+        let totalItems = cartData.reduce((total, item) => 
+            total + (isReturn ? (parseInt(item.returnQuantity, 10) || 0) : (parseInt(item.quantity, 10) || 0)), 0
         );
-
-        let totalPrice = cartData.reduce((total, item) =>
-            total + ((item.price || 0) * (isReturn ? (item.returnQuantity || 0) : (item.quantity || 0))), 0
+    
+        let totalPrice = cartData.reduce((total, item) => 
+            total + ((item.unitPrice || item.price || 0) * (isReturn ? (parseInt(item.returnQuantity, 10) || 0) : (parseInt(item.quantity, 10) || 0))), 0
         );
-
+    
         setTotalItems(totalItems);
         setTotalPrice(totalPrice);
     }, [cartData, isReturn]);
 
     useEffect(() => {
-        if (isReturn) {
-            onCashUpdate(cashGiven, totalPrice - cashGiven);
-        } else {
-            onCashUpdate(cashGiven, Math.max(cashGiven - totalPrice, 0));
+        const newChange = isReturn ? totalPrice - cashGiven : Math.max(cashGiven - totalPrice, 0);
+        
+        // 🔹 Chỉ gọi `onCashUpdate` nếu giá trị thay đổi thực sự
+        if (change !== newChange) {
+            onCashUpdate(cashGiven, newChange);
         }
-    }, [totalPrice, cashGiven, isReturn, onCashUpdate]);
+    }, [totalPrice, cashGiven, isReturn, change, onCashUpdate]);
 
     const denominations = [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
 
@@ -40,9 +41,14 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
 
     const handleCashGivenChange = (e) => {
         const value = parseFloat(e.target.value) || 0;
-        onCashUpdate(value, isReturn ? Math.max(totalPrice - value, 0) : Math.max(value - totalPrice, 0));
+        const newChange = isReturn ? Math.max(totalPrice - value, 0) : Math.max(value - totalPrice, 0);
+    
+        if (cashGiven !== value || change !== newChange) {
+            onCashUpdate(value, newChange);
+        }
+    
         setSelectedDenoms([]);
-    };
+    };    
 
     const generateVietQR = useCallback(async () => {
         try {
@@ -117,7 +123,6 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                     UnitPrice: item.price
                 }))
             });
-
                 alert(`✅ Thanh toán thành công! Mã hóa đơn:`);
                 onCashUpdate(0, 0);
         } catch (error) {

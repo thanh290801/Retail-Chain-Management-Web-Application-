@@ -8,7 +8,7 @@ import StaffHomeComponent from './components/staffHomeConponent/staffHome';
 import EndDayReport from './components/reportStaffConponent/EndShiftReport';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
 import CashBookComponent from './components/cashbookConponent/cashBook';
-import Main from './components/pos/Main';
+import Main from './components/pos/main';
 import FundTransactionReport from './components/cashbookConponent/historyTrans';
 
 

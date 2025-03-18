@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Table, Pagination, Row, Col } from "react-bootstrap";
+import React, { useState } from "react";
+import { Modal, Button, Form, Table, Row, Col } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
@@ -12,10 +12,10 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
     const [loading, setLoading] = useState(false);
     const [filteredOrders, setFilteredOrders] = useState([]);
 
-    // ✅ State lưu bộ lọc tìm kiếm
+    // ✅ State bộ lọc tìm kiếm
     const [filters, setFilters] = useState({
         orderId: "",
-        employeeId: "", // ✅ Thêm employeeId vào filters
+        employeeId: "",
         customer: "",
         productId: "",
         productName: "",
@@ -30,12 +30,20 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
         return date.split("/").reverse().join("-");
     };
 
-    // ✅ Gọi API lấy danh sách hóa đơn khi mở modal hoặc bộ lọc thay đổi
-    useEffect(() => {
-        if (!show) return;
+    // ✅ Định dạng ngày/tháng/năm giờ:phút:giây khi hiển thị
+    const formatDateTime = (dateString) => {
+        if (!dateString) return "N/A";
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat("vi-VN", {
+            day: "2-digit", month: "2-digit", year: "numeric",
+            hour: "2-digit", minute: "2-digit", second: "2-digit"
+        }).format(date);
+    };
 
+    // ✅ Gọi API khi nhấn Enter hoặc click "Tìm kiếm"
+    const handleSearch = () => {
         setLoading(true);
-        setCurrentPage(1); // ✅ Reset về trang đầu khi thay đổi filters
+        setCurrentPage(1);
 
         axios.post(`${API_BASE_URL}/order/search`, {
             OrderId: filters.orderId ? parseInt(filters.orderId) : null,
@@ -48,19 +56,22 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
         })
             .then(response => {
                 setFilteredOrders(response.data || []);
-                console.log("✅ API trả về:", response.data); // ✅ Log kiểm tra dữ liệu từ API
+                console.log("✅ API trả về:", response.data);
             })
             .catch(error => {
                 console.error("❌ Lỗi khi tìm kiếm hóa đơn:", error);
                 setFilteredOrders([]);
             })
             .finally(() => setLoading(false));
-    }, [filters, show]);
+    };
 
-    // ✅ Cập nhật khi danh sách đơn hàng thay đổi
-    useEffect(() => {
-        setCurrentPage(1); // ✅ Reset trang về 1 khi có dữ liệu mới
-    }, [filteredOrders]);
+    // ✅ Lắng nghe phím Enter
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            handleSearch();
+        }
+    };
 
     // ✅ Phân trang
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -68,24 +79,24 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
     const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
-    //Chọn order
+    // ✅ Chọn hóa đơn
     const handleSelectOrder = async (order) => {
         try {
             const response = await axios.post(`${API_BASE_URL}/orderdetails/search`, {
-                orderId: order.orderId // ✅ Gửi `orderId` vào body
+                orderId: order.orderId
             });
             if (response.data) {
-                handleCreateReturnInvoice(order, response.data); // ✅ Tạo phiếu trả hàng với dữ liệu từ API
+                handleCreateReturnInvoice(order, response.data);
             }
         } catch (error) {
             console.error("❌ Lỗi khi lấy chi tiết hóa đơn:", error);
         }
 
-        onHide(); // ✅ Đóng modal sau khi chọn
+        onHide();
     };
 
     return (
-        <Modal show={show} onHide={onHide} centered size="lg">
+        <Modal show={show} onHide={onHide} centered size="xl">
             <Modal.Header closeButton>
                 <Modal.Title>Chọn hóa đơn trả hàng</Modal.Title>
             </Modal.Header>
@@ -95,85 +106,73 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
                     <Col md={4} className="border-end">
                         <h5 className="mb-3">Tìm kiếm</h5>
 
-                        <Form.Group className="mb-2">
-                            <Form.Label>Mã hóa đơn</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Nhập mã hóa đơn..."
-                                value={filters.orderId}
-                                onChange={(e) => setFilters({ ...filters, orderId: e.target.value })}
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-2">
-                            <Form.Label>Nhân viên</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Nhập ID nhân viên..."
-                                value={filters.employeeId}
-                                onChange={(e) => setFilters({ ...filters, employeeId: e.target.value })}
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-2">
-                            <Form.Label>Khách hàng</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Nhập tên khách hàng..."
-                                value={filters.customer}
-                                onChange={(e) => setFilters({ ...filters, customer: e.target.value })}
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-2">
-                            <Form.Label>Mã vạch sản phẩm</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Nhập barcode..."
-                                value={filters.barcode}
-                                onChange={(e) => setFilters({ ...filters, barcode: e.target.value })}
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-2">
-                            <Form.Label>Tên sản phẩm</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Nhập tên sản phẩm..."
-                                value={filters.productName}
-                                onChange={(e) => setFilters({ ...filters, productName: e.target.value })}
-                            />
-                        </Form.Group>
+                        {["orderId", "employeeId", "customer", "barcode", "productName"].map((field, index) => (
+                            <Form.Group className="mb-2" key={index}>
+                                <Form.Label>{{
+                                    orderId: "Mã hóa đơn",
+                                    employeeId: "Nhân viên",
+                                    customer: "Khách hàng",
+                                    barcode: "Mã vạch sản phẩm",
+                                    productName: "Tên sản phẩm"
+                                }[field]}</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    placeholder={`Nhập ${{
+                                        orderId: "mã hóa đơn...",
+                                        employeeId: "ID nhân viên...",
+                                        customer: "tên khách hàng...",
+                                        barcode: "barcode...",
+                                        productName: "tên sản phẩm..."
+                                    }[field]}`}
+                                    value={filters[field]}
+                                    onChange={(e) => setFilters({ ...filters, [field]: e.target.value })}
+                                    onKeyDown={handleKeyDown}
+                                />
+                            </Form.Group>
+                        ))}
 
                         {/* Bộ lọc thời gian */}
+                        {/* Bộ lọc thời gian */}
                         <h5 className="mt-3">Thời gian</h5>
-                        <Form.Group className="mb-2">
-                            <Form.Label>Từ ngày</Form.Label>
-                            <DatePicker
-                                selected={filters.startDate ? new Date(filters.startDate.split("/").reverse().join("-")) : null}
-                                onChange={(date) => setFilters({ ...filters, startDate: date.toLocaleDateString("en-GB") })}
-                                dateFormat="dd/MM/yyyy"
-                                className="form-control"
-                                placeholderText="Chọn ngày"
-                                maxDate={new Date()}
-                            />
-                        </Form.Group>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-2">
+                                    <Form.Label>Từ ngày</Form.Label>
+                                    <DatePicker
+                                        selected={filters.startDate ? new Date(filters.startDate.split("/").reverse().join("-")) : null}
+                                        onChange={(date) => setFilters({ ...filters, startDate: date.toLocaleDateString("en-GB") })}
+                                        dateFormat="dd/MM/yyyy"
+                                        className="form-control"
+                                        placeholderText="Chọn ngày"
+                                        maxDate={new Date()}
+                                        onKeyDown={handleKeyDown}
+                                    />
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-2">
+                                    <Form.Label>Đến ngày</Form.Label>
+                                    <DatePicker
+                                        selected={filters.endDate ? new Date(filters.endDate.split("/").reverse().join("-")) : null}
+                                        onChange={(date) => setFilters({ ...filters, endDate: date.toLocaleDateString("en-GB") })}
+                                        dateFormat="dd/MM/yyyy"
+                                        className="form-control"
+                                        placeholderText="Chọn ngày"
+                                        maxDate={new Date()}
+                                        onKeyDown={handleKeyDown}
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
-                        <Form.Group className="mb-2">
-                            <Form.Label>Đến ngày</Form.Label>
-                            <DatePicker
-                                selected={filters.endDate ? new Date(filters.endDate.split("/").reverse().join("-")) : null}
-                                onChange={(date) => setFilters({ ...filters, endDate: date.toLocaleDateString("en-GB") })}
-                                dateFormat="dd/MM/yyyy"
-                                className="form-control"
-                                placeholderText="Chọn ngày"
-                                maxDate={new Date()}
-                            />
-                        </Form.Group>
-                    </Col >
+                        {/* Nút tìm kiếm */}
+                        <Button variant="primary" className="mt-3 w-100" onClick={handleSearch}>
+                            🔍 Tìm kiếm
+                        </Button>
+                    </Col>
 
                     {/* Cột phải: Danh sách hóa đơn */}
-                    < Col md={8} >
+                    <Col md={8}>
                         <Table bordered hover responsive>
                             <thead className="bg-primary text-white">
                                 <tr>
@@ -182,8 +181,8 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
                                     <th>Nhân viên</th>
                                     <th>Tổng cộng</th>
                                     <th>Chọn</th>
-                                </tr >
-                            </thead >
+                                </tr>
+                            </thead>
                             <tbody>
                                 {loading ? (
                                     <tr>
@@ -195,16 +194,12 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
                                     currentOrders.map(order => (
                                         <tr key={order.orderId}>
                                             <td>{order.orderId}</td>
-                                            <td>{order.orderDate}</td>
+                                            <td>{formatDateTime(order.orderDate)}</td>
                                             <td>{order.employeeName}</td>
-                                            <td>{order.totalAmount ? order.totalAmount.toLocaleString() : "0"} VND</td>
-                                            <Button
-                                                variant="outline-success"
-                                                size="sm"
-                                                onClick={() => handleSelectOrder(order)}
-                                            >
-                                                Chọn
-                                            </Button>
+                                            <td>{order.totalAmount?.toLocaleString() || "0"} VND</td>
+                                            <td>
+                                                <Button variant="outline-success" size="sm" onClick={() => handleSelectOrder(order)}>Chọn</Button>
+                                            </td>
                                         </tr>
                                     ))
                                 ) : (
@@ -212,17 +207,17 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
                                         <td colSpan="5" className="text-center text-danger">
                                             ❌ Không tìm thấy hóa đơn phù hợp.
                                         </td>
-                                    </tr >
+                                    </tr>
                                 )}
-                            </tbody >
-                        </Table >
-                    </Col >
-                </Row >
-            </Modal.Body >
+                            </tbody>
+                        </Table>
+                    </Col>
+                </Row>
+            </Modal.Body>
             <Modal.Footer>
                 <Button variant="secondary" onClick={onHide}>Đóng</Button>
             </Modal.Footer>
-        </Modal >
+        </Modal>
     );
 };
 

@@ -1,41 +1,16 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Row, Col, Form, Button, ButtonGroup, Modal } from 'react-bootstrap';
 import Cart from './cart';
 import Calculator from './calculator';
-import ReturnInvoiceModal from './ReturnInvoiceModal'; // Không dùng dấu ngoặc nhọn {}
+import ReturnInvoiceModal from './returnInvoiceModal'; // Không dùng dấu ngoặc nhọn {}
 import { BsX, BsPlus } from 'react-icons/bs';
 import './main.css';
 import { data, useNavigate } from "react-router-dom";
 import { IoArrowBackOutline } from "react-icons/io5";
 import axios from 'axios';
 
-const API_BASE_URL = "https://localhost:5000/api/sale-invoice";
-
-// const productList = [
-//     { id: 1, name: 'Tương ớt Chinsu 1kg', price: 28000, unit: 'Chai', barcode: '8936136161150' },
-//     { id: 2, name: 'Spirte 1.5L', price: 17000, unit: 'Chai', barcode: '8935049501039' },
-//     { id: 3, name: 'Cocacola 1.5L', price: 17000, unit: 'Chai', barcode: '8935049501381' },
-//     { id: 4, name: 'Ô mai mơ xí muội', price: 10000, unit: 'Gói', barcode: '8936205950760' },
-//     { id: 5, name: 'Pepsi Cola Chanh', price: 10000, unit: 'Lon', barcode: '8934588672118' }
-// ];
-
-// const ordersData = [
-//     {
-//         id: "HD000046", date: "04/03/2025 17:52", staff: "Hoàng - Kinh Doanh", customer: "Anh Giang - Kim Mã", total: 62000,
-//         products: [
-//             { id: 1, name: "Tương ớt Chinsu 1kg", quantity: 1, price: 28000 },
-//             { id: 2, name: "Spirte 1.5L", quantity: 2, price: 17000 }
-//         ]
-//     },
-//     {
-//         id: "HD000045", date: "03/03/2025 17:51", staff: "h", customer: "Anh Hoàng - Sài Gòn", total: 27000,
-//         products: [
-//             { id: 3, name: "Cocacola 1.5L", quantity: 1, price: 17000 },
-//             { id: 4, name: "Ô mai mơ xí muội", quantity: 1, price: 10000 }
-//         ]
-//     }
-// ];
+const API_BASE_URL = "http://localhost:5000/api/sale-invoice";
 
 const Main = () => {
     const [invoices, setInvoices] = useState({
@@ -55,31 +30,31 @@ const Main = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [notFound, setNotFound] = useState(false);
 
-    const [barcode, setBarcode] = useState('');
     const [lastScanTime, setLastScanTime] = useState(0);
+
+    const barcodeRef = useRef("");
 
     useEffect(() => {
         const handleGlobalKeyDown = async (e) => {
             const currentTime = new Date().getTime();
 
-            // 🔹 Nếu quá 1 giây kể từ lần nhập trước, reset barcode
             if (currentTime - lastScanTime > 1000) {
-                setBarcode('');
+                barcodeRef.current = "";
             }
 
             setLastScanTime(currentTime);
 
-            if (e.key === 'Enter' && barcode.trim() !== '') {
-                await handleBarcodeScan(barcode.trim());
-                setBarcode(''); // ✅ Reset barcode sau khi xử lý
+            if (e.key === 'Enter' && barcodeRef.current.trim() !== '') {
+                await handleBarcodeScan(barcodeRef.current.trim());
+                barcodeRef.current = "";
             } else {
-                setBarcode(prev => prev + e.key);
+                barcodeRef.current += e.key;
             }
         };
 
         window.addEventListener('keydown', handleGlobalKeyDown);
         return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-    }, [barcode, lastScanTime]);
+    }, []); // ✅ Không có dependency → Không bị lặp vô hạn
 
     // ✅ 3. Hàm xử lý hóa đơn
     const handleAddNewInvoice = () => {
@@ -127,22 +102,17 @@ const Main = () => {
             const updatedInvoices = { ...prevInvoices };
             delete updatedInvoices[invoiceId];
 
-            let newCurrentInvoice = Object.keys(updatedInvoices).length > 0 ? Object.keys(updatedInvoices)[0] : 'Hóa đơn 1';
-
             if (Object.keys(updatedInvoices).length === 0) {
                 updatedInvoices['Hóa đơn 1'] = { cart: [], cashGiven: 0, change: 0 };
+                return updatedInvoices;
             }
-
-            setCurrentInvoice(newCurrentInvoice);
-            setShowConfirmModal(false);
-            setInvoiceToDelete(null);
 
             return updatedInvoices;
         });
 
-        setTimeout(() => {
-            searchInputRef.current?.focus();
-        }, 100);
+        setCurrentInvoice(prev => Object.keys(invoices)[0] || 'Hóa đơn 1');
+        setShowConfirmModal(false);
+        setInvoiceToDelete(null);
     };
 
     // ✅ Hàm xử lý thay đổi input tìm kiếm
@@ -153,7 +123,7 @@ const Main = () => {
         setNotFound(false);
 
         if (value.length < 2) {
-            setSuggestedProducts([]); // 🔹 Xóa gợi ý nếu nhập ít hơn 3 ký tự
+            setSuggestedProducts([]);
             setIsLoading(false);
             return;
         }
@@ -161,15 +131,12 @@ const Main = () => {
         const fetchProducts = async () => {
             try {
                 const response = await axios.post(`${API_BASE_URL}/search`, {
-                    Query: searchText.trim(),
+                    Query: value.trim(),
                     WarehouseId: 1
                 });
 
                 if (response.data && response.data.length > 0) {
-                    // ✅ Kiểm tra nếu giá trị cũ và mới giống nhau, không cập nhật để tránh re-render
-                    if (JSON.stringify(response.data) !== JSON.stringify(suggestedProducts)) {
-                        setSuggestedProducts(response.data);
-                    }
+                    setSuggestedProducts(response.data);
                     setNotFound(false);
                 } else {
                     setSuggestedProducts([]);
@@ -183,7 +150,6 @@ const Main = () => {
 
             setIsLoading(false);
         };
-
 
         fetchProducts();
     };
@@ -279,6 +245,17 @@ const Main = () => {
         setCurrentInvoice(returnInvoiceId);
     };
 
+    const handleCashUpdate = useCallback((cashGiven, change) => {
+        setInvoices((prev) => ({
+            ...prev,
+            [currentInvoice]: {
+                ...prev[currentInvoice],
+                cashGiven,
+                change,
+            },
+        }));
+    }, [currentInvoice, setInvoices]);
+
     return (
         <Container fluid>
             <Row className='tool-bar align-items-center page-body'>
@@ -312,17 +289,32 @@ const Main = () => {
 
                         {/* ✅ Hiển thị danh sách sản phẩm gợi ý */}
                         {!isLoading && !notFound && suggestedProducts.length > 0 && suggestedProducts.map(product => (
-                            <div key={product.ProductsId}
+                            <div key={product.productsId}
                                 onClick={() => handleAddProductToCart({
-                                    id: product.ProductsId,
+                                    id: product.productsId,
                                     name: product.productName,
                                     price: product.finalPrice || 0,
                                     unit: product.unit || 'Cái',
                                     barcode: product.barcode || '',
                                     quantity: 1
                                 })}
-                                className="p-2 border-bottom cursor-pointer hover-bg-light">
-                                {product.productName} - {product.finalPrice ? product.finalPrice.toLocaleString() : "Giá không có"} VND
+                                className="p-2 border-bottom cursor-pointer hover-bg-light d-flex align-items-center">
+
+                                {/* Ảnh sản phẩm */}
+                                <img src={product.imageUrl || "/placeholder.jpg"}
+                                    alt={product.productName}
+                                    className="me-2 rounded border"
+                                    style={{ width: "50px", height: "50px", objectFit: "cover" }} />
+
+                                {/* Thông tin sản phẩm */}
+                                <div className="flex-grow-1">
+                                    <div className="fw-bold">{product.productName}</div>
+                                    <div className="text-muted">
+                                        <span>{product.finalPrice ? product.finalPrice.toLocaleString() : "Giá không có"} VND</span>
+                                        {" • "} {product.unit || "Cái"}
+                                        {/* {" • "} Mã vạch: {product.barcode || "Không có"} */}
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -331,16 +323,22 @@ const Main = () => {
                 <Col md={8}>
                     <ButtonGroup className="invoice-tabs">
                         {Object.keys(invoices).map((invoiceId) => (
-                            <Button key={invoiceId} variant={invoiceId === currentInvoice ? 'light' : 'primary'}
+                            <Button
+                                key={invoiceId} // ✅ Thêm key vào đây
+                                variant={invoiceId === currentInvoice ? 'light' : 'primary'}
+                                onClick={() => handleSwitchInvoice(invoiceId)}
                                 className={`invoice-tab d-flex align-items-center ${invoiceId === currentInvoice ? 'active' : ''}`}
-                                onClick={() => handleSwitchInvoice(invoiceId)}>
+                            >
                                 <span>{invoiceId}</span>
-                                <BsX className="invoice-close ms-2" onClick={(e) => { e.stopPropagation(); confirmRemoveInvoice(invoiceId); }} />
+                                <BsX
+                                    className="invoice-close ms-2"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        confirmRemoveInvoice(invoiceId);
+                                    }}
+                                />
                             </Button>
                         ))}
-                        <Button variant='light' className="add-invoice ms-2" onClick={handleAddNewInvoice}>
-                            <BsPlus />
-                        </Button>
                     </ButtonGroup>
                 </Col>
 

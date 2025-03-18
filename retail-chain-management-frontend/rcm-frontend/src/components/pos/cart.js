@@ -28,7 +28,7 @@ const Cart = ({ cartData, onUpdateCart, quantityInputRefs, isReturn }) => {
         );
         setCart(updatedCart);
         onUpdateCart(updatedCart);
-    };    
+    };
 
     // ✅ Xóa sản phẩm khỏi giỏ hàng
     const handleRemoveItem = (id) => {
@@ -44,11 +44,11 @@ const Cart = ({ cartData, onUpdateCart, quantityInputRefs, isReturn }) => {
                 <Table bordered hover responsive>
                     <thead>
                         <tr>
-                            <th>Tên sản phẩm</th>
-                            <th>Số lượng mua</th>
-                            <th>Số lượng trả</th>
-                            <th>Giá</th>
-                            <th>Tổng</th>
+                            <th style={{ width: "30%" }}>Tên sản phẩm</th>
+                            <th style={{ width: "15%", textAlign: "center" }}>Số lượng mua</th>
+                            <th style={{ width: "15%", textAlign: "center" }}>Số lượng trả</th>
+                            <th style={{ width: "20%", textAlign: "right" }}>Giá</th>
+                            <th style={{ width: "20%", textAlign: "right" }}>Tổng</th>
                         </tr>
                     </thead>
                     <tbody>
