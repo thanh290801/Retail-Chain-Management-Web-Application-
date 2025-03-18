@@ -86,10 +86,10 @@
         }
       }
     },
-    "/api/CashBookStaff/cashbook-list": {
+    "/api/CashBookOwner/branches": {
       "get": {
         "tags": [
-          "CashBookStaff"
+          "CashBookOwner"
         ],
         "responses": {
           "200": {
@@ -98,14 +98,22 @@
         }
       }
     },
-    "/api/CashBookStaff/cashbook-staff-summary": {
+    "/api/CashBookOwner/cashbook": {
       "get": {
         "tags": [
-          "CashBookStaff"
+          "CashBookOwner"
         ],
         "parameters": [
           {
-            "name": "startDate",
+            "name": "branchId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fromDate",
             "in": "query",
             "schema": {
               "type": "string",
@@ -113,18 +121,11 @@
             }
           },
           {
-            "name": "endDate",
+            "name": "toDate",
             "in": "query",
             "schema": {
               "type": "string",
               "format": "date-time"
-            }
-          },
-          {
-            "name": "transactionType",
-            "in": "query",
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -135,14 +136,22 @@
         }
       }
     },
-    "/api/CashBookStaff/cashbook-staff-history": {
+    "/api/CashBookOwner/summary": {
       "get": {
         "tags": [
-          "CashBookStaff"
+          "CashBookOwner"
         ],
         "parameters": [
           {
-            "name": "startDate",
+            "name": "branchId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "fromDate",
             "in": "query",
             "schema": {
               "type": "string",
@@ -150,25 +159,11 @@
             }
           },
           {
-            "name": "endDate",
+            "name": "toDate",
             "in": "query",
             "schema": {
               "type": "string",
               "format": "date-time"
-            }
-          },
-          {
-            "name": "transactionType",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -179,7 +174,19 @@
         }
       }
     },
-    "/api/CashHandover": {
+    "/api/CashHandover/cashbook": {
+      "get": {
+        "tags": [
+          "CashHandover"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/CashHandover/create": {
       "post": {
         "tags": [
           "CashHandover"
@@ -188,17 +195,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CashHandover"
+                "$ref": "#/components/schemas/CashHandoverRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CashHandover"
+                "$ref": "#/components/schemas/CashHandoverRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CashHandover"
+                "$ref": "#/components/schemas/CashHandoverRequest"
               }
             }
           }
@@ -210,7 +217,7 @@
         }
       }
     },
-    "/api/Financial/branch-cash-balance": {
+    "/api/finance/summaryStaff": {
       "get": {
         "tags": [
           "Financial"
@@ -541,70 +548,6 @@
         },
         "additionalProperties": false
       },
-      "BankTransaction": {
-        "type": "object",
-        "properties": {
-          "transactionId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "fundId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "transactionCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "transactionDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "transactionType": {
-            "type": "string",
-            "nullable": true
-          },
-          "amount": {
-            "type": "number",
-            "format": "double"
-          },
-          "sourceType": {
-            "type": "string",
-            "nullable": true
-          },
-          "employeeId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "orderId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "branchID": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "employee": {
-            "$ref": "#/components/schemas/Employee"
-          },
-          "fund": {
-            "$ref": "#/components/schemas/Fund"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "fundTransactionHistories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FundTransactionHistory"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "BarcodeSearchRequest": {
         "type": "object",
         "properties": {
@@ -633,13 +576,6 @@
           "receivedDate": {
             "type": "string",
             "format": "date-time",
-            "nullable": true
-          },
-          "cashHandovers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CashHandover"
-            },
             "nullable": true
           },
           "warehouse": {
@@ -692,19 +628,9 @@
         "additionalProperties": false
       },
       "CashHandover": {
-        "required": [
-          "amount",
-          "branchID",
-          "createdBy",
-          "employee",
-          "employeeID",
-          "receiverID",
-          "transactionDate",
-          "transactionType"
-        ],
         "type": "object",
         "properties": {
-          "handoverID": {
+          "handoverId": {
             "type": "integer",
             "format": "int32"
           },
@@ -712,15 +638,16 @@
             "type": "string",
             "format": "date-time"
           },
-          "employeeID": {
+          "employeeId": {
             "type": "integer",
             "format": "int32"
           },
-          "receiverID": {
+          "receiverId": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
           },
-          "branchID": {
+          "branchId": {
             "type": "integer",
             "format": "int32"
           },
@@ -729,32 +656,31 @@
             "format": "double"
           },
           "transactionType": {
-            "maxLength": 50,
-            "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "description": {
-            "maxLength": 255,
             "type": "string",
             "nullable": true
           },
           "createdBy": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "nullable": true
           },
           "createdAt": {
             "type": "string",
             "format": "date-time"
           },
           "personName": {
-            "maxLength": 100,
             "type": "string",
             "nullable": true
           },
           "note": {
-            "maxLength": 500,
             "type": "string",
             "nullable": true
+          },
+          "branch": {
+            "$ref": "#/components/schemas/Warehouse"
           },
           "employee": {
             "$ref": "#/components/schemas/Employee"
@@ -762,40 +688,20 @@
           "receiver": {
             "$ref": "#/components/schemas/Employee"
           },
-          "branch": {
-            "$ref": "#/components/schemas/Batch"
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "CashTransaction": {
+      "CashHandoverRequest": {
         "type": "object",
         "properties": {
-          "transactionId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "fundId": {
-            "type": "integer",
-            "format": "int32"
-          },
           "transactionCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "transactionDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "transactionType": {
-            "type": "string",
-            "nullable": true
-          },
-          "amount": {
-            "type": "number",
-            "format": "double"
-          },
-          "sourceType": {
             "type": "string",
             "nullable": true
           },
@@ -803,46 +709,33 @@
             "type": "integer",
             "format": "int32"
           },
-          "orderId": {
+          "receiverId": {
             "type": "integer",
             "format": "int32",
             "nullable": true
           },
-          "branchID": {
+          "branchId": {
             "type": "integer",
-            "format": "int32",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "transactionType": {
+            "type": "string",
             "nullable": true
           },
           "description": {
             "type": "string",
             "nullable": true
           },
-          "fullName": {
+          "createdBy": {
             "type": "string",
             "nullable": true
           },
-          "handoverID": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "handover": {
-            "$ref": "#/components/schemas/CashHandover"
-          },
-          "employee": {
-            "$ref": "#/components/schemas/Employee"
-          },
-          "fund": {
-            "$ref": "#/components/schemas/Fund"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "fundTransactionHistories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FundTransactionHistory"
-            },
+          "personName": {
+            "type": "string",
             "nullable": true
           }
         },
@@ -891,8 +784,7 @@
           },
           "accountId": {
             "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "format": "int32"
           },
           "profileImage": {
             "type": "string",
@@ -965,31 +857,10 @@
           "branch": {
             "$ref": "#/components/schemas/Warehouse"
           },
-          "cashHandoversGiven": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CashHandover"
-            },
-            "nullable": true
-          },
-          "cashHandoversReceived": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CashHandover"
-            },
-            "nullable": true
-          },
           "attendanceRecords": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AttendanceRecord"
-            },
-            "nullable": true
-          },
-          "bankTransactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BankTransaction"
             },
             "nullable": true
           },
@@ -1004,13 +875,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CashHandover"
-            },
-            "nullable": true
-          },
-          "cashTransactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CashTransaction"
             },
             "nullable": true
           },
@@ -1039,6 +903,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Salary"
+            },
+            "nullable": true
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
             },
             "nullable": true
           }
@@ -1097,132 +968,6 @@
         },
         "additionalProperties": false
       },
-      "Fund": {
-        "type": "object",
-        "properties": {
-          "fundId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "branchId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "fundType": {
-            "type": "string",
-            "nullable": true
-          },
-          "balance": {
-            "type": "number",
-            "format": "double"
-          },
-          "lastUpdated": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "branch": {
-            "$ref": "#/components/schemas/Warehouse"
-          },
-          "bankTransactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BankTransaction"
-            },
-            "nullable": true
-          },
-          "cashTransactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CashTransaction"
-            },
-            "nullable": true
-          },
-          "fundTransactionHistories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FundTransactionHistory"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "FundTransactionHistory": {
-        "type": "object",
-        "properties": {
-          "transactionHistoryId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "fundId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "transactionDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "transactionType": {
-            "type": "string",
-            "nullable": true
-          },
-          "amount": {
-            "type": "number",
-            "format": "double"
-          },
-          "sourceType": {
-            "type": "string",
-            "nullable": true
-          },
-          "relatedOrderId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "relatedRefundId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "relatedCashTransactionId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "relatedBankTransactionId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true
-          },
-          "branchId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "branch": {
-            "$ref": "#/components/schemas/Warehouse"
-          },
-          "fund": {
-            "$ref": "#/components/schemas/Fund"
-          },
-          "relatedBankTransaction": {
-            "$ref": "#/components/schemas/BankTransaction"
-          },
-          "relatedCashTransaction": {
-            "$ref": "#/components/schemas/CashTransaction"
-          },
-          "relatedOrder": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "relatedRefund": {
-            "$ref": "#/components/schemas/Refund"
-          }
-        },
-        "additionalProperties": false
-      },
       "LoginRequest": {
         "type": "object",
         "properties": {
@@ -1248,7 +993,7 @@
             "type": "string",
             "format": "date-time"
           },
-          "branchId": {
+          "shopId": {
             "type": "integer",
             "format": "int32"
           },
@@ -1256,25 +1001,12 @@
             "type": "number",
             "format": "double"
           },
-          "discount": {
-            "type": "number",
-            "format": "double"
-          },
           "employeeid": {
             "type": "integer",
             "format": "int32"
           },
-          "finalAmount": {
-            "type": "number",
-            "format": "double"
-          },
           "paymentStatus": {
             "type": "string",
-            "nullable": true
-          },
-          "invoiceDate": {
-            "type": "string",
-            "format": "date-time",
             "nullable": true
           },
           "employee": {
@@ -1282,27 +1014,6 @@
           },
           "shop": {
             "$ref": "#/components/schemas/Warehouse"
-          },
-          "bankTransactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BankTransaction"
-            },
-            "nullable": true
-          },
-          "cashTransactions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CashTransaction"
-            },
-            "nullable": true
-          },
-          "fundTransactionHistories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FundTransactionHistory"
-            },
-            "nullable": true
           },
           "orderDetails": {
             "type": "array",
@@ -1315,6 +1026,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Refund"
+            },
+            "nullable": true
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
             },
             "nullable": true
           }
@@ -1842,17 +1560,17 @@
           "order": {
             "$ref": "#/components/schemas/Order"
           },
-          "fundTransactionHistories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FundTransactionHistory"
-            },
-            "nullable": true
-          },
           "refundDetails": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RefundDetail"
+            },
+            "nullable": true
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
             },
             "nullable": true
           }
@@ -2227,6 +1945,91 @@
         },
         "additionalProperties": false
       },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "transactionCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "transactionType": {
+            "type": "string",
+            "nullable": true
+          },
+          "paymentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "transactionDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "referenceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "bankAccount": {
+            "type": "string",
+            "nullable": true
+          },
+          "employeeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "branchId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "performedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "orderId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "refundId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "handoverId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "branch": {
+            "$ref": "#/components/schemas/Warehouse"
+          },
+          "employee": {
+            "$ref": "#/components/schemas/Employee"
+          },
+          "handover": {
+            "$ref": "#/components/schemas/CashHandover"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "refund": {
+            "$ref": "#/components/schemas/Refund"
+          }
+        },
+        "additionalProperties": false
+      },
       "Warehouse": {
         "type": "object",
         "properties": {
@@ -2281,20 +2084,6 @@
             },
             "nullable": true
           },
-          "fundTransactionHistories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FundTransactionHistory"
-            },
-            "nullable": true
-          },
-          "funds": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Fund"
-            },
-            "nullable": true
-          },
           "orders": {
             "type": "array",
             "items": {
@@ -2341,6 +2130,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/StockLevel"
+            },
+            "nullable": true
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
             },
             "nullable": true
           },

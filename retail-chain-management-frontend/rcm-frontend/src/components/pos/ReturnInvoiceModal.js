@@ -4,7 +4,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000/api/sale-invoice";
+const API_BASE_URL = "https://localhost:5000/api/sale-invoice";
 
 const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -92,7 +92,7 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
             console.error("❌ Lỗi khi lấy chi tiết hóa đơn:", error);
         }
 
-        onHide();
+        onHide(); // ✅ Đóng modal sau khi chọn
     };
 
     return (

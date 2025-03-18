@@ -36,6 +36,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            RequireExpirationTime = true,
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,

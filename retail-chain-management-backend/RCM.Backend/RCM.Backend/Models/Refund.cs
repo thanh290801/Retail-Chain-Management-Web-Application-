@@ -7,8 +7,8 @@ namespace RCM.Backend.Models
     {
         public Refund()
         {
-            FundTransactionHistories = new HashSet<FundTransactionHistory>();
             RefundDetails = new HashSet<RefundDetail>();
+            Transactions = new HashSet<Transaction>();
         }
 
         public int Id { get; set; }
@@ -20,7 +20,7 @@ namespace RCM.Backend.Models
 
         public virtual Employee Employee { get; set; } = null!;
         public virtual Order Order { get; set; } = null!;
-        public virtual ICollection<FundTransactionHistory> FundTransactionHistories { get; set; }
         public virtual ICollection<RefundDetail> RefundDetails { get; set; }
+        public virtual ICollection<Transaction> Transactions { get; set; }
     }
 }

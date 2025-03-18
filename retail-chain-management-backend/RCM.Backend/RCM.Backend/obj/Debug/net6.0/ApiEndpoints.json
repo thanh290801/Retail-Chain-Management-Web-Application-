@@ -36,26 +36,98 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
-    "Method": "GetProductByBarcode",
-    "RelativePath": "api/sale-invoice/barcode",
+    "ContainingType": "RCM.Backend.Controllers.CashBookOwnerController",
+    "Method": "GetBranches",
+    "RelativePath": "api/CashBookOwner/branches",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RCM.Backend.Controllers.CashBookOwnerController",
+    "Method": "GetCashbook",
+    "RelativePath": "api/CashBookOwner/cashbook",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "branchId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "fromDate",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "toDate",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RCM.Backend.Controllers.CashBookOwnerController",
+    "Method": "GetCashSummary",
+    "RelativePath": "api/CashBookOwner/summary",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "branchId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "fromDate",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "toDate",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CashHandoverController",
+    "Method": "GetTodayCashbook",
+    "RelativePath": "api/CashHandover/cashbook",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CashHandoverController",
+    "Method": "CreateCashHandover",
+    "RelativePath": "api/CashHandover/create",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
         "Name": "request",
-        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BBarcodeSearchRequest",
+        "Type": "RCM.Backend.Models.CashHandoverRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
-    "Method": "CreateOrder",
-    "RelativePath": "api/sale-invoice/order/create",
-    "HttpMethod": "POST",
+    "ContainingType": "FinancialController",
+    "Method": "GetFinancialSummary",
+    "RelativePath": "api/finance/summaryStaff",
+    "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [

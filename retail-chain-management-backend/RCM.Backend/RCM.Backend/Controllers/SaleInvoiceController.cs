@@ -205,8 +205,6 @@ namespace RCM.Backend.Controllers
                                 OrderDate = reader.GetDateTime("OrderDate"),
                                 WarehouseId = reader.GetInt32("WarehouseId"),
                                 TotalAmount = reader.GetDecimal("TotalAmount"),
-                                Discount = reader.GetDecimal("Discount"),
-                                FinalAmount = reader.GetDecimal("FinalAmount"),
                                 PaymentStatus = reader.GetString("PaymentStatus"),
                                 EmployeeId = reader.GetInt32("EmployeeID"),
                                 EmployeeName = reader.GetString("EmployeeName"),
@@ -282,16 +280,26 @@ namespace RCM.Backend.Controllers
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
 
-                        // Truyền đúng 5 tham số mà SP yêu cầu
+                        // Truyền đúng 4 tham số
                         cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId);
                         cmd.Parameters.AddWithValue("@ShopId", request.ShopId);
                         cmd.Parameters.AddWithValue("@TotalAmount", request.TotalAmount);
                         cmd.Parameters.AddWithValue("@PaymentMethod", request.PaymentMethod);
                         cmd.Parameters.AddWithValue("@Products", JsonConvert.SerializeObject(request.Products));
 
-                        // Thêm tham số output để lấy OrderId
-                        
-                        return Ok(new {  message = "Hóa đơn đã được tạo thành công." });
+                        // Thực thi Stored Procedure và đọc kết quả
+                        var orderId = await cmd.ExecuteScalarAsync(); // Đọc giá trị đầu tiên từ `SELECT`
+
+                        if (orderId == null)
+                        {
+                            return StatusCode(500, new { message = "Lỗi: Không thể tạo hóa đơn, kiểm tra lại dữ liệu." });
+                        }
+
+                        return Ok(new
+                        {
+                            message = "Hóa đơn đã được tạo thành công.",
+                            orderId = Convert.ToInt32(orderId)
+                        });
                     }
                 }
             }
@@ -304,6 +312,8 @@ namespace RCM.Backend.Controllers
                 return StatusCode(500, new { message = "Lỗi hệ thống khi tạo hóa đơn", error = ex.Message });
             }
         }
+
+
 
 
         //Tạo refund

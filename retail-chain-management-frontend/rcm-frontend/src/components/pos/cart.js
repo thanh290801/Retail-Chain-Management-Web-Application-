@@ -8,7 +8,9 @@ const Cart = ({ cartData, onUpdateCart, quantityInputRefs, isReturn }) => {
     useEffect(() => {
         setCart(cartData);
     }, [cartData]);
-
+    useEffect(() => {
+        console.log("🔥 Cart Data:", cartData);
+    }, [cartData]);
     // ✅ Xử lý thay đổi số lượng sản phẩm trong hóa đơn bán hàng
     const handleQuantityChange = (id, value) => {
         let numericValue = value.replace(/[^0-9]/g, ''); // Chỉ giữ lại số

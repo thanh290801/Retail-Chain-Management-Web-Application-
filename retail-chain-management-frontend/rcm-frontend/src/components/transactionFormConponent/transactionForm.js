@@ -1,189 +1,69 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // 🔹 Import useNavigate
 
-const API_URL = "https://localhost:5000/api/CashHandover";
-const EMPLOYEE_API = "https://localhost:5000/api/Account/all"; // API lấy danh sách nhân viên
-const USER_INFO_API = "https://localhost:5000/api/Account/me"; // API lấy thông tin người dùng
-
-const CashHandover = () => {
-    const navigate = useNavigate();
-    const [employees, setEmployees] = useState([]); // Danh sách nhân viên
-    const [userInfo, setUserInfo] = useState(null); // Thông tin người lập phiếu
-
-    const [handover, setHandover] = useState({
-        createdBy: 0,  // ID người tạo phiếu (lấy từ userInfo)
-        employeeID: 0, // Nhân viên bàn giao
-        receiverID: "", // Nhân viên nhận (hoặc chọn "Khác")
-        branchID: 0,   // Chi nhánh thực hiện bàn giao
-        amount: 0.00,  // Số tiền bàn giao
-        transactionType: "Thu", // Mặc định là "Thu"
-        description: "",
-        personName: "", // Nếu chọn "Khác" trong receiverID
-        note: "",
+const CashHandoverForm = () => {
+    const [formData, setFormData] = useState({
+        transactionCode: `TX-${Date.now()}`, // 🔹 Sinh mã giao dịch tự động
+        employeeId: "",  // 👨‍💼 Người bàn giao
+        receiverId: "",  // 🤝 Người nhận bàn giao (Có thể để trống)
+        branchId: "",  // 🏢 Chi nhánh
+        amount: "",  // 💰 Số tiền
+        transactionType: "CASH_HANDOVER",  // 🔄 Loại giao dịch
+        description: "",  // 📝 Mô tả
+        createdBy: "",  // ✍️ Người tạo phiếu (Tên đăng nhập)
+        personName: "",  // 👤 Tên người nhận bàn giao
     });
 
-    // 🛠 Lấy thông tin người dùng từ token
-    const fetchUserInfo = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                console.error("❌ Không có token! Người dùng có thể chưa đăng nhập.");
-                return;
-            }
+    const [message, setMessage] = useState("");
+    const navigate = useNavigate(); // 🔹 Sử dụng useNavigate để chuyển trang
 
-            const response = await axios.get(USER_INFO_API, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            console.log("✅ Thông tin người dùng:", response.data);
-            setUserInfo(response.data);
-
-            // Gán ID người lập phiếu vào handover
-            setHandover(prev => ({
-                ...prev,
-                createdBy: response.data.EmployeeId
-            }));
-
-        } catch (error) {
-            console.error("❌ Lỗi khi lấy thông tin người dùng:", error.response ? error.response.data : error);
-        }
-    };
-
-    // 🛠 Lấy danh sách nhân viên
-    useEffect(() => {
-        fetchUserInfo();
-        axios.get(EMPLOYEE_API)
-            .then(response => {
-                setEmployees(response.data);
-            })
-            .catch(error => console.error("❌ Lỗi lấy danh sách nhân viên:", error));
-    }, []);
-
-    // Xử lý nhập liệu
     const handleChange = (e) => {
-        const { name, value } = e.target;
-
-        setHandover(prev => ({
-            ...prev,
-            [name]: ["amount", "branchID", "createdBy", "employeeID", "receiverID"].includes(name)
-                ? parseInt(value) || 0  // ✅ Đảm bảo kiểu số
-                : value
-        }));
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-
-    // Xử lý khi chọn người nhận bàn giao
-    const handleReceiverChange = (e) => {
-        const value = e.target.value;
-        setHandover(prev => ({
-            ...prev,
-            receiverID: value === "Khác" ? 0 : parseInt(value) || 0, // Đảm bảo kiểu số
-            personName: value === "Khác" ? "" : prev.personName
-        }));
-    };
-
-    // Tạo phiếu bàn giao
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        console.log("📩 Dữ liệu gửi lên API:", JSON.stringify(handover, null, 2)); // ✅ Kiểm tra dữ liệu trước khi gửi
-
         try {
-            const response = await axios.post(API_URL, handover, {
-                headers: { "Content-Type": "application/json" }
-            });
-            alert("✅ Phiếu bàn giao đã được tạo thành công!");
-            navigate("/cashBook");
+            const response = await axios.post("https://localhost:5000/api/CashHandover/create", formData);
+            setMessage(response.data.Message);
+            setTimeout(() => navigate("/staffHome"), 1000);
+
         } catch (error) {
-            console.error("❌ Lỗi khi tạo phiếu:", error.response?.data || error);
-            alert(`Lỗi khi tạo phiếu: ${JSON.stringify(error.response?.data)}`);
+            setMessage(error.response?.data?.Message || "Lỗi khi tạo phiếu bàn giao!");
         }
     };
 
-
-
     return (
-        <div className="p-6">
-            <h2 className="text-2xl font-bold mb-4">📝 Tạo Phiếu Bàn Giao Tiền Mặt</h2>
+        <div className="p-4 max-w-lg mx-auto bg-white shadow-md rounded-lg">
+            <h2 className="text-xl font-bold mb-4">Tạo Phiếu Bàn Giao Tiền Mặt</h2>
+            {message && <p className="text-green-500">{message}</p>}
+            <form onSubmit={handleSubmit} className="space-y-3">
+                <input name="transactionCode" value={formData.transactionCode} readOnly className="w-full p-2 border rounded" />
 
-            <form onSubmit={handleSubmit} className="p-4 border rounded shadow">
-                <div className="grid grid-cols-2 gap-4">
-                    {/* Người tạo phiếu (hiển thị, không chỉnh sửa) */}
-                    <div>
-                        <label>👤 Người tạo phiếu</label>
-                        <input
-                            type="text"
-                            value={userInfo ? userInfo.fullname : ""}
-                            disabled
-                            className="w-full border p-2 rounded bg-gray-100"
-                        />
-                    </div>
+                <input name="employeeId" placeholder="Mã nhân viên" onChange={handleChange} className="w-full p-2 border rounded" required />
 
-                    {/* Nhân viên bàn giao */}
-                    <div>
-                        <label>📌 Nhân viên bàn giao</label>
-                        <select name="employeeID" onChange={handleChange} required className="w-full border p-2 rounded">
-                            <option value="">-- Chọn nhân viên --</option>
-                            {employees.map(emp => (
-                                <option key={emp.EmployeeId} value={emp.EmployeeId}>{emp.fullName}</option>
-                            ))}
-                        </select>
-                    </div>
+                <input name="receiverId" placeholder="Mã người nhận (nếu có)" onChange={handleChange} className="w-full p-2 border rounded" />
 
-                    {/* Nhân viên nhận */}
-                    <div>
-                        <label>✅ Nhân viên nhận</label>
-                        <select name="receiverID" onChange={handleReceiverChange} required className="w-full border p-2 rounded">
-                            <option value="">-- Chọn nhân viên hoặc "Khác" --</option>
-                            {employees.map(emp => (
-                                <option key={emp.EmployeeId} value={emp.EmployeeId}>{emp.fullName}</option>
-                            ))}
-                            <option value="Khác">Khác</option>
-                        </select>
-                    </div>
+                <input name="branchId" placeholder="Chi nhánh" onChange={handleChange} className="w-full p-2 border rounded" required />
 
-                    {/* Nếu chọn "Khác", nhập tên người nhận */}
-                    {handover.receiverID === "" && (
-                        <div>
-                            <label>👤 Tên người nhận bên ngoài</label>
-                            <input
-                                type="text"
-                                name="personName"
-                                onChange={handleChange}
-                                className="w-full border p-2 rounded"
-                                required
-                            />
-                        </div>
-                    )}
+                <input type="number" name="amount" placeholder="Số tiền" onChange={handleChange} className="w-full p-2 border rounded" required />
 
-                    <div>
-                        <label>🏢 Chi nhánh</label>
-                        <input type="number" name="branchID" onChange={handleChange} required className="w-full border p-2 rounded" />
-                    </div>
-                    <div>
-                        <label>💰 Số tiền</label>
-                        <input type="number" name="amount" onChange={handleChange} required className="w-full border p-2 rounded" />
-                    </div>
-                    <div>
-                        <label>🔄 Loại giao dịch</label>
-                        <select name="transactionType" value={handover.transactionType} onChange={handleChange} className="w-full border p-2 rounded">
-                            <option value="Thu">Thu</option>
-                            <option value="Chi">Chi</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>📝 Ghi chú</label>
-                        <input type="text" name="description" onChange={handleChange} className="w-full border p-2 rounded" />
-                    </div>
-                </div>
-                <div className="mt-4 flex gap-4">
-                    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">✅ Tạo Phiếu</button>
-                    <button type="button" onClick={() => navigate("/cashBook")} className="px-4 py-2 bg-gray-400 text-white rounded">❌ Hủy</button>
-                </div>
+                <select name="transactionType" onChange={handleChange} className="w-full p-2 border rounded">
+                    <option value="CASH_HANDOVER">Thu tiền mặt</option>
+                    <option value="CASH_EXPENSE">Chi tiền mặt</option>
+                </select>
+
+                <input name="description" placeholder="Mô tả" onChange={handleChange} className="w-full p-2 border rounded" />
+
+                <input name="createdBy" placeholder="Người tạo" onChange={handleChange} className="w-full p-2 border rounded" required />
+
+                <input name="personName" placeholder="Tên người nhận" onChange={handleChange} className="w-full p-2 border rounded" />
+
+                <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">Tạo Phiếu</button>
             </form>
         </div>
     );
 };
 
-export default CashHandover;
+export default CashHandoverForm;

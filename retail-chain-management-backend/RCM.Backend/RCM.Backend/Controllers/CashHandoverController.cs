@@ -3,77 +3,142 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
 using RCM.Backend.Models;
+using System.Security.Claims;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
 [Route("api/[controller]")]
 [ApiController]
 public class CashHandoverController : ControllerBase
 {
-    private readonly RetailChainContext _context;
+    private readonly IConfiguration _configuration;
 
-    public CashHandoverController(RetailChainContext context)
+    private readonly RetailChainContext _context;
+    public CashHandoverController(IConfiguration configuration, RetailChainContext context)
     {
+        _configuration = configuration;
         _context = context;
     }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateHandover([FromBody] CashHandover handover)
+    [HttpGet("cashbook")]
+    public async Task<IActionResult> GetTodayCashbook()
     {
-        if (handover == null)
+        // Lấy thông tin nhân viên đăng nhập từ token
+        var accountIdClaim = User.FindFirst("AccountId")?.Value;
+        var branchIdClaim = User.FindFirst("BranchId")?.Value;
+
+        if (!int.TryParse(accountIdClaim, out int empId))
+            return Unauthorized("Invalid user");
+
+        if (!int.TryParse(branchIdClaim, out int branchId) || branchId <= 0)
+            return BadRequest("Invalid branch ID");
+
+        DateTime today = DateTime.Today;
+        DateTime tomorrow = today.AddDays(1);
+        
+        // Truy vấn tất cả giao dịch tiền mặt hôm nay
+        var cashbookTransactions = await _context.Transactions
+            .Where(t => t.TransactionDate >= today && t.TransactionDate < tomorrow && t.BranchId == branchId)
+            .Where(t => t.TransactionType == "POS_CASH_PAYMENT"
+                        || t.TransactionType == "CASH_HANDOVER"
+                        || t.TransactionType == "CASH_EXPENSE"
+                        || t.TransactionType == "CASH_REFUND")
+            .OrderByDescending(t => t.TransactionDate)
+            .Select(t => new
+            {
+                TransactionId = t.TransactionId,
+                TransactionDate = t.TransactionDate,
+                TransactionCode = t.TransactionCode,
+                TransactionType = t.TransactionType,
+                Amount = t.Amount,
+                Description = t.Description,
+                PerformedBy = t.PerformedBy,
+                PaymentMethod = t.PaymentMethod
+            })
+            .ToListAsync();
+
+        if (!cashbookTransactions.Any())
+            return NotFound("Không có giao dịch tiền mặt nào hôm nay.");
+
+        return Ok(new
+        {
+            BranchId = branchId,
+            Transactions = cashbookTransactions
+        });
+    }
+
+    [HttpPost("create")]
+    public async Task<IActionResult> CreateCashHandover([FromBody] CashHandoverRequest request)
+    {
+        if (request == null || request.Amount <= 0)
             return BadRequest("Dữ liệu không hợp lệ");
 
-        // Tạo phiếu bàn giao tiền mặt
-        var newHandover = new CashHandover
+        try
         {
-            HandoverID=handover.HandoverID,
-            TransactionDate = handover.TransactionDate,
-            EmployeeID = handover.EmployeeID,
-            ReceiverID = handover.ReceiverID,
-            BranchID = handover.BranchID,
-            Amount = handover.Amount,
-            TransactionType = handover.TransactionType,
-            Description = handover.Description,
-            CreatedBy = handover.CreatedBy,
-            CreatedAt = DateTime.UtcNow,
-            PersonName = handover.PersonName,
-            Note = handover.Note
-        };
+            using (SqlConnection conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                await conn.OpenAsync();
+                using (SqlTransaction transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        int handoverId;
 
-        _context.CashHandovers.Add(newHandover);
-        await _context.SaveChangesAsync();
+                        // 1️⃣ Lưu vào bảng Cash_Handover
+                        string insertHandoverQuery = @"
+                            INSERT INTO Cash_Handover 
+                            (TransactionDate, EmployeeID, ReceiverID, BranchID, Amount, TransactionType, Description, CreatedBy, PersonName)
+                            OUTPUT INSERTED.HandoverID
+                            VALUES (GETDATE(), @EmployeeID, @ReceiverID, @BranchID, @Amount, @TransactionType, @Description, @CreatedBy, @PersonName)";
 
-        // **Lưu giao dịch vào Cash_Transactions**
-        var transaction = new CashTransaction
+                        using (SqlCommand cmd = new SqlCommand(insertHandoverQuery, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@EmployeeID", request.EmployeeId);
+                            cmd.Parameters.AddWithValue("@ReceiverID", request.ReceiverId ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@BranchID", request.BranchId);
+                            cmd.Parameters.AddWithValue("@Amount", request.Amount);
+                            cmd.Parameters.AddWithValue("@TransactionType", request.TransactionType);
+                            cmd.Parameters.AddWithValue("@Description", request.Description ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@CreatedBy", request.CreatedBy);
+                            cmd.Parameters.AddWithValue("@PersonName", request.PersonName ?? (object)DBNull.Value);
+
+                            handoverId = (int)await cmd.ExecuteScalarAsync();
+                        }
+
+                        // 2️⃣ Lưu vào bảng Transactions
+                        string insertTransactionQuery = @"
+                            INSERT INTO Transactions 
+                            (transaction_code, transaction_type, payment_method, amount, transaction_date, employee_id, branch_id, performed_by, handover_id, description)
+                            VALUES (@TransactionCode, @TransactionType, 'Cash', @Amount, GETDATE(), @EmployeeID, @BranchID, @CreatedBy, @HandoverID, @Description)";
+
+                        using (SqlCommand cmd = new SqlCommand(insertTransactionQuery, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@TransactionCode", request.TransactionCode);
+                            cmd.Parameters.AddWithValue("@TransactionType", request.TransactionType);
+                            cmd.Parameters.AddWithValue("@Amount", request.Amount);
+                            cmd.Parameters.AddWithValue("@EmployeeID", request.EmployeeId);
+                            cmd.Parameters.AddWithValue("@BranchID", request.BranchId);
+                            cmd.Parameters.AddWithValue("@CreatedBy", request.CreatedBy);
+                            cmd.Parameters.AddWithValue("@HandoverID", handoverId);
+                            cmd.Parameters.AddWithValue("@Description", request.Description ?? (object)DBNull.Value);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+                        // ✅ Commit transaction
+                        transaction.Commit();
+                        return Ok(new { Message = "Phiếu bàn giao thành công!", HandoverID = handoverId });
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        return StatusCode(500, new { Message = "Lỗi khi tạo phiếu bàn giao", Error = ex.Message });
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
         {
-            FundId = 1, // Giả định quỹ tiền mặt mặc định là 1
-            TransactionCode = $"CASH_{newHandover.HandoverID}",
-            TransactionDate = newHandover.TransactionDate,
-            TransactionType = newHandover.TransactionType,
-            Amount = newHandover.Amount,
-            SourceType = "CASH_HANDOVER",
-            EmployeeId = newHandover.EmployeeID,
-            BranchID = newHandover.BranchID,
-            HandoverID = newHandover.HandoverID // Liên kết với phiếu bàn giao
-        };
-
-        _context.CashTransactions.Add(transaction);
-        await _context.SaveChangesAsync();
-
-        // Trả về response ngắn gọn
-        var response = new
-        {
-            newHandover.HandoverID,
-            newHandover.TransactionDate,
-            newHandover.Amount,
-            newHandover.TransactionType,
-            newHandover.Description,
-            newHandover.CreatedBy,
-            newHandover.EmployeeID,
-            newHandover.ReceiverID,
-            newHandover.BranchID,
-            newHandover.PersonName,
-            newHandover.Note,
-        };
-
-        return Ok(response);
+            return StatusCode(500, new { Message = "Lỗi kết nối cơ sở dữ liệu", Error = ex.Message });
+        }
     }
 }

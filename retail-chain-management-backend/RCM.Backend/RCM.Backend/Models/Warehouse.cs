@@ -12,8 +12,6 @@ namespace RCM.Backend.Models
             DailySalesReports = new HashSet<DailySalesReport>();
             Employees = new HashSet<Employee>();
             EndShifts = new HashSet<EndShift>();
-            FundTransactionHistories = new HashSet<FundTransactionHistory>();
-            Funds = new HashSet<Fund>();
             Orders = new HashSet<Order>();
             ProductPriceHistories = new HashSet<ProductPriceHistory>();
             Promotions = new HashSet<Promotion>();
@@ -21,6 +19,7 @@ namespace RCM.Backend.Models
             StockAdjustments = new HashSet<StockAdjustment>();
             StockAuditRecords = new HashSet<StockAuditRecord>();
             StockLevels = new HashSet<StockLevel>();
+            Transactions = new HashSet<Transaction>();
             WarehouseTransferFromWarehouses = new HashSet<WarehouseTransfer>();
             WarehouseTransferToWarehouses = new HashSet<WarehouseTransfer>();
         }
@@ -35,8 +34,6 @@ namespace RCM.Backend.Models
         public virtual ICollection<DailySalesReport> DailySalesReports { get; set; }
         public virtual ICollection<Employee> Employees { get; set; }
         public virtual ICollection<EndShift> EndShifts { get; set; }
-        public virtual ICollection<FundTransactionHistory> FundTransactionHistories { get; set; }
-        public virtual ICollection<Fund> Funds { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<ProductPriceHistory> ProductPriceHistories { get; set; }
         public virtual ICollection<Promotion> Promotions { get; set; }
@@ -44,6 +41,7 @@ namespace RCM.Backend.Models
         public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
         public virtual ICollection<StockAuditRecord> StockAuditRecords { get; set; }
         public virtual ICollection<StockLevel> StockLevels { get; set; }
+        public virtual ICollection<Transaction> Transactions { get; set; }
         public virtual ICollection<WarehouseTransfer> WarehouseTransferFromWarehouses { get; set; }
         public virtual ICollection<WarehouseTransfer> WarehouseTransferToWarehouses { get; set; }
     }

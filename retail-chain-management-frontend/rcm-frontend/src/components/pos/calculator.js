@@ -112,24 +112,42 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
 
     const handlePayment = async () => {
         try {
-            const { data } = await axios.post("https://localhost:5000/api/sale-invoice/order/create", {
-                EmployeeId: 1,
-                ShopId: 1,
-                TotalAmount: totalPrice,
+            console.log("🔄 Đang gửi yêu cầu thanh toán...");
+
+            const requestData = {
+                EmployeeId: 2, // Kiểm tra giá trị này có hợp lệ không?
+                ShopId: 1, // Kiểm tra giá trị này có hợp lệ không?
+                TotalAmount: totalPrice, // Tổng tiền có hợp lệ không?
                 PaymentMethod: paymentMethod === "cash" ? "Cash" : "Bank",
                 Products: cartData.map((item) => ({
-                    ProductId: item.id,
-                    Quantity: item.quantity,
-                    UnitPrice: item.price
+                    ProductId: item.id, // Kiểm tra id sản phẩm
+                    Quantity: item.quantity, // Kiểm tra số lượng
+                    UnitPrice: item.price // Kiểm tra giá
                 }))
-            });
-                alert(`✅ Thanh toán thành công! Mã hóa đơn:`);
-                onCashUpdate(0, 0);
+            };
+
+            console.log("📤 Data gửi lên API:", requestData);
+            console.log(cartData);
+            const response = await axios.post(
+                "https://localhost:5000/api/sale-invoice/order/create",
+                requestData
+            );
+
+            console.log("✅ API Response:", response.data);
+            alert(`✅ Thanh toán thành công! Mã hóa đơn: ${response.data.orderId}`);
+            onCashUpdate(0, 0);
         } catch (error) {
-            console.error("❌ Lỗi kết nối API thanh toán:", error);
-            alert("❌ Lỗi khi gửi yêu cầu thanh toán.");
+            console.error("❌ Lỗi khi gọi API thanh toán:", error);
+
+            if (error.response) {
+                console.log("🔍 Chi tiết lỗi:", error.response.data);
+                alert(`❌ Lỗi tạo hóa đơn: ${error.response.data.message || "Lỗi không xác định"}`);
+            } else {
+                alert("❌ Không thể kết nối đến server, kiểm tra mạng hoặc API.");
+            }
         }
     };
+
 
     const handleRefund = async () => {
         try {

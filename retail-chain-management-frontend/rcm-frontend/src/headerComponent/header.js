@@ -140,7 +140,7 @@ const Header = () => {
                                 )}
                             </div>
 
-                            <Link to="/cashBook" className="text-white flex items-center">Sổ quỹ</Link>
+                            <Link to="/cashBookOwner" className="text-white flex items-center">Sổ quỹ</Link>
                             <Link to="/baocao" className="text-white flex items-center">Báo cáo</Link>
                         </nav>
                     </div>

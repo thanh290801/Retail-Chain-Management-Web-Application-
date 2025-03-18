@@ -10,6 +10,7 @@ import TransactionForm from './components/transactionFormConponent/transactionFo
 import CashBookComponent from './components/cashbookConponent/cashBook';
 import Main from './components/pos/main';
 import FundTransactionReport from './components/cashbookConponent/historyTrans';
+import CashBookOwner from './components/CashBookOwnerCp/CashBookOwner';
 
 
 const ProtectedRoute = ({ children }) => {
@@ -38,7 +39,7 @@ function App() {
           <Route path="/endDaytReport" element={<ProtectedRoute><EndDayReport /></ProtectedRoute>} />
           <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
           <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />
-          <Route path="/fundTransactionReport" element={<ProtectedRoute><FundTransactionReport /></ProtectedRoute>} />
+          <Route path="/cashBookOwner" element={<ProtectedRoute><CashBookOwner /></ProtectedRoute>} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>

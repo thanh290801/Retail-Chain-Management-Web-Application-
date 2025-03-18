@@ -167,7 +167,7 @@ const Main = () => {
 
             if (response.data) {
                 const product = {
-                    id: response.data.ProductsId || response.data.id,
+                    id: response.data.productsId || response.data.id,
                     name: response.data.productName || response.data.name,
                     price: response.data.finalPrice || response.data.price || 0,
                     unit: response.data.unit || 'Cái',
