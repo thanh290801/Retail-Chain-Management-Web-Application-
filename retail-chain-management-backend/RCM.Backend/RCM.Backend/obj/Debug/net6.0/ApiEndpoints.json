@@ -134,6 +134,16 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "EmployeeController",
+    "Method": "GetLoggedInEmployeeProfile",
+    "RelativePath": "api/employees/profile",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "FinancialController",
     "Method": "GetFinancialSummary",
     "RelativePath": "api/finance/summaryStaff",
@@ -141,6 +151,38 @@
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ResetPasssController",
+    "Method": "ConfirmResetPassword",
+    "RelativePath": "api/resetpasss/confirm-reset",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "ConfirmResetRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ResetPasssController",
+    "Method": "SendOtp",
+    "RelativePath": "api/resetpasss/send-otp",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SendOtpRequest",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {

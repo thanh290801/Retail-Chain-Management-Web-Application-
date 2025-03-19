@@ -96,7 +96,7 @@ const StaffHomeComponent = () => {
                         { label: "Lịch sử giao dịch", menuKey: "transactions", links: [{ label: "Lịch sử đơn hàng", path: "/history-pos" }, { label: "Sổ quỹ", path: "/cashBook" }] },
                         { label: "Kho hàng", menuKey: "warehouse", links: [{ label: "Kho hàng", path: "/kho" }, { label: "Phiếu kiểm kho", path: "/kiem-kho" }] },
                         { label: "Nhập hàng", menuKey: "inventory", links: [{ label: "Danh sách đơn nhập", path: "/listOrder" }, { label: "Tạo phiếu nhập kho", path: "/them-phieu-nhapkho" }] },
-                        { label: "Báo cáo", menuKey: "reports", links: [{ label: "Báo cáo cuối ngày", path: "/endDayReport" }, { label: "Báo cáo khác", path: "/note" }] },
+                        { label: "Menu", menuKey: "reports", links: [{ label: "Thông tin người dùng", path: "/profile" }, { label: "Đăng suất", path: "/note" }] },
                     ].map((menu) => (
                         <div key={menu.menuKey} className="relative">
                             <button onClick={() => toggleMenu(menu.menuKey)} className="px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold shadow-md">

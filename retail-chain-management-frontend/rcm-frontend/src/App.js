@@ -10,6 +10,9 @@ import EndDayReport from './components/reportStaffConponent/EndShiftReport';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
 import CashBookComponent from './components/cashbookConponent/cashBook';
 import CashBookOwner from './components/CashBookOwnerCp/CashBookOwner';
+import UserProfile from './components/profileUser/profile';
+import ForgotPassword from './components/resetPass/sendOTP';
+import ResetPassword from './components/resetPass/resetPassword.js';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -23,10 +26,13 @@ function App() {
         <Routes>
 
           {/* Định tuyến trang mặc định về Login nếu chưa có token */}
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Trang Login */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
 
           {/* Các trang cần đăng nhập */}
           <Route path='/pos' element={<Main />} />
@@ -38,6 +44,7 @@ function App() {
           <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
           <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />
           <Route path="/cashBookOwner" element={<ProtectedRoute><CashBookOwner /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
