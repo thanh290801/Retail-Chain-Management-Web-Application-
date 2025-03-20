@@ -1,8 +1,14 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "RCM.Backend",
-    "version": "1.0"
+    "title": "RetailChain API",
+    "description": "API cho hệ thống quản lý bán lẻ",
+    "contact": {
+      "name": "Hỗ trợ kỹ thuật",
+      "url": "https://retailchain.com",
+      "email": "support@retailchain.com"
+    },
+    "version": "v1"
   },
   "paths": {
     "/api/Account/all": {
@@ -12,7 +18,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
@@ -50,7 +56,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -81,7 +87,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -93,7 +99,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -131,7 +137,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -169,7 +175,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -181,7 +187,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -212,7 +218,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -224,7 +230,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -255,7 +261,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -286,7 +292,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -317,7 +323,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -348,7 +354,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -379,7 +385,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -410,7 +416,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK"
           }
         }
       }
@@ -423,7 +429,7 @@
         "operationId": "GetWeatherForecast",
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1333,24 +1339,6 @@
         },
         "additionalProperties": false
       },
-      "ProductRefund": {
-        "type": "object",
-        "properties": {
-          "productId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "quantity": {
-            "type": "number",
-            "format": "double"
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "additionalProperties": false
-      },
       "ProductSearchRequest": {
         "type": "object",
         "properties": {
@@ -1610,6 +1598,24 @@
         },
         "additionalProperties": false
       },
+      "RefundProduct": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "returnQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "RefundRequest": {
         "type": "object",
         "properties": {
@@ -1617,18 +1623,10 @@
             "type": "integer",
             "format": "int32"
           },
-          "employeeId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRefundAmount": {
-            "type": "number",
-            "format": "double"
-          },
           "refundProducts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ProductRefund"
+              "$ref": "#/components/schemas/RefundProduct"
             },
             "nullable": true
           }
@@ -2259,6 +2257,18 @@
         },
         "additionalProperties": false
       }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Nhập token theo định dạng: Bearer {token}",
+        "scheme": "bearer"
+      }
     }
-  }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
 }

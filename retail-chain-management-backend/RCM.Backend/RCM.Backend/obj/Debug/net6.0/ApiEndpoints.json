@@ -1,13 +1,23 @@
 [
   {
     "ContainingType": "RCM.Backend.Controllers.AccountController",
-    "Method": "GetAllAccounts",
+    "Method": "GetAllEmployees",
     "RelativePath": "api/Account/all",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[RCM.Backend.Models.Employee, RCM.Backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "RCM.Backend.Controllers.AccountController",
@@ -130,77 +140,7 @@
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BOrderRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
-    "Method": "RefundOrder",
-    "RelativePath": "api/sale-invoice/order/refund",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BRefundRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
-    "Method": "GetOrdersWithFilters",
-    "RelativePath": "api/sale-invoice/order/search",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BOrderSearchRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
-    "Method": "GetOrderDetailsByOrderId",
-    "RelativePath": "api/sale-invoice/orderdetails/search",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BOrderDetailSearchRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RCM.Backend.Controllers.SaleInvoiceController",
-    "Method": "SearchProducts",
-    "RelativePath": "api/sale-invoice/search",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "request",
-        "Type": "RCM.Backend.Controllers.SaleInvoiceController\u002BProductSearchRequest",
-        "IsRequired": true
-      }
-    ],
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
