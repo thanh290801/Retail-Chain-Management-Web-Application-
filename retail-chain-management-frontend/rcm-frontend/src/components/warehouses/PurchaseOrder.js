@@ -20,7 +20,7 @@ const PurchaseOrder = () => {
         }
 
         // Gửi dữ liệu đơn hàng đến backend (giả sử API có sẵn)
-        fetch("http://localhost:5000/api/orders/create", {
+        fetch("https://localhost:5000/api/orders/create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ items: orderDraft })

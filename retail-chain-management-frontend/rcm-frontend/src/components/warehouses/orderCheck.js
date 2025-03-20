@@ -1,130 +1,191 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-const OrderCheckComponent = () => {
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Table, Button, Form, Pagination } from "react-bootstrap";
+import { useParams } from "react-router-dom";
 
+const API_URL = "https://localhost:5000/api/orders";
 
+// Hàm để giải mã token JWT và lấy thông tin
+const getUserInfoFromToken = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return { branchId: null, accountId: null };
 
-const { orderId } = useParams();
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1])); // Giải mã payload của token
+        return {
+            branchId: payload.BranchId || null,
+            accountId: payload.AccountId || null
+        };
+    } catch (error) {
+        console.error("Lỗi khi giải mã token:", error);
+        return { branchId: null, accountId: null };
+    }
+};
+
+const OrderCheck = () => {
+    const { orderId } = useParams();
     const [order, setOrder] = useState(null);
-    const [products, setProducts] = useState([]);
-    const [previousEntries, setPreviousEntries] = useState([]);
-    const [confirmedOrder, setConfirmedOrder] = useState(null);
+    const [receiveData, setReceiveData] = useState([]);
+    const [searchTerm, setSearchTerm] = useState(""); // 🔍 Thanh tìm kiếm
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10; // ✅ Số sản phẩm mỗi trang
+
+    // Lấy branchId và accountId từ token
+    const { branchId, accountId } = getUserInfoFromToken();
 
     useEffect(() => {
-        if (orderId) {
-            const fetchedPreviousEntries = [
-                { id: 'MNH001', date: '2024-02-10', products: [
-                    { name: 'Áo khoác đầm dáng xòe', unit: 'Cái', received: 2 },
-                    { name: 'Siro đường đen Eurodeli', unit: 'Hộp', received: 3 }
-                ]},
-                { id: 'MNH002', date: '2024-02-15', products: [
-                    { name: 'Áo khoác đầm dáng xòe', unit: 'Cái', received: 4 },
-                    { name: 'Siro đường đen Eurodeli', unit: 'Hộp', received: 3 }
-                ]}
-            ];
-    
-            const fetchedOrder = {
-                id: orderId,
-                products: [
-                    { name: 'Áo khoác đầm dáng xòe', unit: 'Cái', ordered: 10, received: 10, status: 'Đủ' },
-                    { name: 'Siro đường đen Eurodeli', unit: 'Hộp', ordered: 10, received: 10, status: 'Đủ' }
-                ]
-            };
-    
-            setPreviousEntries(fetchedPreviousEntries);
-            setOrder(fetchedOrder);
-            setProducts(fetchedOrder.products.map(product => {
-                const totalReceived = fetchedPreviousEntries.reduce((sum, entry) => {
-                    const previousProduct = entry.products.find(p => p.name === product.name);
-                    return sum + (previousProduct ? previousProduct.received : 0);
-                }, 0);
-                return { 
-                    ...product, 
-                    previousReceived: totalReceived, 
-                    received: 0, 
-                    status: totalReceived >= product.ordered ? 'Đủ' : 'Chưa đủ' 
-                };
-            }));
-        }
-    }, [orderId]);
-
-    const handleUpdateProduct = (index, value) => {
-        const updatedProducts = [...products];
-        const totalReceived = updatedProducts[index].previousReceived + value;
-        let status;
-        
-        if (totalReceived > updatedProducts[index].ordered) {
-            const excess = totalReceived - updatedProducts[index].ordered;
-            status = `Thừa ${excess}`;
-        } else {
-            status = totalReceived >= updatedProducts[index].ordered ? 'Đủ' : 'Chưa đủ';
+        if (!branchId || !accountId) {
+            console.error("Thiếu thông tin branchId hoặc accountId.");
+            return;
         }
 
-        updatedProducts[index].received = value;
-        updatedProducts[index].status = status;
-        setProducts(updatedProducts);
+        axios.get(`${API_URL}/${orderId}?branchId=${branchId}&accountId=${accountId}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        })
+        .then(response => {
+            setOrder(response.data);
+            setReceiveData(response.data.products.map(p => ({
+                productId: p.productId,
+                receivedQuantity: 0,
+                purchasePrice: p.purchasePrice
+            })));
+        })
+        .catch(error => console.error("Error fetching order details:", error));
+    }, [orderId, branchId, accountId]);
+
+    const handleReceiveChange = (index, value) => {
+        const newReceiveData = [...receiveData];
+        newReceiveData[index].receivedQuantity = parseInt(value) || 0;
+        setReceiveData(newReceiveData);
     };
 
-    const handleConfirm = () => {
-        const today = new Date().toISOString().split('T')[0];
-        const newEntry = {
-            id: `MNH${previousEntries.length + 3}`,
-            date: today,
-            products: products.filter(product => product.received > 0)
-        };
-        setPreviousEntries([...previousEntries, newEntry]);
-        setConfirmedOrder(newEntry);
+    const totalReceiveCost = receiveData.reduce((sum, p) => sum + (p.receivedQuantity * p.purchasePrice), 0);
+
+    const handleReceiveSubmit = () => {
+        if (!branchId || !accountId) {
+            console.error("Không có branchId hoặc accountId hợp lệ.");
+            return;
+        }
+
+        axios.post(`${API_URL}/${orderId}/receive`, {
+            branchId,
+            products: receiveData
+        }, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        })
+        .then(response => {
+            alert(`Đơn nhận hàng thành công!`);
+            window.location.reload();
+        })
+        .catch(error => console.error("Error submitting receive order:", error));
     };
+
+    if (!order) return <p>Loading...</p>;
+
+    // 🔍 Bộ lọc sản phẩm theo tên
+    const filteredProducts = order.products.filter(p =>
+        p.productName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // ✅ Phân trang sản phẩm
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">📋 Kiểm tra Nhập Đủ Order</h2>
-            <p className="mb-2"><strong>Nhà phân phối:</strong> Nhà phân phối A</p>
-            <p className="mb-2"><strong>Người giao hàng:</strong> Nguyễn Văn B</p>
-            <p className="mb-4"><strong>Số điện thoại:</strong> 0987 654 321</p>
-            <h3 className="text-lg font-semibold mb-4">Mã đơn hàng: {orderId}</h3>
-            {order && (
-                <div>
-                    <table className="w-full bg-white shadow-md rounded">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="p-2">STT</th>
-                                <th className="p-2">Tên sản phẩm</th>
-                                <th className="p-2">Đơn vị</th>
-                                <th className="p-2">Số lượng đặt</th>
-                                <th className="p-2">Số lượng đã nhập (Trước)</th>
-                                <th className="p-2">Số lượng đã nhập (Hiện tại)</th>
-                                <th className="p-2">Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {products.map((product, index) => (
-                                <tr key={index}>
-                                    <td className="p-2">{index + 1}</td>
-                                    <td className="p-2">{product.name}</td>
-                                    <td className="p-2">{product.unit}</td>
-                                    <td className="p-2">{product.ordered}</td>
-                                    <td className="p-2">{product.previousReceived}</td>
-                                    <td className="p-2">
-                                        <input 
-                                            type="number" 
-                                            className="w-full p-2 border rounded" 
-                                            value={product.received} 
-                                            onChange={(e) => handleUpdateProduct(index, Number(e.target.value))} 
-                                        />
-                                    </td>
-                                    <td className={`p-2 ${product.status.includes('Thừa') ? 'text-red-500' : 'text-black'}`}>{product.status}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <button className="mt-4 bg-blue-500 text-white px-4 py-2 rounded" onClick={handleConfirm}>Xác nhận nhập hàng</button>
-                </div>
-            )}
-            </div>
-    )
-}
-                       
+        <div className="container mt-4">
+            <h2>Chi Tiết Đơn Hàng #{order.orderId}</h2>
+            <h4>Nhà cung cấp: {order.supplierName || "Không có nhà cung cấp"}</h4>
 
-export default OrderCheckComponent;
+            {/* 🔍 Thanh tìm kiếm sản phẩm */}
+            <Form.Group className="mb-3">
+                <Form.Control
+                    type="text"
+                    placeholder="Tìm kiếm sản phẩm..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </Form.Group>
+
+            <Table striped bordered hover>
+                <thead>
+                    <tr>
+                        <th>Mã SP</th>
+                        <th>Tên SP</th>
+                        <th>Đơn vị</th>
+                        <th>Giá nhập</th>
+                        <th>SL đặt</th>
+                        <th>SL đã nhận</th>
+                        <th>Nhận lần này</th>
+                        <th>Tổng giá</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {currentProducts.map((p, index) => (
+                        <tr key={p.productId}>
+                            <td>{p.productId}</td>
+                            <td>{p.productName}</td>
+                            <td>{p.unit}</td>
+                            <td>{p.purchasePrice ? p.purchasePrice.toLocaleString() : "0"} VNĐ</td>
+                            <td>{p.orderedQuantity}</td>
+                            <td>{p.receivedQuantity}</td>
+                            <td>
+                                <Form.Control
+                                    type="number"
+                                    min="0"
+                                    value={receiveData[index]?.receivedQuantity || 0}
+                                    onChange={e => handleReceiveChange(index, e.target.value)}
+                                />
+                            </td>
+                            <td>{(receiveData[index]?.receivedQuantity * p.purchasePrice).toLocaleString()} VNĐ</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
+
+            {/* ✅ Thanh phân trang */}
+            {totalPages > 1 && (
+                <Pagination>
+                    <Pagination.Prev onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} />
+                    {[...Array(totalPages)].map((_, i) => (
+                        <Pagination.Item key={i} active={i + 1 === currentPage} onClick={() => setCurrentPage(i + 1)}>
+                            {i + 1}
+                        </Pagination.Item>
+                    ))}
+                    <Pagination.Next onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} />
+                </Pagination>
+            )}
+
+            <h4>Tổng giá nhập hàng: {totalReceiveCost.toLocaleString()} VNĐ</h4>
+
+            <Button variant="primary" onClick={handleReceiveSubmit}>Tạo đơn nhận hàng</Button>
+
+            <h4>Danh sách Batches:</h4>
+            <Table striped bordered hover>
+                <thead>
+                    <tr>
+                        <th>Mã Batch</th>
+                        <th>Ngày nhận</th>
+                        <th>Tổng giá</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {order.batches?.length > 0 ? order.batches.map(batch => (
+                        <tr key={batch.batchId}>
+                            <td>{batch.batchId}</td>
+                            <td>{batch.receivedDate ? new Date(batch.receivedDate).toLocaleDateString() : "Chưa có"}</td>
+                            <td>{batch.totalPrice ? batch.totalPrice.toLocaleString() : "0"} VNĐ</td>
+                            <td>{batch.status}</td>
+                        </tr>
+                    )) : <tr><td colSpan="4">Không có Batch nào</td></tr>}
+                </tbody>
+            </Table>
+        </div>
+    );
+};
+
+export default OrderCheck;

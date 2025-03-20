@@ -55,6 +55,35 @@ namespace RCM.Backend.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<PurchaseOrder>(entity =>
+{
+    entity.HasKey(e => e.PurchaseOrdersId);
+    
+    entity.Property(e => e.SupplierId).HasColumnName("supplier_id"); // 🔹 Đảm bảo tên cột đúng
+    entity.Property(e => e.WarehousesId).HasColumnName("warehousesId");
+
+    entity.HasOne(d => d.Supplier)
+        .WithMany(p => p.PurchaseOrders)
+        .HasForeignKey(d => d.SupplierId)
+        .OnDelete(DeleteBehavior.ClientSetNull)
+        .HasConstraintName("FK_PurchaseOrders_Suppliers");
+});
+
+            modelBuilder.Entity<Supplier>()
+    .HasKey(s => s.SuppliersId); // Đảm bảo đặt đúng khóa chính
+
+modelBuilder.Entity<PurchaseOrder>()
+    .HasOne(po => po.Supplier)
+    .WithMany(s => s.PurchaseOrders)
+    .HasForeignKey(po => po.SupplierId) // Đảm bảo đặt đúng FK
+    .HasConstraintName("FK_PurchaseOrders_Suppliers");
+
+            modelBuilder.Entity<PurchaseOrder>()
+            .HasOne(po => po.Warehouse)
+            .WithMany(w => w.PurchaseOrders)
+            .HasForeignKey(po => po.WarehousesId)
+            .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Account>(entity =>
             {
                 entity.ToTable("Account");

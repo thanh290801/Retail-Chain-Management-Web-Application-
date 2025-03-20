@@ -7,20 +7,21 @@ import EndDayReport from './components/reportStaffConponent/EndShiftReport';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
 import CashBookComponent from './components/cashbookConponent/cashBook';
 import FundTransactionReport from './components/cashbookConponent/historyTrans';
-
 import Main from './components/pos/main';
 import ProductStockComponent from './components/warehouses/listProduct';
 import WarehouseManagementComponent from './components/warehouses/warehouseManagement';
 import OrderCheckComponent from './components/warehouses/orderCheck';
 import WarehouseTransferComponent from './components/warehouses/WareHouseTransfer';
 import ProductListComponent from './components/warehouses/listAllProduct';
-import OrderListComponent from './components/warehouses/orderList';
-import StockCheckComponent from './components/warehouses/stockCheck';
 import AddProductComponent from './components/warehouses/addProduct';
 import ProductStockForOwner from './components/warehouses/listProductForBoss';
 import LowStockProducts from './components/warehouses/lowStockProduct';
 import PurchaseOrder from './components/warehouses/PurchaseOrder';
-import FundTransactionReport from './components/cashbookConponent/historyTrans';
+import StockCheck from './components/warehouses/stockCheck';
+import StockAdjustment from './components/warehouses/stockAdjustment';
+import OrderList from './components/warehouses/orderList';
+import OrderCheck from './components/warehouses/orderCheck';
+
 
 
 const ProtectedRoute = ({ children }) => {
@@ -47,14 +48,15 @@ function App() {
           <Route path='/addproduct' element= {<AddProductComponent/>} />
           <Route path='/productstock' element= {<ProtectedRoute><ProductStockComponent/></ProtectedRoute>} />
           <Route path='/warehousemanagement' element= {<WarehouseManagementComponent/>} />
+          <Route path='/stock-adjustment/:stockadjustmentId' element= {<StockAdjustment/>} />
           <Route path='/ownerproductstock' element= {<ProductStockForOwner/>} />
           <Route path='/lowstockproduct' element= {<LowStockProducts/>} />
           <Route path='/create-order' element= {<PurchaseOrder/>} />
-          <Route path='/ordercheck/:orderId' element= {<OrderCheckComponent/>} />
           <Route path='/warehousetransfer' element= {<WarehouseTransferComponent/>} />
           <Route path='/listallproduct' element= {<ProductListComponent/>} />
-          <Route path='/orderlist' element= {<OrderListComponent/>} />
-          <Route path='/stockcheck' element= {<StockCheckComponent/>} />
+          <Route path='/orderlist' element= {<OrderList/>} />
+          <Route path='/order/:orderId' element= {<OrderCheck/>} />
+          <Route path='/stockcheck' element= {<StockCheck/>} />
           <Route path="/header" element={<ProtectedRoute><Header /></ProtectedRoute>} />
           <Route path="/endDaytReport" element={<ProtectedRoute><EndDayReport /></ProtectedRoute>} />
           <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />

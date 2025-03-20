@@ -1,112 +1,174 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Table, Button, Form, Pagination } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
-const OrderListComponent = () => {
+const API_URL = "https://localhost:5000/api/orders";
+const SUPPLIER_API_URL = "https://localhost:5000/api/suppliers"; // ✅ API lấy danh sách nhà cung cấp
+
+// ✅ Hàm lấy token và decode lấy `branchId` và `accountId`
+const getAuthHeader = () => {
+    const token = localStorage.getItem("token"); 
+    return { headers: { Authorization: `Bearer ${token}` } };
+};
+
+// ✅ Hàm decode token để lấy `branchId` và `accountId`
+const decodeToken = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return { BranchId: null, AccountId: null };
+
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT token
+        return { branchId: payload.BranchId, accountId: payload.AccountId };
+    } catch (error) {
+        console.error("Error decoding token:", error);
+        return { branchId: null, accountId: null };
+    }
+};
+
+export function OrderList() {
     const [orders, setOrders] = useState([]);
-    const [filterStatus, setFilterStatus] = useState('');
-    const [filterDistributor, setFilterDistributor] = useState('');
-    const [filterTime, setFilterTime] = useState('all');
+    const [filteredOrders, setFilteredOrders] = useState([]);
+    const [suppliers, setSuppliers] = useState([]); // ✅ Danh sách nhà cung cấp đầy đủ
+    const [selectedStatus, setSelectedStatus] = useState("");
+    const [selectedSupplier, setSelectedSupplier] = useState("");
+    const [selectedMonth, setSelectedMonth] = useState("");
+    const [selectedYear, setSelectedYear] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10; // ✅ Số đơn hàng mỗi trang
+    const navigate = useNavigate();
+    const { branchId, accountId } = decodeToken(); 
 
     useEffect(() => {
-        // Fake dữ liệu đơn hàng
-        const fakeOrders = [
-            { id: 'ORD001', distributor: 'Nhà phân phối A', date: '2025-03-04', status: 'completed' },
-            { id: 'ORD002', distributor: 'Nhà phân phối B', date: '2025-03-02', status: 'partial' },
-            { id: 'ORD003', distributor: 'Nhà phân phối C', date: '2025-03-03', status: 'pending' }
-        ];
-        setOrders(fakeOrders);
-    }, []);
-
-    const filterByTime = (date) => {
-        const now = new Date();
-        const orderDate = new Date(date);
-        
-        // Xác định ngày đầu tuần (Thứ Hai)
-        const startOfWeek = new Date(now);
-        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // Nếu Chủ Nhật, tính lùi 6 ngày
-        startOfWeek.setDate(now.getDate() - dayOfWeek);
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-        
-        switch (filterTime) {
-            case 'today':
-                return orderDate.toDateString() === now.toDateString();
-            case 'week':
-                return orderDate >= startOfWeek && orderDate <= now;
-            case 'month':
-                return orderDate >= startOfMonth && orderDate <= now;
-            case 'year':
-                return orderDate >= startOfYear && orderDate <= now;
-            default:
-                return true;
+        if (!branchId || !accountId) {
+            console.error("Missing branchId or accountId");
+            return;
         }
-    };
 
-    const filteredOrders = orders.filter(order => 
-        (!filterStatus || order.status === filterStatus) &&
-        (!filterDistributor || order.distributor === filterDistributor) &&
-        filterByTime(order.date)
-    );
+        axios.get(`${API_URL}?branchId=${branchId}&accountId=${accountId}`, getAuthHeader())
+            .then(response => {
+                setOrders(response.data);
+                setFilteredOrders(response.data);
+            })
+            .catch(error => console.error("Error fetching orders:", error));
+
+        // ✅ Lấy danh sách tất cả nhà cung cấp
+        axios.get(SUPPLIER_API_URL+ '/get-all', getAuthHeader())
+            .then(response => {
+                setSuppliers(response.data); // ✅ Cập nhật danh sách nhà cung cấp từ API
+            })
+            .catch(error => console.error("Error fetching suppliers:", error));
+    }, [branchId, accountId]);
+
+    // ✅ Hàm xử lý lọc dữ liệu
+    useEffect(() => {
+        let filtered = orders;
+
+        if (selectedStatus) {
+            filtered = filtered.filter(order => order.paymentStatus === selectedStatus);
+        }
+
+        if (selectedSupplier) {
+            filtered = filtered.filter(order => order.supplierName === selectedSupplier);
+        }
+
+        if (selectedMonth) {
+            filtered = filtered.filter(order => new Date(order.createdDate).getMonth() + 1 === parseInt(selectedMonth));
+        }
+
+        if (selectedYear) {
+            filtered = filtered.filter(order => new Date(order.createdDate).getFullYear() === parseInt(selectedYear));
+        }
+
+        setFilteredOrders(filtered);
+        setCurrentPage(1); // Reset về trang đầu tiên sau khi lọc
+    }, [selectedStatus, selectedSupplier, selectedMonth, selectedYear, orders]);
+
+    // ✅ Phân trang danh sách đơn hàng
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">📦 Danh Sách Đơn Hàng</h2>
-                <button onClick={() => window.location.href = '/createorder'} className="bg-green-500 text-white px-4 py-2 rounded">+ Tạo đơn hàng</button>
+        <div className="container mt-4">
+            <h2>Danh Sách Đơn Hàng</h2>
+
+            {/* 🔍 Bộ lọc */}
+            <div className="d-flex gap-3 mb-3">
+                <Form.Select value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)}>
+                    <option value="">-- Lọc theo trạng thái --</option>
+                    <option value="Chưa nhận hàng">Chưa nhận hàng</option>
+                    <option value="Đã nhận một phần">Nhận một phần</option>
+                    <option value="Đã nhận đủ hàng">Đã nhận đủ</option>
+                </Form.Select>
+
+                <Form.Select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)}>
+                    <option value="">-- Lọc theo nhà cung cấp --</option>
+                    {suppliers.map(supplier => (
+                        <option key={supplier.suppliersId} value={supplier.name}>{supplier.name}</option>
+                    ))}
+                </Form.Select>
+
+                <Form.Select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
+                    <option value="">-- Chọn tháng --</option>
+                    {[...Array(12)].map((_, i) => (
+                        <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
+                    ))}
+                </Form.Select>
+
+                <Form.Select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+                    <option value="">-- Chọn năm --</option>
+                    {[...Array(5)].map((_, i) => {
+                        const year = new Date().getFullYear() - i;
+                        return <option key={year} value={year}>{year}</option>;
+                    })}
+                </Form.Select>
             </div>
-            <div className="mb-4 flex justify-between items-center">
-                <select className="p-2 border rounded" onChange={(e) => setFilterStatus(e.target.value)}>
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="completed">Đã hoàn thành</option>
-                    <option value="partial">Giao một phần</option>
-                    <option value="pending">Chưa giao</option>
-                </select>
-                <select className="p-2 border rounded" onChange={(e) => setFilterDistributor(e.target.value)}>
-                    <option value="">Tất cả nhà phân phối</option>
-                    <option value="Nhà phân phối A">Nhà phân phối A</option>
-                    <option value="Nhà phân phối B">Nhà phân phối B</option>
-                    <option value="Nhà phân phối C">Nhà phân phối C</option>
-                </select>
-                <select className="p-2 border rounded" onChange={(e) => setFilterTime(e.target.value)}>
-                    <option value="all">Tất cả thời gian</option>
-                    <option value="today">Trong ngày</option>
-                    <option value="week">Trong tuần</option>
-                    <option value="month">Trong tháng</option>
-                    <option value="year">Trong năm</option>
-                </select>
-            </div>
-            <table className="w-full bg-white shadow-md rounded">
-                <thead className="bg-gray-100">
+
+            <Table striped bordered hover>
+                <thead>
                     <tr>
-                        <th className="p-2">Mã đơn hàng</th>
-                        <th className="p-2">Nhà phân phối</th>
-                        <th className="p-2">Ngày tạo</th>
-                        <th className="p-2">Kho nhập hàng</th>
-                        <th className="p-2">Trạng thái</th>
+                        <th>ID</th>
+                        <th>Ngày tạo</th>
+                        <th>Nhà cung cấp</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredOrders.map((order) => (
-                        <tr key={order.id} className={
-                            order.status === 'completed' ? 'bg-green-100' :
-                            order.status === 'partial' ? 'bg-yellow-100' : 'bg-red-100'
-                        } onClick={() => window.location.href = `/ordercheck/${order.id}`}>
-                            <td className="p-2 cursor-pointer text-blue-500\" 
-                              >{order.id}</td>
-                            <td className="p-2">{order.distributor}</td>
-                            <td className="p-2">{order.date}</td>
-                            <td className="p-2">Kho Trung Tâm</td>
-                            <td className="p-2 font-semibold">
-                                {order.status === 'completed' ? '✅ Hoàn thành' :
-                                order.status === 'partial' ? '⚠ Giao một phần' : '❌ Chưa giao'}
+                    {currentOrders.map(order => (
+                        <tr key={order.orderId}>
+                            <td>{order.orderId}</td>
+                            <td>{new Date(order.createdDate).toLocaleDateString()}</td>
+                            <td>{order.supplierName || "Không có nhà cung cấp"}</td>
+                            <td>{order.totalAmount.toLocaleString()} VNĐ</td>
+                            <td>{order.paymentStatus}</td>
+                            <td>
+                                <Button variant="info" onClick={() => navigate(`/order/${order.orderId}`)}>
+                                    Xem chi tiết
+                                </Button>
                             </td>
                         </tr>
                     ))}
                 </tbody>
-            </table>
+            </Table>
+
+            {/* ✅ Thanh phân trang */}
+            {totalPages > 1 && (
+                <Pagination>
+                    <Pagination.Prev onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} />
+                    {[...Array(totalPages)].map((_, i) => (
+                        <Pagination.Item key={i} active={i + 1 === currentPage} onClick={() => setCurrentPage(i + 1)}>
+                            {i + 1}
+                        </Pagination.Item>
+                    ))}
+                    <Pagination.Next onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} />
+                </Pagination>
+            )}
         </div>
     );
-};
+}
 
-export default OrderListComponent;
+export default OrderList;

@@ -15,14 +15,14 @@ const ProductStockComponent = () => {
             try {
                 const decodedToken = jwtDecode(token);
                 console.log("Dữ liệu token:", decodedToken);
-                employeeId = decodedToken.EmployeeID; // Lấy EmployeeID từ token
+                employeeId = decodedToken.AccountId; // Lấy EmployeeID từ token
             } catch (error) {
                 console.error('Lỗi khi giải mã token:', error);
             }
         }
 
         if (employeeId) {
-            fetch(`http://localhost:5000/api/products/warehouse/${employeeId}`, {
+            fetch(`https://localhost:5000/api/products/warehouse/${employeeId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -57,7 +57,7 @@ const ProductStockComponent = () => {
             minQuantity: product.minQuantity
         }));
 
-        fetch('http://localhost:5000/api/stocklevels/update-min-quantity', {
+        fetch('https://localhost:5000/api/stocklevels/update-min-quantity', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

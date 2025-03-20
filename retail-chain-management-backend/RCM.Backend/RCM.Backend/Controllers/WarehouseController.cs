@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RCM.Backend.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using RCM.Backend.Models;
 
 [Route("api/warehouses")]
 [ApiController]
@@ -16,51 +18,178 @@ public class WarehouseController : ControllerBase
         _context = context;
     }
 
-    // ✅ API lấy danh sách tất cả các kho
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<object>>> GetAllWarehouses()
+[HttpGet("{id}")]
+public IActionResult GetWarehouseById(int id)
+{
+    var warehouse = _context.Warehouses
+        .Where(w => w.WarehousesId == id)
+        .Select(w => new { w.WarehousesId, w.Name })
+        .FirstOrDefault();
+
+    if (warehouse == null)
     {
-        var warehouses = await _context.Warehouses
-            .Select(w => new
+        return NotFound(new { message = "Không tìm thấy kho!" });
+    }
+
+    return Ok(warehouse);
+}
+
+    // 📌 1. Lấy danh sách kho
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Warehouse>>> GetWarehouses()
+    {
+        return await _context.Warehouses.ToListAsync();
+    }
+
+    // 📌 2. Lấy danh sách sản phẩm có ở cả 2 kho (Kho nguồn & Kho đích)
+    [HttpGet("available-products")]
+    public async Task<ActionResult<IEnumerable<object>>> GetAvailableProducts(int sourceWarehouseId, int destinationWarehouseId)
+    {
+        var products = await _context.StockLevels
+            .Where(s => s.WarehouseId == sourceWarehouseId)
+            .Join(_context.StockLevels,
+                source => source.ProductId,
+                dest => dest.ProductId,
+                (source, dest) => new { source, dest })
+            .Where(pair => pair.dest.WarehouseId == destinationWarehouseId)
+            .Select(pair => new
             {
-                w.WarehousesId,
-                w.Name
+                pair.source.ProductId,
+                pair.source.Product.Name,
+                pair.source.Product.Unit,
+                pair.source.Quantity,
+                pair.source.MinQuantity
             })
             .ToListAsync();
 
-        return Ok(warehouses);
+        return Ok(products);
     }
 
-    // ✅ API lấy tất cả sản phẩm trong một kho cụ thể
-    [HttpGet("{warehouseId}/products")]
-    public async Task<ActionResult<IEnumerable<object>>> GetProductsByWarehouse(int warehouseId)
+    // 📌 3. API Tạo Phiếu Điều Chuyển Kho
+    [HttpPost("transfer")]
+public async Task<IActionResult> TransferStock([FromBody] WarehouseTransferRequest request)
+{
+    if (request == null)
     {
-        var productsInStock = await _context.StockLevels
-            .Where(s => s.WarehouseId == warehouseId)
-            .Join(_context.Products,
-                stock => stock.ProductId,
-                product => product.ProductsId,
-                (stock, product) => new
-                {
-                    product.ProductsId,
-                    product.Name,
-                    product.Barcode,
-                    stock.Quantity,
-                    stock.MinQuantity,
-                    stock.PurchasePrice,
-                    stock.WholesalePrice,
-                    stock.RetailPrice,
-                    product.Unit,
-                    product.ImageUrl,
-                    product.Category
-                })
-            .ToListAsync();
+        return BadRequest(new { message = "Dữ liệu gửi lên không hợp lệ." });
+    }
 
-        if (!productsInStock.Any())
+    if (request.Items == null || !request.Items.Any())
+    {
+        return BadRequest(new { message = "Danh sách sản phẩm điều chuyển không hợp lệ." });
+    }
+
+    if (request.SourceWarehouseId == request.DestinationWarehouseId)
+    {
+        return BadRequest(new { message = "Kho nguồn và kho đích không thể giống nhau." });
+    }
+
+    if (request.CreatedBy <= 0)
+    {
+        return BadRequest(new { message = "Người tạo không hợp lệ." });
+    }
+
+    // 🔹 Lưu thông tin điều chuyển vào bảng warehouse_transfer
+    var transfer = new WarehouseTransfer
+    {
+        FromWarehouseId = request.SourceWarehouseId,
+        ToWarehouseId = request.DestinationWarehouseId,
+        TransferDate = DateTime.UtcNow,
+        CreatedBy = request.CreatedBy,
+        Status = "pending"
+    };
+
+    _context.WarehouseTransfers.Add(transfer);
+    await _context.SaveChangesAsync();
+
+    // 🔹 Lưu chi tiết điều chuyển vào bảng warehouse_transfer_details
+    foreach (var item in request.Items)
+    {
+        var transferDetail = new WarehouseTransferDetail
         {
-            return NotFound(new { message = "Không tìm thấy sản phẩm trong kho này." });
+            TransferId = transfer.TransferId,  // ID của phiếu điều chuyển vừa tạo
+            ProductId = item.ProductId,
+            Quantity = item.Quantity
+        };
+
+        _context.WarehouseTransferDetails.Add(transferDetail);
+
+        // 🔹 Cập nhật tồn kho trong kho nguồn
+        var stockSource = _context.StockLevels.FirstOrDefault(s =>
+            s.WarehouseId == request.SourceWarehouseId && s.ProductId == item.ProductId);
+
+        if (stockSource != null)
+        {
+            stockSource.Quantity -= item.Quantity;
         }
 
-        return Ok(productsInStock);
+        // 🔹 Cập nhật tồn kho trong kho đích
+        var stockDestination = _context.StockLevels.FirstOrDefault(s =>
+            s.WarehouseId == request.DestinationWarehouseId && s.ProductId == item.ProductId);
+
+        if (stockDestination != null)
+        {
+            stockDestination.Quantity += item.Quantity;
+        }
     }
+
+    await _context.SaveChangesAsync();
+
+    return Ok(new { message = "Phiếu điều chuyển đã được tạo thành công." });
+}
+
+    [HttpGet("{warehouseId}/products")]
+public async Task<ActionResult<IEnumerable<object>>> GetProductsByWarehouse(int warehouseId)
+{
+    // Kiểm tra xem kho có tồn tại không
+    var warehouseExists = await _context.Warehouses.AnyAsync(w => w.WarehousesId == warehouseId);
+    if (!warehouseExists)
+    {
+        return NotFound(new { message = "Kho không tồn tại." });
+    }
+
+    // Lấy danh sách sản phẩm có trong kho
+    var productsInStock = await _context.StockLevels
+        .Where(s => s.WarehouseId == warehouseId)
+        .Join(_context.Products,
+            stock => stock.ProductId,
+            product => product.ProductsId,
+            (stock, product) => new
+            {
+                product.ProductsId,
+                product.Name,
+                product.Unit,
+                stock.Quantity,
+                stock.MinQuantity,
+                stock.PurchasePrice,
+                stock.WholesalePrice,
+                stock.RetailPrice
+            })
+        .OrderBy(p => p.Name)
+        .ToListAsync();
+
+    // Kiểm tra nếu kho không có sản phẩm
+    if (!productsInStock.Any())
+    {
+        return NotFound(new { message = "Kho này không có sản phẩm nào." });
+    }
+
+    return Ok(productsInStock);
+}
+
+}
+
+// 📌 4. Model Request (Không cần chỉnh Model gốc)
+public class WarehouseTransferRequest
+{
+    public int SourceWarehouseId { get; set; }
+    public int DestinationWarehouseId { get; set; }
+    public int CreatedBy { get; set; }  // 🔹 Thêm dòng này
+    public List<TransferItem> Items { get; set; }
+}
+
+public class TransferItem
+{
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
 }

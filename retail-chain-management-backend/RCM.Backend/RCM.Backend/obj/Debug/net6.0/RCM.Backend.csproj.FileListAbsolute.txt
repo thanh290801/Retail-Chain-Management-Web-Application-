@@ -170,3 +170,6 @@ D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-managemen
 D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\bin\Debug\net6.0\Microsoft.Bcl.AsyncInterfaces.dll
 D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets.upToDateCheck.txt
 >>>>>>> 8665fd44e5a530537541616e0cbb8e9215f0deee
+C:\Users\ktleg\Documents\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\bin\Debug\net6.0\Dapper.dll
+C:\Users\ktleg\Documents\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\bin\Debug\net6.0\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\ktleg\Documents\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\bin\Debug\net6.0\Newtonsoft.Json.dll

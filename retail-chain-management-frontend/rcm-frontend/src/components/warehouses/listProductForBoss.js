@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom"; // Import useNavigate nếu sử dụng React Router
+
 
 const ProductStockForOwner = () => {
+    const navigate = useNavigate(); // Hook để điều hướng trong React Router
     const [warehouses, setWarehouses] = useState([]);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [products, setProducts] = useState([]);
@@ -11,7 +14,7 @@ const ProductStockForOwner = () => {
     const [showLowStock, setShowLowStock] = useState(false);
 
     useEffect(() => {
-        fetch("http://localhost:5000/api/warehouses")
+        fetch("https://localhost:5000/api/warehouses")
             .then(response => response.json())
             .then(data => {
                 setWarehouses(data);
@@ -22,7 +25,7 @@ const ProductStockForOwner = () => {
 
     useEffect(() => {
         if (selectedWarehouse) {
-            fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse}/products`)
+            fetch(`https://localhost:5000/api/warehouses/${selectedWarehouse}/products`)
                 .then(response => response.json())
                 .then(data => setProducts(data))
                 .catch(error => console.error("Error fetching stock:", error));
@@ -51,7 +54,7 @@ const ProductStockForOwner = () => {
             }));
         });
 
-        fetch("http://localhost:5000/api/products/update-price", {
+        fetch("https://localhost:5000/api/products/update-price", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(priceUpdates)
@@ -104,6 +107,14 @@ const ProductStockForOwner = () => {
                     }}
                 >
                     {isEditingPrice ? "Lưu giá" : "Chỉnh sửa giá"}
+                </button>
+
+                {/* Nút Tạo Phiếu Điều Chuyển Kho */}
+                <button
+                    className="bg-purple-500 text-white px-4 py-2 rounded"
+                    onClick={() => navigate("/warehousetransfer")} // Điều hướng đến /warehousetransfer
+                >
+                    Tạo phiếu điều chuyển kho
                 </button>
             </div>
 

@@ -6,7 +6,7 @@ const ProductListComponent = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/products')
+        fetch('https://localhost:5000/api/products')
             .then(response => response.json())
             .then(data => setProducts(data))
             .catch(error => console.error('Error fetching products:', error));
@@ -20,7 +20,7 @@ const ProductListComponent = () => {
         const confirmMessage = product.isEnabled ? "Bạn có chắc chắn muốn ẩn sản phẩm này?" : "Bạn có chắc chắn muốn hiển thị sản phẩm này?";
         if (window.confirm(confirmMessage)) {
             try {
-                const response = await fetch(`http://localhost:5000/api/products/${product.productsId}/toggle-status`, {
+                const response = await fetch(`https://localhost:5000/api/products/${product.productsId}/toggle-status`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                 });

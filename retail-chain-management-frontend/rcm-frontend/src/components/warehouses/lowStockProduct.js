@@ -26,13 +26,13 @@ const LowStockProducts = () => {
 
     useEffect(() => {
         // Fetch danh sách kho
-        fetch("http://localhost:5000/api/warehouses")
+        fetch("https://localhost:5000/api/warehouses")
             .then((response) => response.json())
             .then((data) => setWarehouses(data))
             .catch((error) => console.error("Error fetching warehouses:", error));
 
         // Fetch danh sách nhà cung cấp
-        fetch("http://localhost:5000/api/suppliers/get-all")
+        fetch("https://localhost:5000/api/suppliers/get-all")
             .then((response) => response.json())
             .then((data) => setSuppliers(data))
             .catch((error) => console.error("Error fetching suppliers:", error));
@@ -40,7 +40,7 @@ const LowStockProducts = () => {
 
     useEffect(() => {
         // Fetch danh sách sản phẩm sắp hết hàng
-        let apiUrl = `http://localhost:5000/api/products/low-stock`;
+        let apiUrl = `https://localhost:5000/api/products/low-stock`;
 
         // Xử lý warehouseId
         if (branchId > 0) {
@@ -57,7 +57,7 @@ const LowStockProducts = () => {
         fetch(apiUrl)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    throw new Error(`https error! Status: ${response.status}`);
                 }
                 return response.json();
             })
