@@ -59,6 +59,11 @@
 .header{
     height: 20px;
 }
+
 .order-history{
     width: 800px;
+}
+
+.search-suggestions:empty {
+    display: none;
 }

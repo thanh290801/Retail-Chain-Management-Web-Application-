@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Row, Col, Form, Button, ButtonGroup, Modal } from 'react-bootstrap';
 import Cart from './cart';
@@ -8,9 +7,10 @@ import { BsX, BsPlus } from 'react-icons/bs';
 import './main.css';
 import { data, useNavigate } from "react-router-dom";
 import { IoArrowBackOutline } from "react-icons/io5";
+import { useMemo } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = "http://localhost:5000/api/sale-invoice";
+const API_BASE_URL = "https://localhost:5000/api/sale-invoice";
 
 const Main = () => {
     const [invoices, setInvoices] = useState({
@@ -30,9 +30,13 @@ const Main = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [notFound, setNotFound] = useState(false);
 
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+
     const [lastScanTime, setLastScanTime] = useState(0);
 
     const barcodeRef = useRef("");
+
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
         const handleGlobalKeyDown = async (e) => {
@@ -69,7 +73,12 @@ const Main = () => {
         const newInvoiceId = `Hóa đơn ${newNumber}`;
         setInvoices(prev => ({
             ...prev,
-            [newInvoiceId]: { cart: [], cashGiven: 0, change: 0, paymentMethod: "cash" }
+            [newInvoiceId]: {
+                cart: [],
+                cashGiven: 0,
+                change: 0,
+                paymentMethod: "cash"
+            }
         }));
         setCurrentInvoice(newInvoiceId);
     };
@@ -100,19 +109,26 @@ const Main = () => {
     const handleRemoveInvoice = (invoiceId) => {
         setInvoices((prevInvoices) => {
             const updatedInvoices = { ...prevInvoices };
-            delete updatedInvoices[invoiceId];
+            delete updatedInvoices[invoiceId]; // ✅ Xóa hóa đơn đã chọn
 
+            // ✅ Nếu không còn hóa đơn nào, tạo lại "Hóa đơn 1"
             if (Object.keys(updatedInvoices).length === 0) {
-                updatedInvoices['Hóa đơn 1'] = { cart: [], cashGiven: 0, change: 0 };
-                return updatedInvoices;
+                updatedInvoices['Hóa đơn 1'] = { cart: [], cashGiven: 0, change: 0, paymentMethod: 'cash' };
             }
 
             return updatedInvoices;
         });
 
-        setCurrentInvoice(prev => Object.keys(invoices)[0] || 'Hóa đơn 1');
-        setShowConfirmModal(false);
-        setInvoiceToDelete(null);
+        // ✅ Chuyển sang hóa đơn khác trước khi xóa
+        setTimeout(() => {
+            setCurrentInvoice((prev) => {
+                const remainingInvoices = Object.keys(invoices).filter(id => id !== invoiceId);
+                return remainingInvoices.length > 0 ? remainingInvoices[0] : "Hóa đơn 1"; // ✅ Chuyển sang hóa đơn mới
+            });
+
+            setShowConfirmModal(false);
+            setInvoiceToDelete(null);
+        }, 100); // ✅ Trì hoãn nhẹ để đảm bảo state cập nhật
     };
 
     // ✅ Hàm xử lý thay đổi input tìm kiếm
@@ -132,8 +148,13 @@ const Main = () => {
             try {
                 const response = await axios.post(`${API_BASE_URL}/search`, {
                     Query: value.trim(),
-                    WarehouseId: 1
-                });
+                },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",  // ✅ Định dạng JSON
+                            "Authorization": `Bearer ${token}`, // ✅ Thêm token nếu có
+                        }
+                    });
 
                 if (response.data && response.data.length > 0) {
                     setSuggestedProducts(response.data);
@@ -228,18 +249,24 @@ const Main = () => {
         const returnInvoiceId = `Phiếu trả ${Object.keys(invoices).length + 1}`;
 
         const returnItems = orderDetails.map(p => ({
-            orderDetailId: p.orderDetailId,  // 🔹 ID chi tiết đơn hàng
-            productId: p.productId,  // 🔹 ID sản phẩm
-            productName: p.productName, // 🔹 Tên sản phẩm
-            quantity: p.quantity, // ✅ Số lượng mua ban đầu
-            returnQuantity: 0, // ✅ Ban đầu chưa có số lượng trả
-            unitPrice: p.unitPrice, // ✅ Đơn giá
-            totalPrice: p.totalPrice, // ✅ Tổng giá trị ban đầu (không cần dùng khi tính toán)
+            orderDetailId: p.orderDetailId,
+            productId: p.productId,
+            productName: p.productName,
+            quantity: p.quantity,
+            returnQuantity: 0,
+            unitPrice: p.unitPrice,
+            totalPrice: p.totalPrice,
         }));
 
         setInvoices(prev => ({
             ...prev,
-            [returnInvoiceId]: { cart: returnItems, cashGiven: 0, change: 0, isReturn: true }
+            [returnInvoiceId]: {
+                cart: returnItems,
+                cashGiven: 0,
+                change: 0,
+                isReturn: true,
+                orderId: order.orderId  // ✅ Lưu orderId vào invoice
+            }
         }));
 
         setCurrentInvoice(returnInvoiceId);
@@ -324,7 +351,7 @@ const Main = () => {
                     <ButtonGroup className="invoice-tabs">
                         {Object.keys(invoices).map((invoiceId) => (
                             <Button
-                                key={invoiceId} // ✅ Thêm key vào đây
+                                key={invoiceId}
                                 variant={invoiceId === currentInvoice ? 'light' : 'primary'}
                                 onClick={() => handleSwitchInvoice(invoiceId)}
                                 className={`invoice-tab d-flex align-items-center ${invoiceId === currentInvoice ? 'active' : ''}`}
@@ -339,6 +366,11 @@ const Main = () => {
                                 />
                             </Button>
                         ))}
+
+                        {/* ✅ Nút Thêm Hóa Đơn Mới */}
+                        <Button variant="success" onClick={handleAddNewInvoice} className="ms-2 d-flex align-items-center">
+                            <BsPlus className="me-1" /> Hóa đơn mới
+                        </Button>
                     </ButtonGroup>
                 </Col>
 
@@ -347,8 +379,7 @@ const Main = () => {
                     <ReturnInvoiceModal
                         show={showReturnModal}
                         onHide={() => setShowReturnModal(false)}
-                        orders={orders}
-                        handleCreateReturnInvoice={handleCreateReturnInvoice}
+                        handleCreateReturnInvoice={handleCreateReturnInvoice} // ✅ Truyền callback xử lý orderId
                     />
                 </Col>
             </Row>
@@ -356,37 +387,50 @@ const Main = () => {
             <Row>
                 <Col md={8} className='mt-2'>
                     <Cart
-                        cartData={invoices[currentInvoice].cart}
+                        cartData={invoices[currentInvoice]?.cart || []} // ✅ Nếu không có, trả về []
                         onUpdateCart={(updatedCart) => setInvoices((prev) => ({
                             ...prev,
-                            [currentInvoice]: { ...prev[currentInvoice], cart: updatedCart }
+                            [currentInvoice]: {
+                                ...(prev[currentInvoice] || { cart: [], cashGiven: 0, change: 0, paymentMethod: "cash" }),
+                                cart: updatedCart
+                            }
                         }))}
                         quantityInputRefs={quantityInputRefs}
-                        isReturn={invoices[currentInvoice]?.isReturn || false} // Xác định phiếu trả hàng
+                        isReturn={invoices[currentInvoice]?.isReturn || false} // ✅ Kiểm tra tồn tại
                     />
                 </Col>
+
                 <Col md={4} className='mt-2'>
                     <Calculator
-                        cartData={invoices[currentInvoice].cart}
-                        cashGiven={invoices[currentInvoice].cashGiven}
-                        change={invoices[currentInvoice].change}
+                        cartData={invoices[currentInvoice]?.cart || []}
+                        cashGiven={invoices[currentInvoice]?.cashGiven || 0}
+                        change={invoices[currentInvoice]?.change || 0}
                         onCashUpdate={(cashGiven, change) => setInvoices((prev) => ({
                             ...prev,
-                            [currentInvoice]: { ...prev[currentInvoice], cashGiven, change }
+                            [currentInvoice]: {
+                                ...(prev[currentInvoice] || { cart: [], cashGiven: 0, change: 0, paymentMethod: "cash" }),
+                                cashGiven,
+                                change
+                            }
                         }))}
-                        paymentMethod={invoices[currentInvoice].paymentMethod}
-                        onPaymentMethodChange={handlePaymentMethodChange} // ✅ Truyền function xuống Calculator
+                        paymentMethod={invoices[currentInvoice]?.paymentMethod || "cash"}
+                        onPaymentMethodChange={handlePaymentMethodChange}
                         isReturn={invoices[currentInvoice]?.isReturn || false}
+                        invoiceId={currentInvoice}
+                        orderId={invoices[currentInvoice]?.orderId || null} // ✅ Truyền đúng orderId
+                        handleRemoveInvoice={() => handleRemoveInvoice(currentInvoice)}
                     />
                 </Col>
             </Row>
 
-            <Modal className='' show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
-                <Modal.Header closeButton><Modal.Title>Xác nhận xóa</Modal.Title></Modal.Header>
+            <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Xác nhận xóa</Modal.Title>
+                </Modal.Header>
                 <Modal.Body>Bạn có chắc chắn muốn xóa <strong>{invoiceToDelete}</strong> không?</Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>Hủy</Button>
-                    <Button variant="danger" onClick={handleRemoveInvoice}>Xóa</Button>
+                    <Button variant="danger" onClick={() => handleRemoveInvoice(invoiceToDelete)}>Xóa</Button>
                 </Modal.Footer>
             </Modal>
         </Container>

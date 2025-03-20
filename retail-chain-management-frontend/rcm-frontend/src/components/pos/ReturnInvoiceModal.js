@@ -12,6 +12,8 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
     const [loading, setLoading] = useState(false);
     const [filteredOrders, setFilteredOrders] = useState([]);
 
+    const token = localStorage.getItem("token");
+
     // ✅ State bộ lọc tìm kiếm
     const [filters, setFilters] = useState({
         orderId: "",
@@ -50,13 +52,17 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
             EmployeeId: filters.employeeId ? parseInt(filters.employeeId) : null,
             StartDate: formatDateToYYYYMMDD(filters.startDate),
             EndDate: formatDateToYYYYMMDD(filters.endDate),
-            WarehouseId: 1,
             Barcode: filters.barcode || null,
             ProductName: filters.productName || null
-        })
+        },
+        {
+                headers: {
+                    "Content-Type": "application/json",  // ✅ Định dạng JSON
+                    "Authorization": `Bearer ${token}`, // ✅ Thêm token nếu có
+                }
+            })
             .then(response => {
                 setFilteredOrders(response.data || []);
-                console.log("✅ API trả về:", response.data);
             })
             .catch(error => {
                 console.error("❌ Lỗi khi tìm kiếm hóa đơn:", error);
@@ -84,9 +90,15 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
         try {
             const response = await axios.post(`${API_BASE_URL}/orderdetails/search`, {
                 orderId: order.orderId
-            });
+            }, {
+                headers: {
+                    "Content-Type": "application/json",  // ✅ Định dạng JSON
+                    "Authorization": `Bearer ${token}`, // ✅ Thêm token nếu có
+                }
+            }
+            );
             if (response.data) {
-                handleCreateReturnInvoice(order, response.data);
+                handleCreateReturnInvoice(order, response.data); // ✅ Gửi orderId về Main.js
             }
         } catch (error) {
             console.error("❌ Lỗi khi lấy chi tiết hóa đơn:", error);
