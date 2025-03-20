@@ -105,7 +105,7 @@ const Header = () => {
                       {activeDropdown === "goods" && (
                         <div className="absolute bg-white shadow-md rounded p-2 z-50">
                           <Link
-                            to="/button1"
+                            to="/productmanage"
                             className="block px-4 py-2 hover:bg-gray-200 no-underline"
                           >
                             Danh sách sản phẩm
@@ -210,10 +210,16 @@ const Header = () => {
                             Lương
                           </Link>
                           <Link
-                            to="/button12"
+                            to="/salary"
                             className="block px-4 py-2 hover:bg-gray-200 no-underline"
                           >
                             Thiết lập lương
+                          </Link>
+                          <Link
+                            to="/attendance"
+                            className="block px-4 py-2 hover:bg-gray-200 no-underline"
+                          >
+                            Xem bảng chấm công
                           </Link>
                         </div>
                       )}
