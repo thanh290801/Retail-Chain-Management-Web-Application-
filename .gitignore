@@ -1,2 +1,3 @@
 /retail-chain-management-frontend/rcm-frontend/build
 /retail-chain-management-frontend/rcm-frontend/node_modules
+*.vsidx
