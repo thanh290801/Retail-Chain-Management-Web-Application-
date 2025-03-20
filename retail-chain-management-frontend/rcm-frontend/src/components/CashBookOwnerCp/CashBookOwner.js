@@ -118,15 +118,16 @@ const CashBookOwner = () => {
                     </select>
                     <input type="date" className="p-2 border rounded" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
                     <input type="date" className="p-2 border rounded" value={toDate} onChange={(e) => setToDate(e.target.value)} />
-                    <button onClick={fetchCashbook} className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold shadow-md">🔎 Lọc</button>
+                    <button onClick={fetchCashbook} className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold shadow-md">🔎 Chi tiết các toàn bộ giao dịch</button>
                     <button onClick={fetchSummary} className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold shadow-md">📊 Xem Tổng Kết</button>
                 </div>
             </div>
             {summary && (
                 <div className="bg-white p-4 rounded-lg shadow-md mt-6">
-                    <h3 className="text-lg font-bold">📊 Tổng Thu/Chi/Tồn Quỹ</h3>
-                    <p><strong>Tổng Thu:</strong> {summary.totalIncome.toLocaleString()} VNĐ</p>
-                    <p><strong>Tổng Chi:</strong> {summary.totalExpense.toLocaleString()} VNĐ</p>
+                    <h3 className="text-lg font-bold">📊 Tổng Kết Quỹ</h3>
+                    <p><strong>Tổng Thu tiền mặt:</strong> {summary.totalIncome.toLocaleString()} VNĐ</p>
+                    <p><strong>Tổng Thu chuyển khoản:</strong> {summary.totalBank.toLocaleString()} VNĐ</p>
+                    <p><strong>Tổng Chi tiền mặt:</strong> {summary.totalExpense.toLocaleString()} VNĐ</p>
                     <p><strong>Tồn Quỹ:</strong> {summary.currentBalance.toLocaleString()} VNĐ</p>
                 </div>
             )}

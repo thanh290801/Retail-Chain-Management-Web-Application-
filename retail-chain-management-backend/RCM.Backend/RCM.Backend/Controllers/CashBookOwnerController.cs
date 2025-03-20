@@ -57,6 +57,7 @@ namespace RCM.Backend.Controllers
             var cashbookTransactions = await _context.Transactions
                 .Where(t => t.TransactionDate >= startDate && t.TransactionDate < endDate && t.BranchId == branchId)
                 .Where(t => t.TransactionType == "POS_CASH_PAYMENT"
+                            ||t.TransactionType=="POS_BANK_PAYMENT"
                             || t.TransactionType == "CASH_HANDOVER"
                             || t.TransactionType == "CASH_EXPENSE"
                             || t.TransactionType == "CASH_REFUND")
@@ -92,6 +93,9 @@ namespace RCM.Backend.Controllers
             var transactions = await _context.Transactions
                 .Where(t => t.TransactionDate >= startDate && t.TransactionDate < endDate && t.BranchId == branchId)
                 .ToListAsync();
+            decimal totalBank = transactions
+                .Where(t => t.TransactionType == "POS_BANK_PAYMENT")
+                .Sum(t => t.Amount);
 
             decimal totalIncome = transactions
                 .Where(t => t.TransactionType == "POS_CASH_PAYMENT" || t.TransactionType == "CASH_HANDOVER")
@@ -105,6 +109,7 @@ namespace RCM.Backend.Controllers
 
             return Ok(new
             {
+                TotalBank=totalBank,
                 TotalIncome = totalIncome,
                 TotalExpense = totalExpense,
                 CurrentBalance = currentBalance

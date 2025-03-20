@@ -1425,24 +1425,6 @@
         },
         "additionalProperties": false
       },
-      "ProductRefund": {
-        "type": "object",
-        "properties": {
-          "productId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "quantity": {
-            "type": "number",
-            "format": "double"
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "additionalProperties": false
-      },
       "ProductSearchRequest": {
         "type": "object",
         "properties": {
@@ -1702,6 +1684,24 @@
         },
         "additionalProperties": false
       },
+      "RefundProduct": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "returnQuantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "RefundRequest": {
         "type": "object",
         "properties": {
@@ -1709,18 +1709,10 @@
             "type": "integer",
             "format": "int32"
           },
-          "employeeId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalRefundAmount": {
-            "type": "number",
-            "format": "double"
-          },
           "refundProducts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ProductRefund"
+              "$ref": "#/components/schemas/RefundProduct"
             },
             "nullable": true
           }
