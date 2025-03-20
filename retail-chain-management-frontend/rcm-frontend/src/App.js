@@ -1,17 +1,19 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import "./App.css";
-import AddProductComponent from "./components/addProduct";
-import Attendance from "./components/EmployeeComponent/AttendanceTracking";
-import EmployeeCheckInDetail from "./components/EmployeeComponent/Checkin";
-import ProductManagementComponent from "./components/listProduct";
-import LoginPage from "./components/login";
-import Main from "./components/pos/main";
-import Header from "./headerComponent/header";
-import SalesChartPage from "./sale-dashboadConponent/SalesChartPage";
-import StaffManager from "./components/EmployeeComponent/StaffManager";
-import { ToastContainer } from "react-toastify";
-import SalaryHistory from "./components/EmployeeComponent/SalaryHistory";
-import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
+import './App.css';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
+import AddProductComponent from './components/addProduct';
+import ProductManagementComponent from './components/listProduct';
+import Header from './headerComponent/header';
+import LoginPage from './components/login';
+import Main from './components/pos/main';
+import StaffHomeComponent from './components/staffHomeConponent/staffHome';
+import EndDayReport from './components/reportStaffConponent/EndShiftReport';
+import TransactionForm from './components/transactionFormConponent/transactionForm';
+import CashBookComponent from './components/cashbookConponent/cashBook';
+import CashBookOwner from './components/CashBookOwnerCp/CashBookOwner';
+import UserProfile from './components/profileUser/profile';
+import ForgotPassword from './components/resetPass/sendOTP';
+import ResetPassword from './components/resetPass/resetPassword.js';
+
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" />;
@@ -22,85 +24,27 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+
           {/* Định tuyến trang mặc định về Login nếu chưa có token */}
-          <Route path="/" element={<Navigate to="/login" />} />
-          {/* <Route path="/att" element={<AttendanceTable />} /> */}
-          <Route
-            path="/attendance-detail/:id"
-            element={
-              <>
-                <AttendanceTable />
-                <ToastContainer position="top-right" autoClose={3000} />
-              </>
-            }
-          />
-          <Route
-            path="/checkin"
-            element={
-              <>
-                <AttendanceTable />
-                <ToastContainer position="top-right" autoClose={3000} />
-              </>
-            }
-          />
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Trang Login */}
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/attendance" element={<Attendance />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
+
           {/* Các trang cần đăng nhập */}
-          <Route
-            path="/home"
-            element={
-              <ProtectedRoute>
-                <SalesChartPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/pos" element={<Main />} />
-
-          <Route
-            path="/addproduct"
-            element={
-              <ProtectedRoute>
-                <AddProductComponent />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/productmanage"
-            element={
-              <ProtectedRoute>
-                <ProductManagementComponent />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/header"
-            element={
-              <ProtectedRoute>
-                <Header />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/staffmanage"
-            element={
-              <ProtectedRoute>
-                <StaffManager />
-                <ToastContainer position="top-right" autoClose={3000} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/salary"
-            element={
-              <ProtectedRoute>
-                <SalaryHistory />
-                <ToastContainer position="top-right" autoClose={3000} />
-              </ProtectedRoute>
-            }
-          />
+          <Route path='/pos' element={<Main />} />
+          <Route path="/staffHome" element={<ProtectedRoute><StaffHomeComponent /></ProtectedRoute>} />
+          <Route path="/addproduct" element={<ProtectedRoute><AddProductComponent /></ProtectedRoute>} />
+          <Route path="/productmanage" element={<ProtectedRoute><ProductManagementComponent /></ProtectedRoute>} />
+          <Route path="/header" element={<ProtectedRoute><Header /></ProtectedRoute>} />
+          <Route path="/endDaytReport" element={<ProtectedRoute><EndDayReport /></ProtectedRoute>} />
+          <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
+          <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />
+          <Route path="/cashBookOwner" element={<ProtectedRoute><CashBookOwner /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
