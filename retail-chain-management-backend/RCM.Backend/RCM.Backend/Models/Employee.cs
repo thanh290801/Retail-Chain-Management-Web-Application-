@@ -1,0 +1,51 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace RCM.Backend.Models
+{
+    public partial class Employee
+    {
+        public Employee()
+        {
+            AttendanceRecords = new HashSet<AttendanceRecord>();
+            CashHandoverEmployees = new HashSet<CashHandover>();
+            CashHandoverReceivers = new HashSet<CashHandover>();
+            EndShifts = new HashSet<EndShift>();
+            Orders = new HashSet<Order>();
+            Refunds = new HashSet<Refund>();
+            Salaries = new HashSet<Salary>();
+            Transactions = new HashSet<Transaction>();
+        }
+
+        public int EmployeeId { get; set; }
+        [ForeignKey("Account")]
+        public int AccountId { get; set; }  // 🔥 Đảm bảo đúng cột
+        public string? ProfileImage { get; set; }
+        public string FullName { get; set; } = null!;
+        public string? Phone { get; set; }
+        public string? Gender { get; set; }
+        public DateTime BirthDate { get; set; }
+        public string IdentityNumber { get; set; } = null!;
+        public string? Hometown { get; set; }
+        public int? WorkShiftId { get; set; }
+        public int? FixedSalary { get; set; }
+        public bool? IsActive { get; set; }
+        public DateTime StartDate { get; set; }
+        public int? BranchId { get; set; }
+        public bool? IsCheckedIn { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+
+        public virtual Account? Account { get; set; }
+        public virtual Warehouse? Branch { get; set; }
+        public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; }
+        public virtual ICollection<CashHandover> CashHandoverEmployees { get; set; }
+        public virtual ICollection<CashHandover> CashHandoverReceivers { get; set; }
+        public virtual ICollection<EndShift> EndShifts { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<Refund> Refunds { get; set; }
+        public virtual ICollection<Salary> Salaries { get; set; }
+        public virtual ICollection<Transaction> Transactions { get; set; }
+    }
+}
