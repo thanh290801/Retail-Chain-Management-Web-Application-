@@ -46,9 +46,9 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "CashBookStaff",
-    "Method": "GetCashBookSummary",
-    "RelativePath": "api/CashBookStaff/cashbook-list",
+    "ContainingType": "RCM.Backend.Controllers.CashBookOwnerController",
+    "Method": "GetBranches",
+    "RelativePath": "api/CashBookOwner/branches",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -56,57 +56,52 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "CashBookStaff",
-    "Method": "GetCashBookStaffHistory",
-    "RelativePath": "api/CashBookStaff/cashbook-staff-history",
+    "ContainingType": "RCM.Backend.Controllers.CashBookOwnerController",
+    "Method": "GetCashbook",
+    "RelativePath": "api/CashBookOwner/cashbook",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "startDate",
+        "Name": "branchId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "fromDate",
         "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       },
       {
-        "Name": "endDate",
+        "Name": "toDate",
         "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
-      },
-      {
-        "Name": "transactionType",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "search",
-        "Type": "System.String",
         "IsRequired": false
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "CashBookStaff",
-    "Method": "GetCashBookStaffSummary",
-    "RelativePath": "api/CashBookStaff/cashbook-staff-summary",
+    "ContainingType": "RCM.Backend.Controllers.CashBookOwnerController",
+    "Method": "GetCashSummary",
+    "RelativePath": "api/CashBookOwner/summary",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "startDate",
+        "Name": "branchId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "fromDate",
         "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       },
       {
-        "Name": "endDate",
+        "Name": "toDate",
         "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
-        "IsRequired": false
-      },
-      {
-        "Name": "transactionType",
-        "Type": "System.String",
         "IsRequired": false
       }
     ],
@@ -114,28 +109,80 @@
   },
   {
     "ContainingType": "CashHandoverController",
-    "Method": "CreateHandover",
-    "RelativePath": "api/CashHandover",
+    "Method": "GetTodayCashbook",
+    "RelativePath": "api/CashHandover/cashbook",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "CashHandoverController",
+    "Method": "CreateCashHandover",
+    "RelativePath": "api/CashHandover/create",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "handover",
-        "Type": "RCM.Backend.Models.CashHandover",
+        "Name": "request",
+        "Type": "RCM.Backend.Models.CashHandoverRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "FinancialController",
-    "Method": "GetBranchCashBalance",
-    "RelativePath": "api/Financial/branch-cash-balance",
+    "ContainingType": "EmployeeController",
+    "Method": "GetLoggedInEmployeeProfile",
+    "RelativePath": "api/employees/profile",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "FinancialController",
+    "Method": "GetFinancialSummary",
+    "RelativePath": "api/finance/summaryStaff",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ResetPasssController",
+    "Method": "ConfirmResetPassword",
+    "RelativePath": "api/resetpasss/confirm-reset",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "ConfirmResetRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ResetPasssController",
+    "Method": "SendOtp",
+    "RelativePath": "api/resetpasss/send-otp",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SendOtpRequest",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {

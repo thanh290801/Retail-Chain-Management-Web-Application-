@@ -1,71 +1,85 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const CashBook = () => {
-    const [transactions, setTransactions] = useState([]);
+    const navigate = useNavigate();
+    const [cashbook, setCashbook] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchTransactions = async () => {
-            try {
-                const token = localStorage.getItem("token"); // Lấy token từ localStorage
-                if (!token) throw new Error("Token không tồn tại!");
 
-                const response = await axios.get("https://localhost:5000/api/CashBookStaff/cashbook-list", {
+        const fetchCashbook = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    navigate("/login");
+                    return;
+                }
+
+                const response = await axios.get("https://localhost:5000/api/CashHandover/cashbook", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                setTransactions(response.data);
-                console.log("📌 API Response:", response.data);
 
-            } catch (error) {
-                console.error("Lỗi khi lấy dữ liệu:", error);
+                // Kiểm tra API trả về đúng dữ liệu hay không
+                if (response.data && response.data.transactions) {
+                    setCashbook(response.data.transactions); // ✅ Lấy đúng `transactions`
+                } else {
+                    setCashbook([]); // Nếu không có dữ liệu, gán mảng rỗng để tránh lỗi
+                }
+            } catch (err) {
+                setCashbook([]); // Đảm bảo `cashbook` không bị undefined nếu lỗi
+                setError(err.response?.data?.message || "Lỗi khi lấy dữ liệu sổ quỹ.");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchTransactions();
+        fetchCashbook();
     }, []);
+
+    if (loading) return <p className="text-center text-gray-600">Đang tải dữ liệu...</p>;
+    if (error) return <p className="text-center text-red-500">Lỗi: {error}</p>;
 
     return (
         <div className="container mx-auto p-4">
             <h2 className="text-lg font-bold mb-4">Sổ Quỹ Tiền Mặt Hôm Nay</h2>
-            {loading ? (
-                <p>Đang tải dữ liệu...</p>
-            ) : (
-                <table className="w-full border-collapse border border-gray-300">
-                    <thead>
-                        <tr className="bg-gray-200">
-                            <th className="border p-2">Ngày Giao Dịch</th>
-                            <th className="border p-2">Mã Giao Dịch</th>
-                            <th className="border p-2">Loại</th>
-                            <th className="border p-2">Nhân Viên</th>
-                            <th className="border p-2">Số Tiền</th>
-                            <th className="border p-2">Nguồn</th>
-                            <th className="border p-2">Mô Tả</th>
+
+            <div className="min-h-screen bg-gray-100 p-6">
+                <h2 className="text-2xl font-bold text-gray-700 text-center">Sổ Quỹ Tiền Mặt Hôm Nay</h2>
+                <table className="w-full bg-white rounded-lg shadow-md mt-4">
+                    <thead className="bg-blue-600 text-white">
+                        <tr>
+                            <th className="p-2">Ngày</th>
+                            <th className="p-2">Mã giao dịch</th>
+                            <th className="p-2">Loại Giao Dịch</th>
+                            <th className="p-2">Số Tiền</th>
+                            <th className="p-2">Người Thực Hiện</th>
+                            <th className="p-2">Nội dung</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {transactions.map((tx, index) => (
-                            <tr key={index} className="text-center">
-                                <td className="border p-2">
-                                    {tx.transactionDate ? new Date(tx.transactionDate).toLocaleDateString("vi-VN") : "N/A"}
-                                </td>
-                                <td className="border p-2">{tx.transactionCode}</td>
-                                <td className="border p-2">{tx.transactionType}</td>
-                                <td className="border p-2">{tx.fullName}</td>
-                                <td className="border p-2">
-                                    {tx.amount !== undefined && tx.amount !== null
-                                        ? tx.amount.toLocaleString() + " VND"
-                                        : "N/A"}
-                                </td>
-                                <td className="border p-2">{tx.sourceType}</td>
-                                <td className="border p-2">{tx.description}</td>
+                        {cashbook && cashbook.length > 0 ? (
+                            cashbook.map((transactions, index) => (
+                                <tr key={index} className="border-b">
+                                    <td className="p-2">{new Date(transactions.transactionDate).toLocaleString()}</td>
+                                    <td className="p-2">{transactions.transactionCode}</td>
+                                    <td className="p-2">{transactions.transactionType}</td>
+                                    <td className="p-2 text-right text-green-600 font-bold">{transactions.amount.toLocaleString()} VNĐ</td>
+                                    <td className="p-2">{transactions.performedBy}</td>
+                                    <td className="p-2">{transactions.description}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="6" className="text-center p-4 text-gray-500">Không có giao dịch nào hôm nay.</td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
-            )}
+            </div>
+
         </div>
     );
 };

@@ -1,20 +1,35 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Card, Form, Button, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import axios from 'axios';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, paymentMethod, onPaymentMethodChange }) => {
+const Calculator = ({
+    cartData,
+    cashGiven,
+    change,
+    onCashUpdate,
+    isReturn,
+    paymentMethod,
+    onPaymentMethodChange,
+    invoiceId,
+    orderId, // ✅ Nhận orderId từ props
+    handleRemoveInvoice // ✅ Nhận handleRemoveInvoice từ props
+}) => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPrice, setTotalPrice] = useState(0);
     const [selectedDenoms, setSelectedDenoms] = useState([]);
     const [qrCode, setQrCode] = useState("");
 
+    const token = localStorage.getItem("token");
+
     useEffect(() => {
         let totalItems = cartData.reduce((total, item) =>
-            total + (isReturn ? (item.returnQuantity || 0) : (item.quantity || 0)), 0
+            total + (isReturn ? (parseInt(item.returnQuantity, 10) || 0) : (parseInt(item.quantity, 10) || 0)), 0
         );
 
         let totalPrice = cartData.reduce((total, item) =>
-            total + ((item.price || 0) * (isReturn ? (item.returnQuantity || 0) : (item.quantity || 0))), 0
+            total + ((item.unitPrice || item.price || 0) * (isReturn ? (parseInt(item.returnQuantity, 10) || 0) : (parseInt(item.quantity, 10) || 0))), 0
         );
 
         setTotalItems(totalItems);
@@ -22,12 +37,13 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
     }, [cartData, isReturn]);
 
     useEffect(() => {
-        if (isReturn) {
-            onCashUpdate(cashGiven, totalPrice - cashGiven);
-        } else {
-            onCashUpdate(cashGiven, Math.max(cashGiven - totalPrice, 0));
+        const newChange = isReturn ? totalPrice - cashGiven : Math.max(cashGiven - totalPrice, 0);
+
+        // 🔹 Chỉ gọi `onCashUpdate` nếu giá trị thay đổi thực sự
+        if (change !== newChange) {
+            onCashUpdate(cashGiven, newChange);
         }
-    }, [totalPrice, cashGiven, isReturn, onCashUpdate]);
+    }, [totalPrice, cashGiven, isReturn, change, onCashUpdate]);
 
     const denominations = [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
 
@@ -40,7 +56,12 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
 
     const handleCashGivenChange = (e) => {
         const value = parseFloat(e.target.value) || 0;
-        onCashUpdate(value, isReturn ? Math.max(totalPrice - value, 0) : Math.max(value - totalPrice, 0));
+        const newChange = isReturn ? Math.max(totalPrice - value, 0) : Math.max(value - totalPrice, 0);
+
+        if (cashGiven !== value || change !== newChange) {
+            onCashUpdate(value, newChange);
+        }
+
         setSelectedDenoms([]);
     };
 
@@ -84,31 +105,98 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
         }
     };
 
-    // const handlePayment = useCallback(() => {
-    //     console.log("Thanh toán thành công!");
-    // }, []);
+    const handlePrintInvoice = (invoiceData) => {
+        const printWindow = window.open("", "_blank");
 
-    // useEffect(() => {
-    //     const handleKeyDown = (event) => {
-    //         if (event.shiftKey && event.key === "P") {
-    //             event.preventDefault();
-    //             generateVietQR();
-    //         }
-    //         if (event.shiftKey && event.key === "Enter") {
-    //             event.preventDefault();
-    //             handlePayment();
-    //         }
-    //     };
+        const invoiceHTML = `
+            <html>
+            <head>
+                <title>Hóa đơn thanh toán</title>
+                <style>
+                    @page {
+                        size: A0; /* 🔹 Đặt kích thước giấy A0 */
+                        margin: 0;
+                    }
+                    body { 
+                        font-family: Arial, sans-serif; 
+                        padding: 50px;
+                        font-size: 48px; /* 🔹 Phóng to chữ phù hợp với A0 */
+                    }
+                    .invoice-container { 
+                        max-width: 1800px; /* 🔹 Tăng chiều rộng nội dung phù hợp */
+                        margin: auto; 
+                        text-align: center;
+                    }
+                    h2 { font-size: 80px; } /* 🔹 Tiêu đề to hơn */
+                    .invoice-details { text-align: left; margin-top: 50px; }
+                    .invoice-details div { margin-bottom: 20px; font-size: 48px; }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 50px;
+                    }
+                    th, td {
+                        border: 2px solid black;
+                        padding: 20px;
+                        text-align: center;
+                        font-size: 48px;
+                    }
+                    .total {
+                        font-weight: bold; 
+                        font-size: 60px; 
+                        margin-top: 50px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="invoice-container">
+                    <h2>🧾 HÓA ĐƠN THANH TOÁN</h2>
+                    <hr>
+                    <div class="invoice-details">
+                        <div><strong>Mã hóa đơn:</strong> ${invoiceData.id}</div>
+                        <div><strong>Ngày:</strong> ${new Date().toLocaleString()}</div>
+                        <div><strong>Khách hàng:</strong> ${invoiceData.customer || "Khách lẻ"}</div>
+                    </div>
+                    <hr>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Giá</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${invoiceData.items.map(item => `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>${item.price.toLocaleString()} VND</td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                    <hr>
+                    <div class="total">Tổng cộng: ${invoiceData.totalAmount.toLocaleString()} VND</div>
+                    <hr>
+                    <p>Cảm ơn quý khách đã mua hàng! 🎉</p>
+                </div>
+                <script>
+                    window.print();
+                </script>
+            </body>
+            </html>
+        `;
 
-    //     window.addEventListener("keydown", handleKeyDown);
-    //     return () => window.removeEventListener("keydown", handleKeyDown);
-    // }, [generateVietQR, handlePayment]);
+        printWindow.document.write(invoiceHTML);
+        printWindow.document.close();
+    };
 
     const handlePayment = async () => {
         try {
-            const { data } = await axios.post("https://localhost:5000/api/sale-invoice/order/create", {
-                EmployeeId: 1,
-                ShopId: 1,
+            console.log("🔄 Đang gửi yêu cầu thanh toán...");
+
+            const requestData = {
                 TotalAmount: totalPrice,
                 PaymentMethod: paymentMethod === "cash" ? "Cash" : "Bank",
                 Products: cartData.map((item) => ({
@@ -116,48 +204,72 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                     Quantity: item.quantity,
                     UnitPrice: item.price
                 }))
-            });
+            };
 
-            if (data.orderId) {
-                alert(`✅ Thanh toán thành công! Mã hóa đơn: ${data.orderId}`);
-                onCashUpdate(0, 0);
-            } else {
-                alert(`❌ Lỗi khi thanh toán: ${data.message || "Không thể tạo hóa đơn."}`);
-            }
+            const response = await axios.post(
+                "https://localhost:5000/api/sale-invoice/order/create",
+                requestData,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    }
+                }
+            );
+
+            // ✅ Hiển thị thông báo
+            toast.success(`💰 Thanh toán thành công!`);
+
+            // ✅ Gọi `handleRemoveInvoice` để xóa hóa đơn sau khi thanh toán
+            handleRemoveInvoice(invoiceId);
+
         } catch (error) {
-            console.error("❌ Lỗi kết nối API thanh toán:", error);
-            alert("❌ Lỗi khi gửi yêu cầu thanh toán.");
+            console.error("❌ Lỗi khi gọi API thanh toán:", error);
+
+            if (error.response) {
+                console.log("🔍 Chi tiết lỗi:", error.response.data);
+                toast.error(`❌ Lỗi tạo hóa đơn: ${error.response.data.message || "Lỗi không xác định"}`);
+            } else {
+                toast.error("❌ Không thể kết nối đến server, kiểm tra mạng hoặc API.");
+            }
         }
     };
 
     const handleRefund = async () => {
         try {
-            const { data } = await axios.post("https://localhost:5000/api/sale-invoice/order/refund", {
-                EmployeeId: 1,
-                ShopId: 1,
-                TotalAmount: totalPrice,
-                PaymentMethod: "Cash",
-                Products: cartData.map((item) => ({
-                    ProductId: item.id,
-                    ReturnQuantity: item.returnQuantity || 0,
-                    UnitPrice: item.price
-                }))
-            });
+            const response = await axios.post(
+                "https://localhost:5000/api/sale-invoice/order/refund",
+                {
+                    OrderId: orderId,
+                    RefundProducts: cartData.map((item) => ({
+                        ProductId: item.productId,
+                        ReturnQuantity: item.returnQuantity || 0,
+                        UnitPrice: item.unitPrice
+                    }))
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    }
+                }
+            );
 
-            if (data.refundId) {
-                alert(`✅ Hoàn tiền thành công! Mã phiếu hoàn tiền: ${data.refundId}`);
+            toast.success(`🔄 Hoàn tiền thành công!`);
+            handleRemoveInvoice(invoiceId);
+            setTimeout(() => {
                 onCashUpdate(0, 0);
-            } else {
-                alert(`❌ Lỗi khi hoàn tiền: ${data.message || "Không thể tạo phiếu hoàn tiền."}`);
-            }
+            }, 500);
         } catch (error) {
             console.error("❌ Lỗi khi gọi API hoàn tiền:", error);
-            alert("❌ Lỗi khi gửi yêu cầu hoàn tiền.");
+            toast.error("❌ Lỗi khi gửi yêu cầu hoàn tiền.");
         }
     };
 
     return (
         <Card className="p-3">
+            <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+
             <Form>
                 <Form.Group className="mb-2">
                     <Form.Label>{isReturn ? "Tổng tiền hoàn trả" : "Tổng tiền hàng"} ({totalItems} sản phẩm)</Form.Label>
@@ -253,7 +365,6 @@ const Calculator = ({ cartData, cashGiven, change, onCashUpdate, isReturn, payme
                 >
                     {isReturn ? "Hoàn tiền" : "Thanh toán"}
                 </Button>
-
             </Form>
         </Card>
     );

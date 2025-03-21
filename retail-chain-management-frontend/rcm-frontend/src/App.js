@@ -37,10 +37,13 @@ function App() {
         <Routes>
 
           {/* Định tuyến trang mặc định về Login nếu chưa có token */}
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Trang Login */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
 
           {/* Các trang cần đăng nhập */}
           <Route path='/pos' element={<Main />} />
@@ -61,7 +64,8 @@ function App() {
           <Route path="/endDaytReport" element={<ProtectedRoute><EndDayReport /></ProtectedRoute>} />
           <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
           <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />
-          <Route path="/fundTransactionReport" element={<ProtectedRoute><FundTransactionReport /></ProtectedRoute>} />
+          <Route path="/cashBookOwner" element={<ProtectedRoute><CashBookOwner /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
 

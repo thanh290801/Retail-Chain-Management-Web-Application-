@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -57,22 +58,18 @@ namespace RCM.Backend.Controllers
             public decimal Quantity { get; set; }
             public decimal UnitPrice { get; set; }
         }
-
         public class RefundRequest
         {
             public int OrderId { get; set; }
-            public int EmployeeId { get; set; }
-            public decimal TotalRefundAmount { get; set; } // Tổng tiền hoàn lại
-            public List<ProductRefund> RefundProducts { get; set; } // Danh sách sản phẩm hoàn lại
+            public List<RefundProduct> RefundProducts { get; set; }
         }
 
-        public class ProductRefund
+        public class RefundProduct
         {
             public int ProductId { get; set; }
-            public decimal Quantity { get; set; }
+            public decimal ReturnQuantity { get; set; }
             public decimal UnitPrice { get; set; }
         }
-
 
         private readonly string _connectionString;
 
@@ -85,6 +82,7 @@ namespace RCM.Backend.Controllers
         [HttpPost("barcode")]
         public async Task<IActionResult> GetProductByBarcode([FromBody] BarcodeSearchRequest request)
         {
+            var branchIdClaim = User.FindFirst("BranchId")?.Value;
             using SqlConnection conn = new SqlConnection(_connectionString);
             using SqlCommand cmd = new SqlCommand("pos_SearchProductByBarcode", conn)
             {
@@ -92,7 +90,7 @@ namespace RCM.Backend.Controllers
             };
 
             cmd.Parameters.AddWithValue("@barcode", request.Barcode);
-            cmd.Parameters.AddWithValue("@warehouseId", request.WarehouseId);
+            cmd.Parameters.AddWithValue("@warehouseId", branchIdClaim);
 
             await conn.OpenAsync();
             using SqlDataReader reader = await cmd.ExecuteReaderAsync();
@@ -132,6 +130,7 @@ namespace RCM.Backend.Controllers
         public async Task<IActionResult> SearchProducts([FromBody] ProductSearchRequest request)
         {
             var products = new List<object>();
+            var branchIdClaim = User.FindFirst("BranchId")?.Value;
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
@@ -139,7 +138,7 @@ namespace RCM.Backend.Controllers
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@query", request.Query);
-                    cmd.Parameters.AddWithValue("@warehouseId", request.WarehouseId);
+                    cmd.Parameters.AddWithValue("@warehouseId", branchIdClaim);
 
                     await conn.OpenAsync();
                     using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
@@ -179,6 +178,7 @@ namespace RCM.Backend.Controllers
         public async Task<IActionResult> GetOrdersWithFilters([FromBody] OrderSearchRequest request)
         {
             var orders = new List<object>();
+            var branchIdClaim = User.FindFirst("BranchId")?.Value;
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
@@ -190,7 +190,7 @@ namespace RCM.Backend.Controllers
                     cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@StartDate", request.StartDate ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@EndDate", request.EndDate ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@WarehouseId", request.WarehouseId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@WarehouseId", branchIdClaim);
                     cmd.Parameters.AddWithValue("@Barcode", string.IsNullOrEmpty(request.Barcode) ? (object)DBNull.Value : request.Barcode);
                     cmd.Parameters.AddWithValue("@ProductName", string.IsNullOrEmpty(request.ProductName) ? (object)DBNull.Value : request.ProductName);
 
@@ -205,8 +205,6 @@ namespace RCM.Backend.Controllers
                                 OrderDate = reader.GetDateTime("OrderDate"),
                                 WarehouseId = reader.GetInt32("WarehouseId"),
                                 TotalAmount = reader.GetDecimal("TotalAmount"),
-                                Discount = reader.GetDecimal("Discount"),
-                                FinalAmount = reader.GetDecimal("FinalAmount"),
                                 PaymentStatus = reader.GetString("PaymentStatus"),
                                 EmployeeId = reader.GetInt32("EmployeeID"),
                                 EmployeeName = reader.GetString("EmployeeName"),
@@ -267,6 +265,9 @@ namespace RCM.Backend.Controllers
         [HttpPost("order/create")]
         public async Task<IActionResult> CreateOrder([FromBody] OrderRequest request)
         {
+            var accountIdClaim = User.FindFirst("AccountId")?.Value;
+            var branchIdClaim = User.FindFirst("BranchId")?.Value;
+
             try
             {
                 if (request == null || request.Products == null || request.Products.Count == 0)
@@ -282,16 +283,26 @@ namespace RCM.Backend.Controllers
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
 
-                        // Truyền đúng 5 tham số mà SP yêu cầu
-                        cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId);
-                        cmd.Parameters.AddWithValue("@ShopId", request.ShopId);
+                        // Truyền đúng 4 tham số
+                        cmd.Parameters.AddWithValue("@EmployeeId", accountIdClaim);
+                        cmd.Parameters.AddWithValue("@ShopId", branchIdClaim);
                         cmd.Parameters.AddWithValue("@TotalAmount", request.TotalAmount);
                         cmd.Parameters.AddWithValue("@PaymentMethod", request.PaymentMethod);
                         cmd.Parameters.AddWithValue("@Products", JsonConvert.SerializeObject(request.Products));
 
-                        // Thêm tham số output để lấy OrderId
-                        
-                        return Ok(new {  message = "Hóa đơn đã được tạo thành công." });
+                        // Thực thi Stored Procedure và đọc kết quả
+                        var orderId = await cmd.ExecuteScalarAsync(); // Đọc giá trị đầu tiên từ `SELECT`
+
+                        if (orderId == null)
+                        {
+                            return StatusCode(500, new { message = "Lỗi: Không thể tạo hóa đơn, kiểm tra lại dữ liệu." });
+                        }
+
+                        return Ok(new
+                        {
+                            message = "Hóa đơn đã được tạo thành công.",
+                            orderId = Convert.ToInt32(orderId)
+                        });
                     }
                 }
             }
@@ -305,11 +316,14 @@ namespace RCM.Backend.Controllers
             }
         }
 
-
         //Tạo refund
         [HttpPost("order/refund")]
         public async Task<IActionResult> RefundOrder([FromBody] RefundRequest request)
         {
+            var accountIdClaim = User.FindFirst("AccountId")?.Value;
+            Console.WriteLine("📌 Dữ liệu nhận được từ FE:");
+            Console.WriteLine(JsonConvert.SerializeObject(request, Formatting.Indented));
+
             try
             {
                 if (request == null || request.RefundProducts == null || request.RefundProducts.Count == 0)
@@ -321,27 +335,18 @@ namespace RCM.Backend.Controllers
                 {
                     await conn.OpenAsync();
 
-                    using (SqlCommand cmd = new SqlCommand("pos_RefundOrder", conn))
+                    using (SqlCommand cmd = new SqlCommand("pos_ProcessReturn", conn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
 
+                        // ✅ Chỉ truyền đúng 3 tham số như trong Stored Procedure
                         cmd.Parameters.AddWithValue("@OrderId", request.OrderId);
-                        cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId);
-                        cmd.Parameters.AddWithValue("@TotalRefundAmount", request.TotalRefundAmount);
-                        cmd.Parameters.AddWithValue("@RefundProducts", JsonConvert.SerializeObject(request.RefundProducts));
-
-                        // Thêm tham số output để lấy RefundId
-                        SqlParameter outputParam = new SqlParameter("@NewRefundId", SqlDbType.Int)
-                        {
-                            Direction = ParameterDirection.Output
-                        };
-                        cmd.Parameters.Add(outputParam);
+                        cmd.Parameters.AddWithValue("@EmployeeId", accountIdClaim);
+                        cmd.Parameters.AddWithValue("@Products", JsonConvert.SerializeObject(request.RefundProducts));
 
                         await cmd.ExecuteNonQueryAsync();
 
-                        // Lấy RefundId từ SP
-                        int newRefundId = (int)outputParam.Value;
-                        return Ok(new { refundId = newRefundId, message = "Hoàn tiền thành công." });
+                        return Ok(new { message = "Hoàn tiền thành công." });
                     }
                 }
             }

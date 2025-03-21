@@ -19,6 +19,7 @@ namespace RCM.Backend.Models
 
         public string Status { get; set; } // Trạng thái (Đã thanh toán / Chưa thanh toán)
         public int? PurchaseOrderId { get; set; } // Liên kết với đơn hàng nhập
+        public virtual ICollection<CashHandover> CashHandovers { get; set; }
 
         public virtual Warehouse Warehouse { get; set; } = null!;
         public virtual ICollection<BatchDetail> BatchDetails { get; set; }

@@ -28,7 +28,7 @@ const Cart = ({ cartData, onUpdateCart, quantityInputRefs, isReturn }) => {
         );
         setCart(updatedCart);
         onUpdateCart(updatedCart);
-    };    
+    };
 
     // ✅ Xóa sản phẩm khỏi giỏ hàng
     const handleRemoveItem = (id) => {
@@ -44,16 +44,16 @@ const Cart = ({ cartData, onUpdateCart, quantityInputRefs, isReturn }) => {
                 <Table bordered hover responsive>
                     <thead>
                         <tr>
-                            <th>Tên sản phẩm</th>
-                            <th>Số lượng mua</th>
-                            <th>Số lượng trả</th>
-                            <th>Giá</th>
-                            <th>Tổng</th>
+                            <th style={{ width: "30%" }}>Tên sản phẩm</th>
+                            <th style={{ width: "15%", textAlign: "center" }}>Số lượng mua</th>
+                            <th style={{ width: "15%", textAlign: "center" }}>Số lượng trả</th>
+                            <th style={{ width: "20%", textAlign: "right" }}>Giá</th>
+                            <th style={{ width: "20%", textAlign: "right" }}>Tổng</th>
                         </tr>
                     </thead>
                     <tbody>
                         {cart.map(item => (
-                            <tr key={item.orderDetailId}>
+                            <tr key={item.orderDetailId || `return-${item.productId}`}>
                                 {/* ✅ Tên sản phẩm */}
                                 <td className="fw-bold">{item.productName}</td>
 
@@ -87,7 +87,7 @@ const Cart = ({ cartData, onUpdateCart, quantityInputRefs, isReturn }) => {
             ) : (
                 // 🔹 Nếu là Hóa Đơn Bán Hàng, hiển thị dạng danh sách sản phẩm
                 cart.map(item => (
-                    <Card key={item.id} className="mb-3 p-2">
+                    <Card key={item.id || `cart-${item.productId}`} className="mb-3 p-2">
                         <Row className="align-items-center">
                             <Col xs={3} className="fw-bold">{item.name}</Col>
                             <Col xs={3}>
