@@ -46,15 +46,16 @@ const Header = () => {
     return (
         <>
             <header className="bg-white shadow-md">
-                <div className="flex items-center justify-between p-4 bg-blue-600">
+                <div className="flex items-center justify-between p-2 bg-blue-600">
                     <div className="flex items-center space-x-4">
                         <h1 className="text-2xl font-bold text-white">RCM</h1>
                         <nav className="flex space-x-4">
-                            <Link to="/home" className="text-white flex items-center">Tổng quan</Link>
+                            <button onClick={() => navigate("/revenue-summary-owner")} className="text-white flex items-center">
+                                Tổng quan
+                            </button>
                             <div
                                 className="relative"
-                                onMouseLeave={closeDropdown}
-                            >
+                                onMouseLeave={closeDropdown}>
                                 <button onClick={() => handleDropdown('goods')} className="text-white flex items-center">
                                     Hàng hóa
                                 </button>
@@ -113,7 +114,8 @@ const Header = () => {
                                 )}
                             </div>
 
-                            <Link to="/cashBookOwner" className="text-white flex items-center">Sổ quỹ</Link>
+                            <button onClick={() => navigate("/cashBookOwner")} className="text-white flex items-center">Sổ quỹ </button>
+
                             <Link to="/baocao" className="text-white flex items-center">Báo cáo</Link>
                         </nav>
                     </div>
