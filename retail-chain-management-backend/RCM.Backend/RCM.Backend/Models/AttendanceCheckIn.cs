@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DataLayerObject.Models
+namespace RCM.Backend.Models
 {
     public partial class AttendanceCheckIn
     {

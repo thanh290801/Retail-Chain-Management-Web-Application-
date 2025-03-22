@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -29,13 +30,22 @@ public class AuthController : ControllerBase
             .Include(a => a.Employee) // Lấy thông tin nhân viên
             .FirstOrDefault(a => a.Username == request.Username);
 
-        // Kiểm tra xem tài khoản có tồn tại và mật khẩu có khớp không
-        if (user == null || user.PasswordHash != request.Password)
+        if (user == null)
+        {
+
+            return Unauthorized(new { message = "Không tìm thấy thông tin tài khoản." });
+
+        }
+
+        // Kiểm tra xem tài khoản có tồn tại và mật khẩu có khớp không (không hash)
+        bool isMatch = request.Password == user.PasswordHash;
+
+        if (!isMatch)
         {
             return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng." });
         }
 
-        var employee = _context.Employees.FirstOrDefault(e => e.AccountId == user.AccountId);
+        var employee = user.Employee;
         if (employee == null)
         {
             return Unauthorized(new { message = "Không tìm thấy thông tin nhân viên." });

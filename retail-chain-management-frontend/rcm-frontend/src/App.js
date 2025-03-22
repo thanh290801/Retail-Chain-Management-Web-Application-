@@ -13,6 +13,12 @@ import CashBookOwner from './components/CashBookOwnerCp/CashBookOwner';
 import UserProfile from './components/profileUser/profile';
 import ForgotPassword from './components/resetPass/sendOTP';
 import ResetPassword from './components/resetPass/resetPassword.js';
+import Attendance from "./components/EmployeeComponent/AttendanceTracking";
+import EmployeeCheckInDetail from "./components/EmployeeComponent/Checkin";
+import StaffManager from "./components/EmployeeComponent/StaffManager";
+import { ToastContainer } from "react-toastify";
+import SalaryHistory from "./components/EmployeeComponent/SalaryHistory";
+import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -47,6 +53,36 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
+
+          {/* */}
+          <Route path="/attendance" element={<Attendance />} />
+          <Route
+            path="/checkin"
+            element={
+              <>
+                <AttendanceTable />
+                <ToastContainer position="top-right" autoClose={3000} />
+              </>
+            }
+          />
+                    <Route
+            path="/staffmanage"
+            element={
+              <ProtectedRoute>
+                <StaffManager />
+                <ToastContainer position="top-right" autoClose={3000} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/salary"
+            element={
+              <ProtectedRoute>
+                <SalaryHistory />
+                <ToastContainer position="top-right" autoClose={3000} />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </>

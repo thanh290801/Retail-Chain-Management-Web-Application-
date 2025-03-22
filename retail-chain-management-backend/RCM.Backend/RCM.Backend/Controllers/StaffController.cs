@@ -1,5 +1,5 @@
 ﻿using ClosedXML.Excel;
-using DataLayerObject.Models;
+
 using DocumentFormat.OpenXml.Math;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +29,7 @@ namespace RCM.Backend.Controllers
                       e => e.EmployeeId,
                       a => a.AccountId,
                       (e, a) => new { Employee = e, Account = a }) 
-                .Where(ea => ea.Employee.WorkShiftId.HasValue && ea.Account.Role == "2"); 
+                .Where(ea => ea.Account.Role == "Staff"); 
 
             if (!string.IsNullOrEmpty(name))
             {
@@ -57,7 +57,6 @@ namespace RCM.Backend.Controllers
 
             return Ok(staffList);
         }
-
 
 
         [HttpGet("{id}")]
