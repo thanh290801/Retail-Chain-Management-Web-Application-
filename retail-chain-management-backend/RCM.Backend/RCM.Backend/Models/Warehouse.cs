@@ -44,5 +44,7 @@ namespace RCM.Backend.Models
         public virtual ICollection<Transaction> Transactions { get; set; }
         public virtual ICollection<WarehouseTransfer> WarehouseTransferFromWarehouses { get; set; }
         public virtual ICollection<WarehouseTransfer> WarehouseTransferToWarehouses { get; set; }
+
+        public virtual ICollection<Cash> Cashes { get; set; }
     }
 }

@@ -24,6 +24,8 @@ namespace RCM.Backend.Models
         public string Role { get; set; } = null!;
         public bool? IsActive { get; set; }
 
+        public int EmployeeId { get; set; }
+
         public virtual Employee? Employee { get; set; }
         public virtual ICollection<ProductPriceHistory> ProductPriceHistories { get; set; }
         public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
