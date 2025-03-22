@@ -14,10 +14,14 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 <<<<<<< HEAD
+<<<<<<< HEAD
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 =======
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+28467ff35c66679cf6708e8392f565bea89f0829")]
 >>>>>>> 4c4cc562d66c454052da60ca673b8f35b7d1d4b2
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4c4cc562d66c454052da60ca673b8f35b7d1d4b2")]
+>>>>>>> e47fefb54a2fcf8a421bdb0a80cab77dab940039
 [assembly: System.Reflection.AssemblyProductAttribute("RCM.Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RCM.Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

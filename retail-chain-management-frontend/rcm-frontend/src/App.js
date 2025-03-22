@@ -3,7 +3,6 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import Header from './headerComponent/header';
 import LoginPage from './components/login';
 import StaffHomeComponent from './components/staffHomeConponent/staffHome';
-import EndDayReport from './components/reportStaffConponent/EndShiftReport';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
 import CashBookComponent from './components/cashbookConponent/cashBook';
 import FundTransactionReport from './components/cashbookConponent/historyTrans';
@@ -61,11 +60,11 @@ function App() {
           <Route path='/order/:orderId' element= {<OrderCheck/>} />
           <Route path='/stockcheck' element= {<StockCheck/>} />
           <Route path="/header" element={<ProtectedRoute><Header /></ProtectedRoute>} />
-          <Route path="/endDaytReport" element={<ProtectedRoute><EndDayReport /></ProtectedRoute>} />
           <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
           <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />
           <Route path="/cashBookOwner" element={<ProtectedRoute><CashBookOwner /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          <Route path="/revenue-summary-owner" element={<ProtectedRoute><RevenueSummaryOwner /></ProtectedRoute>} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
 

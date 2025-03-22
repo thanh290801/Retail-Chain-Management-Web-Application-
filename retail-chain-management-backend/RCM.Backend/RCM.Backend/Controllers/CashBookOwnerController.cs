@@ -5,6 +5,7 @@ using RCM.Backend.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace RCM.Backend.Controllers
 {
@@ -82,20 +83,28 @@ namespace RCM.Backend.Controllers
         /// 📌 3. API Lấy tổng thu/chi/tồn quỹ
         /// </summary>
         [HttpGet("summary")]
-        public async Task<IActionResult> GetCashSummary([FromQuery] int branchId, [FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
+        public async Task<IActionResult> GetCashSummary([FromQuery] int? branchId, [FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
         {
-            if (branchId <= 0)
-                return BadRequest(new { message = "Vui lòng chọn chi nhánh hợp lệ." });
-
+            
             DateTime startDate = fromDate ?? DateTime.Today;
             DateTime endDate = toDate?.AddDays(1) ?? DateTime.Today.AddDays(1);
 
-            var transactions = await _context.Transactions
-                .Where(t => t.TransactionDate >= startDate && t.TransactionDate < endDate && t.BranchId == branchId)
-                .ToListAsync();
+            var query = _context.Transactions
+                .Where(t => t.TransactionDate >= startDate && t.TransactionDate < endDate);
+
+            if (branchId.HasValue && branchId.Value > 0)
+            {
+                query = query.Where(t => t.BranchId == branchId.Value);
+            }
+            var transactions = await query.ToListAsync();
+
             decimal totalBank = transactions
                 .Where(t => t.TransactionType == "POS_BANK_PAYMENT")
                 .Sum(t => t.Amount);
+
+            decimal totalCash = transactions
+               .Where(t => t.TransactionType == "POS_CASH_PAYMENT")
+               .Sum(t => t.Amount);
 
             decimal totalIncome = transactions
                 .Where(t => t.TransactionType == "POS_CASH_PAYMENT" || t.TransactionType == "CASH_HANDOVER")
@@ -107,9 +116,14 @@ namespace RCM.Backend.Controllers
 
             decimal currentBalance = totalIncome - totalExpense;
 
+            decimal totalRevenue = totalBank + totalCash;
+
+
             return Ok(new
             {
-                TotalBank=totalBank,
+                TotalRevenue = totalRevenue,
+                TotalCash = totalCash,
+                TotalBank =totalBank,
                 TotalIncome = totalIncome,
                 TotalExpense = totalExpense,
                 CurrentBalance = currentBalance

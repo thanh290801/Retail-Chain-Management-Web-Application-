@@ -90,10 +90,10 @@ const StaffHomeComponent = () => {
                 <div className="flex space-x-4">
                     <button onClick={() => navigate("/checkin")} className="px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold shadow-md">Check-in</button>
                     <button onClick={() => navigate("/pos")} className="px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold shadow-md">Bán hàng</button>
+                    <button onClick={() => navigate("/cashBook")} className="px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold shadow-md">Sổ quỹ tiền mặt</button>
 
                     {/* Menu Dropdown */}
                     {[
-                        { label: "Lịch sử giao dịch", menuKey: "transactions", links: [{ label: "Lịch sử đơn hàng", path: "/history-pos" }, { label: "Sổ quỹ", path: "/cashBook" }] },
                         { label: "Kho hàng", menuKey: "warehouse", links: [{ label: "Kho hàng", path: "/kho" }, { label: "Phiếu kiểm kho", path: "/kiem-kho" }] },
                         { label: "Nhập hàng", menuKey: "inventory", links: [{ label: "Danh sách đơn nhập", path: "/listOrder" }, { label: "Tạo phiếu nhập kho", path: "/them-phieu-nhapkho" }] },
                         { label: "Menu", menuKey: "reports", links: [{ label: "Thông tin người dùng", path: "/profile" }, { label: "Đăng suất", path: "/note" }] },
