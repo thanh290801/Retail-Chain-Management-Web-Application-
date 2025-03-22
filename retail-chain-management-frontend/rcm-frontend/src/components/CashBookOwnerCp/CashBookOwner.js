@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import Header from "../../headerComponent/header";
 const CashBookOwner = () => {
     const navigate = useNavigate();
     const [cashbook, setCashbook] = useState([]);
@@ -98,11 +98,8 @@ const CashBookOwner = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 p-6">
-            {/* Nút quay lại */}
-            <button onClick={() => navigate("/header")} className="px-4 py-2 bg-gray-400 text-white rounded-lg font-semibold shadow-md">
-                ⬅ Quay lại
-            </button>
-            <div className="bg-white p-4 rounded-lg shadow-md mt-6">
+            <Header />
+            <div className="bg-white p-2 rounded-lg shadow-md mt-6">
                 <h3 className="text-lg font-bold">🔍 Lọc Giao Dịch</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                     <select

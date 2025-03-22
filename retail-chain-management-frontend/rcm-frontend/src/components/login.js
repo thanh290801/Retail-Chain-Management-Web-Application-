@@ -36,7 +36,7 @@ const LoginPage = () => {
                 localStorage.setItem('username', response.data.username);
 
                 if (response.data.role === 'Owner' && role === 'Owner') {
-                    navigate('/header');
+                    navigate('/revenue-summary-owner');
                 } else if (response.data.role === 'Staff' && role === 'Staff') {
                     navigate('/staffHome');
                 } else {
