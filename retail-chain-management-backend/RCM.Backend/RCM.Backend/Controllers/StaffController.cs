@@ -62,53 +62,47 @@ namespace RCM.Backend.Controllers
         [HttpGet("{id}")]
         public IActionResult GetStaffById(int id)
         {
-            // Bước 1: Lấy thông tin nhân viên, tài khoản và lương
-            var employeeData = _context.Employees
-                .Join(_context.Accounts,
-                      e => e.EmployeeId,
-                      a => a.AccountId,
-                      (e, a) => new { Employee = e, Account = a })
-                .Join(_context.Salaries,
-                      ea => ea.Employee.EmployeeId,
-                      s => s.EmployeeId,
-                      (ea, s) => new { ea.Employee, ea.Account, Salary = s })
-                .Where(eas => eas.Employee.EmployeeId == id)
-                .Select(eas => new EmployeeDTO
-                {
-                    Id = eas.Employee.EmployeeId,
-                    Image = eas.Employee.ProfileImage,
-                    FullName = eas.Employee.FullName,
-                    Gender = eas.Employee.Gender,
-                    BirthDate = eas.Employee.BirthDate,
-                    PhoneNumber = eas.Employee.Phone,
-                    WorkShiftId = eas.Employee.WorkShiftId,
-                    ActiveStatus = eas.Employee.IsActive,
-                    StartDate = eas.Employee.StartDate,
-                    BranchId = eas.Employee.BranchId,
-                    IsStaff = true,
-                    Username = eas.Account.Username,
-                    Role = eas.Account.Role,
-                    //CurrentAddress = eas.Employee.CurrentAddress,
-                    FixedSalary = eas.Salary.FixedSalary,
-                    IdentityNumber = eas.Employee.IdentityNumber
-                })
-                .FirstOrDefault();
+            var employeeData = _context.Employees.Include(a=>a.Account).FirstOrDefault(a => a.EmployeeId == id);
 
-            if (employeeData == null)
+            if(employeeData == null)
             {
                 return NotFound(new { message = "Không tìm thấy nhân viên!" });
             }
+    
 
-            // Bước 2: Lấy danh sách phạt và tính tổng số tiền phạt
+            EmployeeDTO employeeDTO = new EmployeeDTO
+            {
+                Id = employeeData.EmployeeId,
+                Image = employeeData.ProfileImage,
+                FullName = employeeData.FullName,
+                Gender = employeeData.Gender,
+                BirthDate = employeeData.BirthDate,
+                PhoneNumber = employeeData.Phone ?? "",
+                WorkShiftId = employeeData.WorkShiftId,
+                ActiveStatus = employeeData.IsActive,
+                StartDate = employeeData.StartDate,
+                BranchId = employeeData.BranchId,
+                IsStaff = true,
+                Username = employeeData.Account !=null ?employeeData.Account.Username : "" ,
+                Role = employeeData.Account != null ? employeeData.Account.Role : "",
+                //CurrentAddress = employeeData.CurrentAddress,
+                IdentityNumber = employeeData.IdentityNumber
+            };
+
+            var employeeSalaries = _context.Salaries.OrderBy(a=>a.StartDate).FirstOrDefault(a => a.EmployeeId == id);
+            employeeDTO.FixedSalary = employeeSalaries?.FixedSalary;
+
+
             var penalties = _context.PenaltyPayments
                 .Where(p => p.EmployeeId == id)
                 .Select(p => new { p.Amount, p.Note })
-                .ToList(); // Chuyển sang xử lý trên bộ nhớ
+                .ToList();
 
-            employeeData.PenaltyAmount = penalties.Sum(p => p.Amount);
-            employeeData.Note = string.Join(", ", penalties.Select(p => p.Note));
+            employeeDTO.PenaltyAmount = penalties.Sum(p => p.Amount);
+            employeeDTO.Note = string.Join(", ", penalties.Select(p => p.Note));
 
             return Ok(employeeData);
+
         }
 
         [HttpPut("update-employee/{id}")]
