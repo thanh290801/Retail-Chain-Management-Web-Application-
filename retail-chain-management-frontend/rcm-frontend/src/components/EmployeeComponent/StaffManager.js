@@ -99,7 +99,7 @@ export default function StaffManager() {
           position: "top-right",
         });
       } else {
-        await axios.post("${api_url}/Staff/add-employee", {
+        await axios.post(`${api_url}/Staff/add-employee`, {
           ...data,
           id: 0,
           role: 2, // Luôn đặt role là 2
