@@ -19,8 +19,15 @@ const CashHandoverForm = () => {
     const navigate = useNavigate(); // 🔹 Sử dụng useNavigate để chuyển trang
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        // Nếu là amount thì chuyển sang số
+        if (name === "amount") {
+            setFormData({ ...formData, [name]: parseFloat(value) });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
