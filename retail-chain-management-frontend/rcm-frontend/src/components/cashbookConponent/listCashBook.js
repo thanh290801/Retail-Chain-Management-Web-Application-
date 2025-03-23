@@ -66,8 +66,16 @@ const CashBook = () => {
                                     <td className="p-2">{new Date(transactions.transactionDate).toLocaleString()}</td>
                                     <td className="p-2">{transactions.transactionCode}</td>
                                     <td className="p-2">{transactions.transactionType}</td>
-                                    <td className="p-2 text-right text-green-600 font-bold">{transactions.amount.toLocaleString()} VNĐ</td>
-                                    <td className="p-2">{transactions.performedBy}</td>
+                                    <td
+                                        className={`p-2 text-right font-bold ${transactions.transactionType === "CASH_REFUND" || transactions.transactionType === "CASH_EXPENSE"
+                                                ? "text-red-600"
+                                                : transactions.transactionType === "POS_CASH_PAYMENT" || transactions.transactionType === "CASH_HANDOVER"
+                                                    ? "text-green-600"
+                                                    : "text-gray-800"
+                                            }`}
+                                    >
+                                        {transactions.amount.toLocaleString()} VNĐ
+                                    </td>                                    <td className="p-2">{transactions.performedBy}</td>
                                     <td className="p-2">{transactions.description}</td>
                                 </tr>
                             ))

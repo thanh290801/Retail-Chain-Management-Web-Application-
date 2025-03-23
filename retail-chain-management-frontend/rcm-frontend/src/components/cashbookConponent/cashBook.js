@@ -82,13 +82,7 @@ const CashBookStaff = () => {
                                 </p>
                             </div>
 
-                            {/* 💰 Tồn quỹ hiện tại */}
-                            <div className="p-6 bg-blue-200 text-green-800 rounded-lg shadow-md">
-                                <h3 className="text-lg font-semibold">💰 Tồn quỹ tiền mặt</h3>
-                                <p className="text-3xl font-bold">
-                                    {FundData?.currentBalance?.toLocaleString() || "0"} VNĐ
-                                </p>
-                            </div>
+
 
                             {/* 📊 Tổng thu */}
                             <div className="p-6 bg-green-200 text-green-800 rounded-lg shadow-md">
@@ -103,6 +97,13 @@ const CashBookStaff = () => {
                                 <h3 className="text-lg font-semibold">📊 Tổng chi tiền mặt</h3>
                                 <p className="text-3xl font-bold">
                                     {FundData?.totalchi?.toLocaleString() || "0"} VNĐ
+                                </p>
+                            </div>
+                            {/* 💰 Tồn quỹ hiện tại */}
+                            <div className="p-6 bg-blue-200 text-green-800 rounded-lg shadow-md">
+                                <h3 className="text-lg font-semibold">💰 Tồn quỹ tiền mặt</h3>
+                                <p className="text-3xl font-bold">
+                                    {FundData?.currentBalance?.toLocaleString() || "0"} VNĐ
                                 </p>
                             </div>
                         </div>
