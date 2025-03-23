@@ -26,7 +26,7 @@ namespace RCM.Backend.Controllers
         {
             var query = _context.Employees
                 .Join(_context.Accounts,
-                      e => e.EmployeeId,
+                      e => e.AccountId,
                       a => a.AccountId,
                       (e, a) => new { Employee = e, Account = a }) 
                 .Where(ea => ea.Account.Role == "Staff"); 
@@ -101,7 +101,7 @@ namespace RCM.Backend.Controllers
             employeeDTO.PenaltyAmount = penalties.Sum(p => p.Amount);
             employeeDTO.Note = string.Join(", ", penalties.Select(p => p.Note));
 
-            return Ok(employeeData);
+            return Ok(employeeDTO);
 
         }
 
