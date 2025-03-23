@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using static RCM.Backend.DTOs.ShiftDTO;
 
 namespace RCM.Backend.Models
 {
@@ -44,7 +45,7 @@ namespace RCM.Backend.Models
         public virtual DbSet<Transaction> Transactions { get; set; } = null!;
         public virtual DbSet<Supplier> Suppliers { get; set; } = null!;
         public virtual DbSet<Warehouse> Warehouses { get; set; } = null!;
-
+        public virtual DbSet<ShiftSetting> ShiftSettings { get; set; } = null!;
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -1151,8 +1152,15 @@ namespace RCM.Backend.Models
                         .HasForeignKey(d => d.ProductId)
                         .HasConstraintName("FK__product_p__produ__02FC7413");
                 });
-
-                modelBuilder.Entity<SalaryPaymentHistory>(entity =>
+            modelBuilder.Entity<ShiftSetting>(entity =>
+            {
+                entity.ToTable("ShiftSettings");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Month);
+                entity.Property(e => e.Year);
+                entity.Property(e => e.TotalShifts);
+            });
+            modelBuilder.Entity<SalaryPaymentHistory>(entity =>
                 {
                     entity.ToTable("SalaryPaymentHistory");
 
