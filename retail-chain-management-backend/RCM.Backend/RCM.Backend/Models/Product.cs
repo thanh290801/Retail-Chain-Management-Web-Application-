@@ -35,6 +35,8 @@ namespace RCM.Backend.Models
         public virtual ICollection<Promotion> Promotions { get; set; }
         public virtual ICollection<PurchaseOrderItem> PurchaseOrderItems { get; set; }
         public virtual ICollection<StockAdjustmentDetail> StockAdjustmentDetails { get; set; }
+
+        public virtual ICollection<ProductPrice> ProductPrices { get; set; }
         public virtual ICollection<StockAuditDetail> StockAuditDetails { get; set; }
         public virtual ICollection<StockLevel> StockLevels { get; set; }
         public virtual ICollection<SupplierProduct> SupplierProducts { get; set; }

@@ -1,0 +1,7 @@
+/retail-chain-management-frontend/rcm-frontend/build
+/retail-chain-management-frontend/rcm-frontend/node_modules
+*.vsidx
+retail-chain-management-backend/RCM.Backend/RCM.Backend/bin/Debug/net6.0/RCM.Backend.dll
+/retail-chain-management-backend/RCM.Backend/RCM.Backend/obj
+retail-chain-management-backend/RCM.Backend/RCM.Backend/bin/Debug/net6.0/appsettings.Development.json
+/retail-chain-management-backend/RCM.Backend/RCM.Backend/bin
