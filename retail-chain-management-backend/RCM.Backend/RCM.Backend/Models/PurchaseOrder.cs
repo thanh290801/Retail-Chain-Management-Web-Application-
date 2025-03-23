@@ -17,8 +17,10 @@ namespace RCM.Backend.Models
         public DateTime? OrderDate { get; set; }
         public string? Status { get; set; }
         public string? Notes { get; set; }
+        public int? WarehousesId { get; set; }
 
         public virtual Supplier? Supplier { get; set; }
+        public virtual Warehouse? Warehouses { get; set; }
         public virtual ICollection<BatchDetail> BatchDetails { get; set; }
         public virtual ICollection<PurchaseCost> PurchaseCosts { get; set; }
         public virtual ICollection<PurchaseOrderItem> PurchaseOrderItems { get; set; }

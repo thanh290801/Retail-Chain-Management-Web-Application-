@@ -1,7 +1,5 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RCM.Backend.Models
 {
@@ -9,6 +7,7 @@ namespace RCM.Backend.Models
     {
         public Employee()
         {
+            Accounts = new HashSet<Account>();
             AttendanceRecords = new HashSet<AttendanceRecord>();
             CashHandoverEmployees = new HashSet<CashHandover>();
             CashHandoverReceivers = new HashSet<CashHandover>();
@@ -20,8 +19,7 @@ namespace RCM.Backend.Models
         }
 
         public int EmployeeId { get; set; }
-        [ForeignKey("Account")]
-        public int AccountId { get; set; }  // 🔥 Đảm bảo đúng cột
+        public int? AccountId { get; set; }
         public string? ProfileImage { get; set; }
         public string FullName { get; set; } = null!;
         public string? Phone { get; set; }
@@ -40,6 +38,7 @@ namespace RCM.Backend.Models
 
         public virtual Account? Account { get; set; }
         public virtual Warehouse? Branch { get; set; }
+        public virtual ICollection<Account> Accounts { get; set; }
         public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; }
         public virtual ICollection<CashHandover> CashHandoverEmployees { get; set; }
         public virtual ICollection<CashHandover> CashHandoverReceivers { get; set; }
@@ -48,13 +47,5 @@ namespace RCM.Backend.Models
         public virtual ICollection<Refund> Refunds { get; set; }
         public virtual ICollection<Salary> Salaries { get; set; }
         public virtual ICollection<Transaction> Transactions { get; set; }
-
-
-        public virtual ICollection<AttendanceCheckIn> AttendanceCheckIns { get; set; }
-        public virtual ICollection<AttendanceCheckOut> AttendanceCheckOuts { get; set; }
-        public virtual ICollection<Cash> Cashes { get; set; }
-        public virtual ICollection<OvertimeRecord> OvertimeRecords { get; set; }
-        public virtual ICollection<PenaltyPayment> PenaltyPayments { get; set; }
-        public virtual ICollection<SalaryPaymentHistory> SalaryPaymentHistories { get; set; }
     }
 }

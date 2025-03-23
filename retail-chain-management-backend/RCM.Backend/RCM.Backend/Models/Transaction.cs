@@ -15,7 +15,7 @@ namespace RCM.Backend.Models
         public string? BankAccount { get; set; }
         public int EmployeeId { get; set; }
         public int BranchId { get; set; }
-        public string PerformedBy { get; set; } = null!;
+        public string? PerformedBy { get; set; }
         public int? OrderId { get; set; }
         public int? RefundId { get; set; }
         public int? HandoverId { get; set; }
