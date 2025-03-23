@@ -12,10 +12,20 @@ const CashBookOwner = () => {
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 12;
 
     useEffect(() => {
         fetchBranches(); // Lấy danh sách chi nhánh khi load trang
     }, []);
+    const filteredCashbook = cashbook.filter((t) =>
+        t.transactionCode.toLowerCase().includes(searchKeyword.toLowerCase())
+    );
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredCashbook.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredCashbook.length / itemsPerPage);
 
     const fetchBranches = async () => {
         try {
@@ -129,7 +139,19 @@ const CashBookOwner = () => {
                 </div>
             )}
             <div className="bg-white p-4 rounded-lg shadow-md mt-6">
-                <h3 className="text-lg font-bold">📜 Giao Dịch Tiền Mặt</h3>
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-bold">📜 Giao Dịch Tiền Mặt</h3>
+                    <input
+                        type="text"
+                        placeholder="🔎 Tìm theo mã giao dịch..."
+                        className="p-2 border rounded w-60"
+                        value={searchKeyword}
+                        onChange={(e) => {
+                            setSearchKeyword(e.target.value);
+                            setCurrentPage(1); // 👈 reset về trang đầu khi tìm
+                        }}
+                    />
+                </div>
                 {loading ? <p>Đang tải...</p> : error ? <p className="text-red-500">{error}</p> : (
                     <table className="w-full bg-white rounded-lg shadow-md mt-4">
                         <thead className="bg-blue-600 text-white">
@@ -143,18 +165,44 @@ const CashBookOwner = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {cashbook.map((t, index) => (
+                            {currentItems.map((t, index) => (
                                 <tr key={index} className="border-b">
                                     <td className="p-2">{new Date(t.transactionDate).toLocaleString()}</td>
                                     <td className="p-2">{t.transactionCode}</td>
                                     <td className="p-2">{t.transactionType}</td>
-                                    <td className="p-2 text-right text-green-600 font-bold">{t.amount.toLocaleString()} VNĐ</td>
+                                    <td
+                                        className={`p-2 text-right font-bold ${t.transactionType === "CASH_REFUND" || t.transactionType === "CASH_EXPENSE"
+                                            ? "text-red-600"
+                                            : t.transactionType === "POS_CASH_PAYMENT" || t.transactionType === "CASH_HANDOVER"
+                                                ? "text-green-600"
+                                                : "text-gray-800"
+                                            }`}
+                                    >
+                                        {t.amount.toLocaleString()} VNĐ
+                                    </td>
                                     <td className="p-2">{t.performedBy}</td>
                                     <td className="p-2">{t.description}</td>
                                 </tr>
                             ))}
                         </tbody>
+                        {totalPages > 1 && (
+                            <div className="flex justify-center mt-4 space-x-2">
+                                {Array.from({ length: totalPages }, (_, i) => (
+                                    <button
+                                        key={i + 1}
+                                        onClick={() => setCurrentPage(i + 1)}
+                                        className={`px-3 py-1 rounded border ${currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-white text-blue-500"
+                                            }`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
                     </table>
+
+
                 )}
             </div>
         </div>
