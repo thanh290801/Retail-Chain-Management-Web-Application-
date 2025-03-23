@@ -47,5 +47,12 @@ namespace RCM.Backend.Models
         public virtual ICollection<Refund> Refunds { get; set; }
         public virtual ICollection<Salary> Salaries { get; set; }
         public virtual ICollection<Transaction> Transactions { get; set; }
+
+        public virtual ICollection<AttendanceCheckIn> AttendanceCheckIns { get; set; }
+        public virtual ICollection<AttendanceCheckOut> AttendanceCheckOuts { get; set; }
+        public virtual ICollection<Cash> Cashes { get; set; }
+        public virtual ICollection<OvertimeRecord> OvertimeRecords { get; set; }
+        public virtual ICollection<PenaltyPayment> PenaltyPayments { get; set; }
+        public virtual ICollection<SalaryPaymentHistory> SalaryPaymentHistories { get; set; }
     }
 }

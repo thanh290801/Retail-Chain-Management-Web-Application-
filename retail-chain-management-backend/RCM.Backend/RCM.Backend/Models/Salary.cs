@@ -15,5 +15,7 @@ namespace RCM.Backend.Models
         public int? FinalSalary { get; set; }
 
         public virtual Employee Employee { get; set; } = null!;
+
+        public virtual ICollection<SalaryPaymentHistory>? SalaryPaymentHistories { get; set; }
     }
 }
