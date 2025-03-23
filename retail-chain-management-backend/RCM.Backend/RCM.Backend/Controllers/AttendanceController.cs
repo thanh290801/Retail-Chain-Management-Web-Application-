@@ -318,15 +318,12 @@ namespace RCM.Backend.Controllers
             {
                 return BadRequest("Invalid Employee ID.");
             }
-            var employee = await _context.Employees.FindAsync(employeeId);
-            if(employee == null)
-            {
-                return NotFound("Không tìm thấy nhân viên.");
-            }
+
             var morningShiftStart = new TimeSpan(8, 0, 0);
             var afternoonShiftStart = new TimeSpan(15, 0, 0);
             var gracePeriod = new TimeSpan(0, 15, 0);
 
+            // Fetch raw data without performing TimeSpan calculations in the query
             var attendanceRecords = await _context.AttendanceCheckIns
                 .Where(a => a.EmployeeId == employeeId)
                 .GroupJoin(_context.AttendanceCheckOuts,
@@ -335,22 +332,12 @@ namespace RCM.Backend.Controllers
                     (ci, coGroup) => new { CheckIn = ci, CheckOuts = coGroup })
                 .SelectMany(x => x.CheckOuts.DefaultIfEmpty(), (ci, co) => new
                 {
-                    AttendanceDate = ci.CheckIn.AttendanceDate, // Keep as DateTime
+                    AttendanceDate = ci.CheckIn.AttendanceDate,
                     Shift = ci.CheckIn.Shift,
-                    CheckInTime = ci.CheckIn.CheckInTime, // Keep as DateTime
-                    CheckOutTime = co != null ? co.CheckOutTime : (DateTime?)null, // Keep as DateTime?
-                    OnTimeStatus = ci.CheckIn.Shift == "Ca sáng"
-                        ? (ci.CheckIn.CheckInTime.TimeOfDay <= morningShiftStart + gracePeriod ? "On Time" : "Late")
-                        : (ci.CheckIn.CheckInTime.TimeOfDay <= afternoonShiftStart + gracePeriod ? "On Time" : "Late"),
-                    LateMinutes = ci.CheckIn.Shift == "Ca sáng"
-                        ? (ci.CheckIn.CheckInTime.TimeOfDay > morningShiftStart + gracePeriod
-                            ? (int)(ci.CheckIn.CheckInTime.TimeOfDay - morningShiftStart).TotalMinutes
-                            : 0)
-                        : (ci.CheckIn.CheckInTime.TimeOfDay > afternoonShiftStart + gracePeriod
-                            ? (int)(ci.CheckIn.CheckInTime.TimeOfDay - afternoonShiftStart).TotalMinutes
-                            : 0)
+                    CheckInTime = ci.CheckIn.CheckInTime,
+                    CheckOutTime = co != null ? co.CheckOutTime : (DateTime?)null
                 })
-                .OrderByDescending(a => a.AttendanceDate) // Order by DateTime directly
+                .OrderByDescending(a => a.AttendanceDate)
                 .ThenBy(a => a.Shift)
                 .ToListAsync();
 
@@ -359,15 +346,23 @@ namespace RCM.Backend.Controllers
                 return NotFound("No attendance records found.");
             }
 
-            // Format the dates after materializing the data
+            // Perform TimeSpan calculations in memory after materializing the data
             var formattedRecords = attendanceRecords.Select(a => new
             {
                 AttendanceDate = a.AttendanceDate.ToString("dd/MM/yyyy"),
                 a.Shift,
                 CheckInTime = a.CheckInTime.ToString("dd/MM/yyyy HH:mm:ss"),
                 CheckOutTime = a.CheckOutTime?.ToString("dd/MM/yyyy HH:mm:ss"),
-                a.OnTimeStatus,
-                a.LateMinutes
+                OnTimeStatus = a.Shift == "Ca sáng"
+                    ? (a.CheckInTime.TimeOfDay <= morningShiftStart + gracePeriod ? "On Time" : "Late")
+                    : (a.CheckInTime.TimeOfDay <= afternoonShiftStart + gracePeriod ? "On Time" : "Late"),
+                LateMinutes = a.Shift == "Ca sáng"
+                    ? (a.CheckInTime.TimeOfDay > morningShiftStart + gracePeriod
+                        ? (int)(a.CheckInTime.TimeOfDay - morningShiftStart).TotalMinutes
+                        : 0)
+                    : (a.CheckInTime.TimeOfDay > afternoonShiftStart + gracePeriod
+                        ? (int)(a.CheckInTime.TimeOfDay - afternoonShiftStart).TotalMinutes
+                        : 0)
             });
 
             return Ok(formattedRecords);

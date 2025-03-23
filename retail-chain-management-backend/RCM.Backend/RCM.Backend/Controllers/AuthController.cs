@@ -58,7 +58,8 @@ public class AuthController : ControllerBase
             token,
             role = user.Role,
             username = user.Username,
-            branchId = employee.BranchId
+            branchId = employee.BranchId,
+            employeeId = employee.EmployeeId
         });
     }
 
