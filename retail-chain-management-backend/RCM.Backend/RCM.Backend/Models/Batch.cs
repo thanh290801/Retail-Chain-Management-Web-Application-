@@ -24,6 +24,6 @@ namespace RCM.Backend.Models
         public virtual Warehouse Warehouse { get; set; } = null!;
         public virtual ICollection<BatchDetail> BatchDetails { get; set; }
         public virtual PurchaseOrder? PurchaseOrder { get; set; } // Tham chiếu đến đơn hàng nhập
-        public virtual ICollection<CashHandover> CashHandovers { get; set; }
+
     }
 }

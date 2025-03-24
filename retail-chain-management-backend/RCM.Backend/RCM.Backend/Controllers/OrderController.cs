@@ -185,7 +185,87 @@ public async Task<IActionResult> ReceiveOrder(int id, [FromBody] ReceiveOrderDto
     await _context.SaveChangesAsync();
     return Ok(new { Message = "Nhận hàng thành công", BatchId = batch.BatchesId, TotalAmount = totalReceiveCost });
 }
+
+// ✅ API 4: Tạo đơn đặt hàng mới
+[HttpPost("create")]
+public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderCreateRequest request)
+{
+    if (request.SupplierId == 0 || request.WarehouseId == 0 || request.Items == null || !request.Items.Any())
+    {
+        return BadRequest("Thiếu thông tin đơn hàng.");
     }
+
+    var now = DateTime.Now;
+
+    // ✅ 1. Tạo đơn hàng
+    var order = new PurchaseOrder
+    {
+        SupplierId = request.SupplierId,
+        WarehousesId = request.WarehouseId,  // Kho được chọn là nơi nhận hàng
+        OrderDate = now,
+        Status = "chưa nhận hàng",
+        Notes = request.Notes ?? ""
+    };
+
+    _context.PurchaseOrders.Add(order);
+    await _context.SaveChangesAsync();
+    int newOrderId = order.PurchaseOrdersId;
+
+    // ✅ 2. Chi tiết sản phẩm
+    foreach (var item in request.Items)
+    {
+        _context.PurchaseOrderItems.Add(new PurchaseOrderItem
+        {
+            PurchaseOrderId = newOrderId,
+            ProductId = item.ProductId,
+            QuantityOrdered = item.Quantity,
+            QuantityReceived = 0
+        });
+    }
+
+    // ✅ 3. Tổng tiền
+    decimal totalCost = request.Items.Sum(i => i.Quantity * i.Price);
+
+    // ✅ 4. Ghi nhận chi phí nhập hàng
+    var cost = new PurchaseCost
+    {
+        PurchaseOrderId = newOrderId,
+        TotalCost = totalCost,
+        BranchId = request.WarehouseId, // ✅ Gán branchId = warehouseId
+        RecordedDate = now
+    };
+
+    _context.PurchaseCosts.Add(cost);
+    await _context.SaveChangesAsync();
+
+    return Ok(new
+    {
+        Message = "Tạo đơn hàng thành công",
+        OrderId = newOrderId,
+        Total = totalCost
+    });
+}
+    }
+    
+
+   public class PurchaseOrderCreateRequest
+{
+    public int SupplierId { get; set; }
+    public int WarehouseId { get; set; } // dùng làm BranchId trong PurchaseCost
+    public string Notes { get; set; }
+    public List<PurchaseOrderItemDto> Items { get; set; }
+}
+
+
+public class PurchaseOrderItemDto
+{
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
+    public decimal Price { get; set; }
+}
+
+
+    
     // ✅ DTOs (Data Transfer Objects)
     public class OrderDto
     {

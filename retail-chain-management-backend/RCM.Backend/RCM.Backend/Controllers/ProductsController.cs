@@ -179,7 +179,10 @@ public async Task<IActionResult> UpdateProductPrice([FromBody] List<UpdatePriceR
 
     await _context.SaveChangesAsync();
     return Ok(new { message = "Cập nhật giá thành công!" });
+
+    
 }
+
 
 // Model DTO nhận từ frontend
 public class UpdatePriceRequest
@@ -192,44 +195,59 @@ public class UpdatePriceRequest
 }
 
 [HttpGet("low-stock")]
-public async Task<ActionResult<IEnumerable<object>>> GetLowStockProducts(
-    [FromQuery] int? warehouseId, [FromQuery] int? supplierId)
+public async Task<IActionResult> GetLowStockProducts([FromQuery] int? warehouseId, [FromQuery] int? supplierId)
 {
-    var query = _context.StockLevels
-        .Where(s => s.Quantity < s.MinQuantity) // Lọc sản phẩm sắp hết hàng
-        .Join(_context.Products,
-            stock => stock.ProductId,
-            product => product.ProductsId,
-            (stock, product) => new
-            {
-                product.ProductsId,
-                product.Name,
-                product.Unit,
-                stock.Quantity,
-                stock.MinQuantity,
-                stock.WarehouseId
-            });
+    // 1. Join StockLevels với Products
+    var query = from stock in _context.StockLevels
+                join product in _context.Products on stock.ProductId equals product.ProductsId
+                where stock.Quantity < stock.MinQuantity
+                select new
+                {
+                    product.ProductsId,
+                    product.Name,
+                    product.Unit,
+                    stock.MinQuantity,
+                    stock.Quantity,
+                    stock.WarehouseId,
+                    stock.PurchasePrice // ✅ lấy giá nhập
+                };
 
-    // Lọc theo warehouseId nếu có
-    if (warehouseId.HasValue)
+    // 2. Lọc theo warehouseId (BranchId từ frontend)
+    if (warehouseId.HasValue && warehouseId.Value > 0)
     {
-        query = query.Where(p => p.WarehouseId == warehouseId);
+        query = query.Where(p => p.WarehouseId == warehouseId.Value);
     }
 
-    // Lọc theo supplierId nếu có
+    // 3. Nếu lọc theo nhà cung cấp
     if (supplierId.HasValue)
     {
-        query = query.Join(_context.SupplierProducts,
-            product => product.ProductsId,
-            supplier => supplier.ProductId,
-            (product, supplier) => new { product, supplier })
-        .Where(ps => ps.supplier.SupplierId == supplierId)
-        .Select(ps => ps.product);
+        var productIds = await _context.SupplierProducts
+            .Where(sp => sp.SupplierId == supplierId.Value)
+            .Select(sp => sp.ProductId)
+            .ToListAsync();
+
+        query = query.Where(p => productIds.Contains(p.ProductsId));
     }
 
-    var results = await query.ToListAsync();
+    // 4. Trả kết quả
+    var result = await query
+        .Select(p => new
+        {
+            p.ProductsId,
+            p.Name,
+            p.Unit,
+            p.MinQuantity,
+            p.Quantity,
+            p.PurchasePrice, // ✅ đưa vào kết quả trả về
+            p.WarehouseId,
+            SupplierIds = _context.SupplierProducts
+                .Where(sp => sp.ProductId == p.ProductsId)
+                .Select(sp => sp.SupplierId)
+                .ToList()
+        })
+        .ToListAsync();
 
-    return Ok(results);
+    return Ok(result);
 }
 
 }

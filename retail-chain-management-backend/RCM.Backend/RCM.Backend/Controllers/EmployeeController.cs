@@ -28,21 +28,32 @@ public class EmployeeController : ControllerBase
             if (accountIdClaim == null)
                 return Unauthorized(new { message = "Không tìm thấy thông tin đăng nhập." });
 
-             
-            int employeeId = int.Parse(accountIdClaim);
+            int employeeId = int.Parse(accountIdClaim); // 👈 nếu đây là AccountId, sửa tên biến lại
 
             using (var connection = new SqlConnection(_connectionString))
             {
                 string query = @"
-                    SELECT e.EmployeeID, e.FullName, e.Phone, e.Gender, e.BirthDate, 
-                           e.IdentityNumber, e.Hometown, e.FixedSalary, e.IsActive, 
-                           e.StartDate, e.BranchID, e.IsCheckedIn, e.ProfileImage,
-                           w.name AS BranchName
+                    SELECT 
+                        e.EmployeeID,
+                        e.AccountID,
+                        e.FullName,
+                        e.Phone,
+                        e.Gender,
+                        e.BirthDate,
+                        e.IdentityNumber,
+                        e.Hometown,
+                        e.FixedSalary,
+                        e.IsActive,
+                        e.StartDate,
+                        e.BranchID,
+                        e.IsCheckedIn,
+                        e.ProfileImage,
+                        w.name AS BranchName
                     FROM Employee e
                     LEFT JOIN warehouses w ON e.BranchID = w.WarehousesId
-                    WHERE e.EmployeeID = @employeeId"; // Truy vấn theo EmployeeID
+                    WHERE e.AccountID = @accountId";
 
-                var employee = await connection.QueryFirstOrDefaultAsync<EmployeeProfileDTO>(query, new { EmployeeID = employeeId });
+                var employee = await connection.QueryFirstOrDefaultAsync<EmployeeProfileDTO>(query, new { accountId = employeeId });
 
                 if (employee == null)
                     return NotFound(new { message = "Không tìm thấy thông tin nhân viên." });
@@ -55,12 +66,13 @@ public class EmployeeController : ControllerBase
             return StatusCode(500, new { message = "Lỗi hệ thống.", error = ex.Message });
         }
     }
+
 }
 
-// DTO cho dữ liệu trả về
 public class EmployeeProfileDTO
 {
     public int EmployeeID { get; set; }
+    public int AccountID { get; set; }       // ✅ Thêm dòng này
     public string FullName { get; set; }
     public string Phone { get; set; }
     public string Gender { get; set; }
@@ -75,3 +87,4 @@ public class EmployeeProfileDTO
     public bool? IsCheckedIn { get; set; }
     public string ProfileImage { get; set; }
 }
+
