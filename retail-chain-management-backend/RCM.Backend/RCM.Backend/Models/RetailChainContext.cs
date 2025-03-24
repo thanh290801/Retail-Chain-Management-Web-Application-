@@ -31,6 +31,8 @@ namespace RCM.Backend.Models
         public virtual DbSet<Product> Products { get; set; } = null!;
         public virtual DbSet<ProductPrice> ProductPrices { get; set; } = null!;
         public virtual DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
+        public virtual DbSet<PurchaseCost> PurchaseCosts { get; set; } = null!;
+
         public virtual DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; } = null!;
         public virtual DbSet<Refund> Refunds { get; set; } = null!;
         public virtual DbSet<RefundDetail> RefundDetails { get; set; } = null!;

@@ -116,8 +116,8 @@ const Header = () => {
                             </div>
 
                             <button onClick={() => navigate("/cashBookOwner")} className="text-white flex items-center">Sổ quỹ </button>
+                            <button onClick={() => navigate("/financial-report")} className="text-white flex items-center">Báo cáo tài chính </button>
 
-                            <Link to="/baocao" className="text-white flex items-center">Báo cáo</Link>
                         </nav>
                     </div>
                     <div className="flex items-center space-x-4">

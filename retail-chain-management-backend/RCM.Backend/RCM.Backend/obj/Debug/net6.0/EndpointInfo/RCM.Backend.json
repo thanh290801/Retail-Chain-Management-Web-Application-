@@ -427,6 +427,56 @@
         }
       }
     },
+    "/api/FinancialReport/branches": {
+      "get": {
+        "tags": [
+          "FinancialReport"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/FinancialReport/api/financialreport": {
+      "get": {
+        "tags": [
+          "FinancialReport"
+        ],
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "branchId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/api/Payroll/setup-shifts": {
       "post": {
         "tags": [
