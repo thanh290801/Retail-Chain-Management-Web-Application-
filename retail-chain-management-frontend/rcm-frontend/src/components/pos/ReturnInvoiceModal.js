@@ -4,7 +4,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 
-const API_BASE_URL = "https://localhost:5000/api/sale-invoice";
+const api_url = process.env.REACT_APP_API_URL
+const API_BASE_URL = `${api_url}/sale-invoice`;
 
 const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
     const [currentPage, setCurrentPage] = useState(1);

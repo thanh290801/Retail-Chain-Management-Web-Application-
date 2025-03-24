@@ -9,11 +9,15 @@ import {
   endOfMonth,
   format,
   parseISO,
+  parse,
+  isValid,
 } from "date-fns";
 import { vi } from "date-fns/locale";
 import Header from "../../headerComponent/header";
 import { useNavigate } from "react-router-dom";
+
 const api_url = process.env.REACT_APP_API_URL
+
 const fetchAttendanceData = async (startDate, endDate, setAttendanceData) => {
   try {
     const response = await fetch(
@@ -28,48 +32,68 @@ const fetchAttendanceData = async (startDate, endDate, setAttendanceData) => {
 
       // Xử lý attendedRecords
       dayData.attendedRecords.forEach((emp) => {
-        if (!mergedData[emp.id]) {
-          mergedData[emp.id] = {
-            id: emp.id,
+        if (!mergedData[emp.employeeId]) {
+          mergedData[emp.employeeId] = {
+            id: emp.employeeId,
             name: emp.fullName,
-            birthDate: format(parseISO(emp.birthDate), "yyyy-MM-dd"),
+            birthDate: format(
+              parse(emp.birthDate, "yyyy-MM-dd'T'HH:mm:ss", new Date()),
+              "yyyy-MM-dd"
+            ),
             avatar:
-              emp.image ||
               "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png",
-            attendance: {},
+            status: emp.status,
+            attendance: {}, // Đảm bảo tồn tại
           };
         }
 
-        // Cập nhật giờ check-in và check-out cho nhân viên đã tham dự
-        mergedData[emp.id].attendance[formattedDate] = {
-          morning: emp.checkInTime
-            ? format(parseISO(emp.checkInTime), "HH:mm")
-            : "-",
-          afternoon: emp.checkOutTime
-            ? format(parseISO(emp.checkOutTime), "HH:mm")
-            : "-",
+        // ✅ Kiểm tra và parse checkInTime
+        let checkInTime = emp.checkInTime
+          ? parse(emp.checkInTime, "dd/MM/yyyy HH:mm:ss", new Date())
+          : null;
+        checkInTime = isValid(checkInTime) ? format(checkInTime, "HH:mm") : "-";
+
+        // ✅ Kiểm tra và parse checkOutTime
+        let checkOutTime = emp.checkOutTime
+          ? parse(emp.checkOutTime, "dd/MM/yyyy HH:mm:ss", new Date())
+          : null;
+        checkOutTime = isValid(checkOutTime)
+          ? format(checkOutTime, "HH:mm")
+          : "-";
+
+        // ✅ Đảm bảo attendance tồn tại
+        if (!mergedData[emp.employeeId].attendance) {
+          mergedData[emp.employeeId].attendance = {};
+        }
+
+        mergedData[emp.employeeId].attendance[formattedDate] = {
+          checkin: checkInTime,
+          checkout: checkOutTime,
         };
       });
 
       // Xử lý notAttendedRecords
       dayData.notAttendedRecords.forEach((emp) => {
-        if (!mergedData[emp.id]) {
-          mergedData[emp.id] = {
-            id: emp.id,
+        if (!mergedData[emp.employeeId]) {
+          mergedData[emp.employeeId] = {
+            id: emp.employeeId,
             name: emp.fullName,
-            birthDate: format(parseISO(emp.birthDate), "yyyy-MM-dd"),
+            birthDate: format(
+              parse(emp.birthDate, "yyyy-MM-dd'T'HH:mm:ss", new Date()),
+              "yyyy-MM-dd"
+            ),
             avatar:
-              emp.image ||
               "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png",
-            attendance: {},
+            status: emp.status,
+            attendance: {}, // Đảm bảo tồn tại
           };
         }
 
-        // Nếu không có dữ liệu check-in/check-out, hiển thị "-"
-        if (!mergedData[emp.id].attendance[formattedDate]) {
-          mergedData[emp.id].attendance[formattedDate] = {
-            morning: "-",
-            afternoon: "-",
+        // ✅ Kiểm tra nếu không có check-in/check-out, gán "-"
+        if (!mergedData[emp.employeeId].attendance[formattedDate]) {
+          mergedData[emp.employeeId].attendance[formattedDate] = {
+            checkin: "-",
+            checkout: "-",
           };
         }
       });
@@ -216,8 +240,8 @@ const EmployeeTable = () => {
                   </td>
                   {weekDates.map((date, index) => (
                     <td key={index} className="border p-2 text-center">
-                      <div>{emp.attendance[date]?.morning || "-"}</div>
-                      <div>{emp.attendance[date]?.afternoon || "-"}</div>
+                      <div>{emp.attendance[date]?.checkin || "-"}</div>
+                      <div>{emp.attendance[date]?.checkout || "-"}</div>
                     </td>
                   ))}
                 </tr>

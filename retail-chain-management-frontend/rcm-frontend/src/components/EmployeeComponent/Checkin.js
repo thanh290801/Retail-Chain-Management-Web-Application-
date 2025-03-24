@@ -14,6 +14,7 @@ const Calendar = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [checkInMessage, setCheckInMessage] = useState(null);
+
   const api_url = process.env.REACT_APP_API_URL
 
   useEffect(() => {
@@ -51,7 +52,7 @@ const Calendar = () => {
 
   const handleCheckIn = async () => {
     try {
-      const res = await fetch("${api_url}/Attendance/CheckIn", {
+      const res = await fetch(`${api_url}/Attendance/CheckIn`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ employeeId }),

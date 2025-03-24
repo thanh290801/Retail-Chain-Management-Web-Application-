@@ -7,6 +7,7 @@ const CashBookStaff = () => {
     const [FundData, setFinancialData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const api_url = process.env.REACT_APP_API_URL
 
     // Mặc định: Hiển thị giao dịch trong tháng hiện tại
 
@@ -22,7 +23,7 @@ const CashBookStaff = () => {
                 return;
             }
 
-            const response = await axios.get("https://localhost:5000/api/finance/summaryStaff", {
+            const response = await axios.get(`${api_url}/finance/summaryStaff`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

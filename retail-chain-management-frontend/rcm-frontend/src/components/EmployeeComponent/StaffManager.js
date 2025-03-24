@@ -14,7 +14,7 @@ export default function StaffManager() {
   const api_url = process.env.REACT_APP_API_URL
   const { register, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
-      role: 2, // Mặc định role = 2
+      role: "Staff", // Mặc định role = Staff
       startDate: new Date().toISOString().split("T")[0],
     },
   });
@@ -35,19 +35,11 @@ export default function StaffManager() {
       console.error("Lỗi khi lấy danh sách kho hàng:", error);
     }
   };
-  const fetchStaff = async (search) => {
+  const fetchStaff = async (search = "") => {
     try {
-      let response;
-      if(search ==null || search === "" ){
-         response= await axios.get(
-          `${api_url}/Staff/getStaff`
-        );
-      }     else{
-        response= await axios.get(
-          `${api_url}/Staff/getStaff?search=${search}`
-        );
-      }
-
+      const response = await axios.get(
+        `${api_url}/Staff/getStaff?name=${search}`
+      );
       setStaffList(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách nhân viên:", error);
@@ -55,7 +47,9 @@ export default function StaffManager() {
   };
   const openUpdateModal = async (id) => {
     try {
-      const response = await axios.get(`${api_url}/Staff/${id}`);
+      const response = await axios.get(
+        `${api_url}/Staff/${id}`
+      );
       const staffData = response.data;
       setSelectedStaff(staffData);
 
@@ -150,7 +144,7 @@ export default function StaffManager() {
     formData.append("file", file);
 
     try {
-      await axios.post("${api_url}/Staff/import", formData, {
+      await axios.post(`${api_url}/Staff/import`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -382,13 +376,13 @@ export default function StaffManager() {
                     >
                       <option value="">Chọn Kho Hàng</option>
                       {warehouses.map((warehouse) => (
-                        <option key={warehouse.id} value={warehouse.id}>
+                        <option key={warehouse.warehousesId} value={warehouse.warehousesId}>
                           {warehouse.name}
                         </option>
                       ))}
                     </select>
 
-                    <label className="block font-medium">Lương theo ngày</label>
+                    <label className="block font-medium">Lương cố định</label>
                     <input
                       type="number"
                       {...register("fixedSalary")}

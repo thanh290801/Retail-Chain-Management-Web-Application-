@@ -111,6 +111,7 @@ const Header = () => {
                                         <Link to="/salary" className="block px-4 py-2 hover:bg-gray-200">Lương</Link>
                                         <Link to="/attendance" className="block px-4 py-2 hover:bg-gray-200">Bảng chấm công</Link>
                                         <Link to="/button12" className="block px-4 py-2 hover:bg-gray-200">Thiết lập lương</Link>
+                                        <Link to="/requests" className="block px-4 py-2 hover:bg-gray-200">Danh sách tăng ca</Link>
                                     </div>
                                 )}
                             </div>

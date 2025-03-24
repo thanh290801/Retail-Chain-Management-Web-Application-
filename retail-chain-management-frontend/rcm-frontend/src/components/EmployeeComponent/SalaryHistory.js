@@ -15,6 +15,9 @@ const SalaryHistory = () => {
   const [bonusSalary, setBonusSalary] = useState(0);
   const [penalty, setPenalty] = useState(0);
   const [modalStep, setModalStep] = useState(1);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [paymentNote, setPaymentNote] = useState("");
   const api_url = process.env.REACT_APP_API_URL
 
   useEffect(() => {
@@ -64,6 +67,43 @@ const SalaryHistory = () => {
     } catch (error) {
       console.error("Lỗi khi tải file:", error);
       toast.error("Tải file thất bại. Vui lòng thử lại!");
+    }
+  };
+
+  const openPaymentModal = (employee) => {
+    setSelectedEmployee(employee);
+    setPaidAmount(employee.totalSalary); // Mặc định lấy tổng lương
+    setPaymentNote(""); // Reset note khi mở modal mới
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePayment = async () => {
+    try {
+      const response = await fetch(
+        `${api_url}/Payroll/pay-salary`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            employeeId: selectedEmployee.employeeId,
+            month: selectedMonth,
+            year: selectedYear,
+            paidAmount,
+            note: paymentNote, // Gửi ghi chú kèm theo
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Lỗi: ${response.status} - ${response.statusText}`);
+      }
+
+      toast.success("Thanh toán thành công!");
+      setIsPaymentModalOpen(false);
+      fetchPayrollData(); // Cập nhật lại danh sách
+    } catch (error) {
+      console.error("Lỗi khi thanh toán lương:", error);
+      toast.error("Thanh toán thất bại!");
     }
   };
 
@@ -168,14 +208,15 @@ const SalaryHistory = () => {
                 <th className="border p-2 text-center">Mã Nhân viên</th>
                 <th className="border p-2 text-center">Tên nhân viên</th>
                 <th className="border p-2 text-center">SĐT</th>
-                <th className="border p-2 text-center">Địa chỉ</th>
-                <th className="border p-2 text-center">Lương ngày</th>
+                <th className="border p-2 text-center">Quê quán</th>
+                <th className="border p-2 text-center">Lương cố định</th>
+                <th className="border p-2 text-center">Lương ngày</th>
                 <th className="border p-2 text-center">Số ngày công</th>
                 <th className="border p-2 text-center">Số giờ tăng ca</th>
                 <th className="border p-2 text-center">Lương tăng ca</th>
                 {/* <th className="border p-2 text-center">Tiền thưởng</th> */}
-                <th className="border p-2 text-center">Tiền lương hiện tại</th>
-                {/* <th className="border p-2 text-center">Thao tác</th> */}
+                <th className="border p-2 text-center">Tổng lương</th>
+                <th className="border p-2 text-center">Thanh toán</th>
               </tr>
             </thead>
             <tbody>
@@ -188,14 +229,18 @@ const SalaryHistory = () => {
                   <td className="border p-2 text-center">{item.employeeId}</td>
                   <td className="border p-2">{item.employeeName}</td>
                   <td className="border p-2 text-center">{item.phone}</td>
-                  <td className="border p-2 text-center">
-                    {item.currentAddress}
-                  </td>
+                  <td className="border p-2 text-center">{item.hometown}</td>
                   <td className="border p-2 text-center">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(item.fixedSalary)}
+                  </td>
+                  <td className="border p-2 text-center">
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(item.salaryPerShift)}
                   </td>
                   <td className="border p-2 text-center">
                     {item.totalWorkDays}
@@ -220,6 +265,17 @@ const SalaryHistory = () => {
                       style: "currency",
                       currency: "VND",
                     }).format(item.totalSalary)}
+                  </td>
+                  <td className="border p-2 text-center font-bold">
+                    <button
+                      className="bg-yellow-500 text-white px-2 py-1 rounded "
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openPaymentModal(item);
+                      }}
+                    >
+                      Thanh toán
+                    </button>
                   </td>
                   {/* <td className="border p-2 text-center font-bold">
                     <button
@@ -395,6 +451,50 @@ const SalaryHistory = () => {
                 className="bg-red-500 text-white px-4 py-2 rounded"
               >
                 Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal thanh toán lương nhân viên */}
+      {isPaymentModalOpen && selectedEmployee && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">
+              Thanh Toán Lương cho {selectedEmployee.employeeName}
+            </h2>
+
+            <label className="block mb-2">Số tiền thanh toán:</label>
+            <input
+              type="text"
+              value={new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              }).format(paidAmount)}
+              readOnly
+              className="border p-2 w-full mb-4 bg-gray-100 cursor-not-allowed"
+            />
+
+            <label className="block mb-2">Ghi chú:</label>
+            <textarea
+              value={paymentNote}
+              onChange={(e) => setPaymentNote(e.target.value)}
+              className="border p-2 w-full mb-4"
+              placeholder="Nhập ghi chú (không bắt buộc)"
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+                onClick={() => setIsPaymentModalOpen(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+                onClick={handlePayment}
+              >
+                Thanh toán
               </button>
             </div>
           </div>

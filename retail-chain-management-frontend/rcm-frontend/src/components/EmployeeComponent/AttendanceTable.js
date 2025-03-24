@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Table, Select, Tag } from "antd";
+import {
+  Table,
+  Select,
+  Tag,
+  Modal,
+  DatePicker,
+  TimePicker,
+  InputNumber,
+  Input,
+} from "antd";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import localeData from "dayjs/plugin/localeData";
@@ -13,6 +22,7 @@ dayjs.extend(isBetween);
 dayjs.extend(localeData);
 
 const { Option } = Select;
+const api_url = process.env.REACT_APP_API_URL
 
 const AttendanceTable = () => {
   const { id } = useParams();
@@ -29,7 +39,13 @@ const AttendanceTable = () => {
   const [lateCount, setLateCount] = useState(0);
   const [checkInMessage, setCheckInMessage] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const api_url = process.env.REACT_APP_API_URL
+  const [modalOvertimeOpen, setModalOvertimeOpen] = useState(false);
+  const [overtimeDate, setOvertimeDate] = useState(
+    dayjs().format("YYYY-MM-DD")
+  );
+  const [startTime, setStartTime] = useState(null);
+  const [totalHours, setTotalHours] = useState(1);
+  const [reason, setReason] = useState("");
 
   useEffect(() => {
     fetchAttendanceData();
@@ -53,9 +69,9 @@ const AttendanceTable = () => {
     let lateCounter = 0;
 
     attendanceData.forEach((item) => {
-      const itemDate = dayjs(item.attendanceDate);
+      const itemDate = dayjs(item.attendanceDate, "DD/MM/YYYY"); // Cập nhật cách parse
       if (itemDate.month() + 1 === selectedMonth) {
-        uniqueDates.add(item.attendanceDate);
+        uniqueDates.add(itemDate.format("YYYY-MM-DD")); // Đảm bảo format đồng nhất
 
         if (item.onTimeStatus === "Late") {
           lateCounter++;
@@ -87,7 +103,8 @@ const AttendanceTable = () => {
         message: data.message,
         shift: data.shift,
         status: data.status,
-        time: dayjs(data.checkInTime).format("HH:mm:ss"),
+        time: dayjs(data.checkInTime, "DD/MM/YYYY HH:mm:ss").format("HH:mm:ss"),
+        late: data.lateMinutes,
         overtime: data.overtime,
       });
       toast.success("Checkin thành công", { position: "top-right" });
@@ -121,6 +138,47 @@ const AttendanceTable = () => {
       });
   };
 
+  const resetOvertimeForm = () => {
+    setOvertimeDate(dayjs().format("YYYY-MM-DD"));
+    setStartTime(null);
+    setTotalHours(1);
+    setReason("");
+  };
+
+  const formattedStartTime = dayjs(startTime).format("HH:mm:ss");
+  const handleRequestOvertime = async () => {
+    if (!startTime || totalHours <= 0 || !reason) {
+      toast.error("Vui lòng nhập đầy đủ thông tin tăng ca.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${api_url}/Attendance/RequestOvertime`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            employeeId,
+            date: overtimeDate,
+            startTime: formattedStartTime,
+            totalHours,
+            reason,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Lỗi khi gửi đề xuất tăng ca");
+      }
+
+      toast.success("Đề xuất tăng ca thành công!");
+      setModalOvertimeOpen(false);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   const formatAttendanceData = () => {
     const formattedData = [];
     const monthDays = dayjs(
@@ -134,91 +192,81 @@ const AttendanceTable = () => {
       );
       const isFutureDate = dayjs(date).isAfter(today);
 
-      // Chuyển đổi shift name để đảm bảo khớp với dữ liệu từ API
       const normalizedData = data.map((item) => ({
         ...item,
-        shift: item.shift.toLowerCase().includes("sáng")
-          ? "Morning"
-          : "Afternoon",
+        shift: item.shift.includes("sáng") ? "Morning" : "Afternoon",
+        attendanceDate: dayjs(item.attendanceDate, [
+          "DD/MM/YYYY",
+          "YYYY-MM-DD",
+        ]).format("YYYY-MM-DD"),
       }));
 
       const attendances = normalizedData.filter(
-        (item) => dayjs(item.attendanceDate).format("YYYY-MM-DD") === date
+        (item) => item.attendanceDate === date
       );
       const morningShift = attendances.find((item) => item.shift === "Morning");
       const afternoonShift = attendances.find(
         (item) => item.shift === "Afternoon"
       );
 
+      const getStatus = (shift) => {
+        if (!shift) return "-"; // Nếu không có ca làm thì hiển thị "-"
+        return shift.onTimeStatus === "Late" ? "Đi muộn" : "Đúng giờ";
+      };
+
       formattedData.push({
         key: date,
         date: dayjs(date).format("DD/MM/YYYY"),
 
-        morningCheckIn: isFutureDate ? (
-          "-"
-        ) : morningShift?.checkInTime ? (
-          <p className="text-xl font-bold">
-            {dayjs(morningShift.checkInTime).format("HH:mm:ss")}
-          </p>
-        ) : (
-          "-"
-        ),
+        morningCheckIn: morningShift?.checkInTime
+          ? dayjs(morningShift.checkInTime, [
+              "DD/MM/YYYY HH:mm:ss",
+              "YYYY-MM-DDTHH:mm:ss",
+            ]).format("HH:mm:ss")
+          : "-",
 
-        morningCheckOut: isFutureDate ? (
-          "-"
-        ) : morningShift?.checkOutTime ? (
-          <p className="text-xl font-bold">
-            {dayjs(morningShift.checkOutTime).format("HH:mm:ss")}
-          </p>
-        ) : (
-          "-"
-        ),
+        morningCheckOut: morningShift?.checkOutTime
+          ? dayjs(morningShift.checkOutTime, [
+              "DD/MM/YYYY HH:mm:ss",
+              "YYYY-MM-DDTHH:mm:ss",
+            ]).format("HH:mm:ss")
+          : "-",
 
-        morningStatus: isFutureDate ? (
-          "-"
-        ) : morningShift ? (
-          <Tag color={morningShift.onTimeStatus === "On Time" ? "blue" : "red"}>
-            {morningShift.onTimeStatus === "On Time" ? "Đúng giờ" : "Muộn"}
-          </Tag>
-        ) : (
-          <Tag color="red">Nghỉ</Tag>
-        ),
+        afternoonCheckIn: afternoonShift?.checkInTime
+          ? dayjs(afternoonShift.checkInTime, [
+              "DD/MM/YYYY HH:mm:ss",
+              "YYYY-MM-DDTHH:mm:ss",
+            ]).format("HH:mm:ss")
+          : "-",
 
-        afternoonCheckIn: isFutureDate ? (
-          "-"
-        ) : afternoonShift?.checkInTime ? (
-          <p className="text-xl font-bold">
-            {dayjs(afternoonShift.checkInTime).format("HH:mm:ss")}
-          </p>
-        ) : (
-          "-"
-        ),
+        afternoonCheckOut: afternoonShift?.checkOutTime
+          ? dayjs(afternoonShift.checkOutTime, [
+              "DD/MM/YYYY HH:mm:ss",
+              "YYYY-MM-DDTHH:mm:ss",
+            ]).format("HH:mm:ss")
+          : "-",
 
-        afternoonCheckOut: isFutureDate ? (
-          "-"
-        ) : afternoonShift?.checkOutTime ? (
-          <p className="text-xl font-bold">
-            {dayjs(afternoonShift.checkOutTime).format("HH:mm:ss")}
-          </p>
-        ) : (
-          "-"
-        ),
-
-        afternoonStatus: isFutureDate ? (
-          "-"
-        ) : afternoonShift ? (
-          <Tag
-            color={afternoonShift.onTimeStatus === "On Time" ? "blue" : "red"}
-          >
-            {afternoonShift.onTimeStatus === "On Time" ? "Đúng giờ" : "Muộn"}
-          </Tag>
-        ) : (
-          <Tag color="red">Nghỉ</Tag>
-        ),
+        morningStatus: isFutureDate
+          ? "-"
+          : morningShift
+          ? getStatus(morningShift)
+          : "-",
+        afternoonStatus: isFutureDate
+          ? "-"
+          : afternoonShift
+          ? getStatus(afternoonShift)
+          : "-",
       });
     }
 
     return formattedData;
+  };
+
+  const getStatusTag = (status) => {
+    if (status === "-") return status;
+    const color =
+      status === "Đúng giờ" ? "blue" : status === "Đi muộn" ? "red" : "gray";
+    return <Tag color={color}>{status}</Tag>;
   };
 
   return (
@@ -251,16 +299,22 @@ const AttendanceTable = () => {
         {isOwner && (
           <div className="flex justify-between w-full my-4">
             <button
-              className="bg-blue-500 text-white py-2 px-4 rounded w-1/2 mr-2"
+              className="bg-blue-500 text-white py-2 px-4 rounded w-1/3 mr-2 uppercase"
               onClick={handleCheckIn}
             >
               Check In
             </button>
             <button
-              className="bg-red-500 text-white py-2 px-4 rounded w-1/2 ml-2"
+              className="bg-red-500 text-white py-2 px-4 rounded w-1/3 mx-2 uppercase"
               onClick={handleCheckOut}
             >
               Check Out
+            </button>
+            <button
+              className="bg-green-500 text-white py-2 px-4 rounded w-1/3 ml-2 uppercase"
+              onClick={() => setModalOvertimeOpen(true)}
+            >
+              Đề xuất tăng ca
             </button>
           </div>
         )}
@@ -281,6 +335,7 @@ const AttendanceTable = () => {
               title: "Trạng thái Sáng",
               dataIndex: "morningStatus",
               key: "morningStatus",
+              render: (status) => getStatusTag(status),
             },
             {
               title: "Check-in Chiều",
@@ -296,6 +351,7 @@ const AttendanceTable = () => {
               title: "Trạng thái Chiều",
               dataIndex: "afternoonStatus",
               key: "afternoonStatus",
+              render: (status) => getStatusTag(status),
             },
           ]}
           dataSource={formatAttendanceData()}
@@ -318,6 +374,9 @@ const AttendanceTable = () => {
               <strong>Thời gian:</strong> {checkInMessage.time}
             </p>
             <p>
+              <strong>Thời gian muộn:</strong> {checkInMessage.late} phút
+            </p>
+            <p>
               <strong>Ca Làm Việc:</strong> {checkInMessage.shift}
             </p>
             <p>
@@ -334,6 +393,51 @@ const AttendanceTable = () => {
           </div>
         </div>
       )}
+      <Modal
+        title="Đề xuất tăng ca"
+        open={modalOvertimeOpen} // Sử dụng state modalOvertimeOpen thay vì visible
+        onCancel={() => {
+          resetOvertimeForm();
+          setModalOvertimeOpen(false);
+        }}
+        onOk={handleRequestOvertime}
+        okText="Đề xuất"
+        cancelText="Hủy"
+      >
+        <label>Ngày tăng ca:</label>
+        <DatePicker
+          className="w-full mb-2"
+          value={overtimeDate ? dayjs(overtimeDate) : null}
+          onChange={(date) =>
+            setOvertimeDate(date ? dayjs(date).format("YYYY-MM-DD") : null)
+          }
+        />
+
+        <label>Giờ bắt đầu:</label>
+        <TimePicker
+          className="w-full mb-2"
+          format="HH:mm"
+          value={startTime}
+          onChange={(time) => setStartTime(time)}
+        />
+
+        <label>Tổng số giờ:</label>
+        <InputNumber
+          className="w-full mb-2"
+          min={1}
+          max={12}
+          value={totalHours}
+          onChange={setTotalHours}
+        />
+
+        <label>Lý do:</label>
+        <Input.TextArea
+          className="w-full"
+          rows={3}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+      </Modal>
     </div>
   );
 };

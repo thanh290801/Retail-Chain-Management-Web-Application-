@@ -19,6 +19,7 @@ import { ToastContainer } from "react-toastify";
 import SalaryHistory from "./components/EmployeeComponent/SalaryHistory";
 import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
 import RevenueSummaryOwner from './sale-dashboadConponent/RevenueOwner';
+import PendingOvertimeList from "./components/EmployeeComponent/PendingOvertimeList";
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -39,7 +40,6 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-
           {/* Các trang cần đăng nhập */}
           <Route path='/pos' element={<Main />} />
           <Route path="/staffHome" element={<ProtectedRoute><StaffHomeComponent /></ProtectedRoute>} />
@@ -57,12 +57,31 @@ function App() {
           {/* */}
           <Route path="/attendance" element={<Attendance />} />
           <Route
+            path="/requests"
+            element={
+              <ProtectedRoute>
+                <PendingOvertimeList />
+                <ToastContainer position="top-right" autoClose={3000} />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/checkin"
             element={
               <>
                 <AttendanceTable />
                 <ToastContainer position="top-right" autoClose={3000} />
               </>
+            }
+          />
+          <Route
+            path="/attendance-detail/:id"
+            element={
+              <ProtectedRoute>
+                <AttendanceTable />
+                <ToastContainer position="top-right" autoClose={3000} />
+              </ProtectedRoute>
             }
           />
                     <Route
