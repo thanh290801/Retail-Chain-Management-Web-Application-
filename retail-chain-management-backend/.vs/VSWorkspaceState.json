@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\RCM.Backend",
+    "\\RCM.Backend\\RCM.Backend",
+    "\\RCM.Backend\\RCM.Backend\\Controllers",
+    "\\RCM.Backend\\RCM.Backend\\DTOs"
+  ],
+  "SelectedNode": "\\RCM.Backend\\RCM.Backend\\Controllers\\AccountController.cs",
+  "PreviewInSolutionExplorer": false
+}
