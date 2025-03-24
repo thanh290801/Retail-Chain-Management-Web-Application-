@@ -26,6 +26,12 @@ public class EmployeeDTO
     public string? Hometown { get; set; }
     public string? CurrentAddress { get; set; }
     public int? FixedSalary { get; set; }
+    public class UpdateEmployee
+    {
+        public int Id { get; set; }
+        public int? FixedSalary { get; set; }
+
+    }
     public class StaffExportDTO
     {
         public int Id { get; set; }
