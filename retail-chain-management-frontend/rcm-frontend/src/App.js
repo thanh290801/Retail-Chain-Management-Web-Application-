@@ -21,6 +21,7 @@ import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
 import RevenueSummaryOwner from './sale-dashboadConponent/RevenueOwner';
 import PendingOvertimeList from "./components/EmployeeComponent/PendingOvertimeList";
 
+import FinancialReport from './components/FinancialReportConponent/financialReport';
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" />;
@@ -51,6 +52,7 @@ function App() {
           <Route path="/cashBookOwner" element={<ProtectedRoute><CashBookOwner /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/revenue-summary-owner" element={<ProtectedRoute><RevenueSummaryOwner /></ProtectedRoute>} />
+          <Route path="/financial-report" element={<ProtectedRoute><FinancialReport /></ProtectedRoute>} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
 

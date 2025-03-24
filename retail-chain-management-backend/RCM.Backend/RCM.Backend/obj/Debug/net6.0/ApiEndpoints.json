@@ -270,6 +270,42 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "FinancialReportController",
+    "Method": "GetFinancialReport",
+    "RelativePath": "api/FinancialReport/api/financialreport",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "month",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "year",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "branchId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "FinancialReportController",
+    "Method": "GetBranches",
+    "RelativePath": "api/FinancialReport/branches",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "PayrollController",
     "Method": "ApproveOvertime",
     "RelativePath": "api/Payroll/approve-overtime/{id}",

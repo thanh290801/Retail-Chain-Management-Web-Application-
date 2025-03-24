@@ -427,6 +427,56 @@
         }
       }
     },
+    "/api/FinancialReport/branches": {
+      "get": {
+        "tags": [
+          "FinancialReport"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/FinancialReport/api/financialreport": {
+      "get": {
+        "tags": [
+          "FinancialReport"
+        ],
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "branchId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/api/Payroll/setup-shifts": {
       "post": {
         "tags": [
@@ -1214,12 +1264,29 @@
             "type": "boolean",
             "nullable": true
           },
+          "resetOtp": {
+            "type": "string",
+            "nullable": true
+          },
+          "otpexpireTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "employeeId": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
           },
           "employee": {
             "$ref": "#/components/schemas/Employee"
+          },
+          "employees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Employee"
+            },
+            "nullable": true
           },
           "productPriceHistories": {
             "type": "array",
@@ -1513,13 +1580,13 @@
             "type": "string",
             "nullable": true
           },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "personName": {
             "type": "string",
             "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           },
           "note": {
             "type": "string",
@@ -1668,7 +1735,8 @@
           },
           "accountId": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
           },
           "profileImage": {
             "type": "string",
@@ -1740,6 +1808,13 @@
           },
           "branch": {
             "$ref": "#/components/schemas/Warehouse"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Account"
+            },
+            "nullable": true
           },
           "attendanceRecords": {
             "type": "array",
@@ -2398,13 +2473,6 @@
             },
             "nullable": true
           },
-          "productPrices": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProductPrice"
-            },
-            "nullable": true
-          },
           "stockAuditDetails": {
             "type": "array",
             "items": {
@@ -2430,6 +2498,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WarehouseTransferDetail"
+            },
+            "nullable": true
+          },
+          "productPrices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPrice"
             },
             "nullable": true
           }
@@ -2626,8 +2701,16 @@
             "type": "string",
             "nullable": true
           },
+          "warehousesId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
           "supplier": {
             "$ref": "#/components/schemas/Supplier"
+          },
+          "warehouses": {
+            "$ref": "#/components/schemas/Warehouse"
           },
           "batchDetails": {
             "type": "array",
@@ -3487,6 +3570,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PurchaseCost"
+            },
+            "nullable": true
+          },
+          "purchaseOrders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseOrder"
             },
             "nullable": true
           },
