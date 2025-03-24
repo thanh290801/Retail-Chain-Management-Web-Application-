@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // 🔹 Import useNavigate
+const api_url = process.env.REACT_APP_API_URL
 
 const CashHandoverForm = () => {
     const [formData, setFormData] = useState({
@@ -32,7 +33,7 @@ const CashHandoverForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("https://localhost:5000/api/CashHandover/create", formData);
+            const response = await axios.post(`${api_url}/CashHandover/create`, formData);
             setMessage(response.data.Message);
             setTimeout(() => navigate("/staffHome"), 1000);
 

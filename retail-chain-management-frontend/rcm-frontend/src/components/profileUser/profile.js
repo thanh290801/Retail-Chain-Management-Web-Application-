@@ -8,6 +8,7 @@ const UserProfile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const api_url = process.env.REACT_APP_API_URL
     useEffect(() => {
         const fetchEmployeeData = async () => {
             try {
@@ -20,8 +21,7 @@ const UserProfile = () => {
 
                 const decodedToken = jwtDecode(token); // 🔹 Giải mã token để kiểm tra
                 console.log("Decoded Token:", decodedToken);
-
-                const response = await axios.get("https://localhost:5000/api/employees/profile", {
+                const response = await axios.get(`${api_url}/employees/profile`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
@@ -41,7 +41,7 @@ const UserProfile = () => {
                     setLoading(false);
                     return;
                 }
-                const response = await axios.get("https://localhost:5000/api/Account/me", {
+                const response = await axios.get(`${api_url}/Account/me`, {
                     headers: { Authorization: `Bearer ${token}` },
 
                 });

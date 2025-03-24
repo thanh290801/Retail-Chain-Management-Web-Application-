@@ -15,6 +15,7 @@ const StaffHomeComponent = () => {
         warehouse: false,
         reports: false,
     });
+    const api_url = process.env.REACT_APP_API_URL
 
     useEffect(() => {
         fetchFinancialSummary();
@@ -33,7 +34,7 @@ const StaffHomeComponent = () => {
                 return;
             }
 
-            const response = await axios.get("https://localhost:5000/api/finance/summaryStaff", {
+            const response = await axios.get(`${api_url}/finance/summaryStaff`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

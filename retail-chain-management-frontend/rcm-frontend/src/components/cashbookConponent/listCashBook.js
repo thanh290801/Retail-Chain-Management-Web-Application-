@@ -7,6 +7,7 @@ const CashBook = () => {
     const [cashbook, setCashbook] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const api_url = process.env.REACT_APP_API_URL
 
     useEffect(() => {
 
@@ -18,7 +19,7 @@ const CashBook = () => {
                     return;
                 }
 
-                const response = await axios.get("https://localhost:5000/api/CashHandover/cashbook", {
+                const response = await axios.get(`${api_url}/CashHandover/cashbook`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 

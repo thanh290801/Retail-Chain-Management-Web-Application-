@@ -10,7 +10,9 @@ import { IoArrowBackOutline } from "react-icons/io5";
 import { useMemo } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = "https://localhost:5000/api/sale-invoice";
+const api_url = process.env.REACT_APP_API_URL
+
+const API_BASE_URL = `${api_url}/sale-invoice`;
 
 const Main = () => {
     const [invoices, setInvoices] = useState({

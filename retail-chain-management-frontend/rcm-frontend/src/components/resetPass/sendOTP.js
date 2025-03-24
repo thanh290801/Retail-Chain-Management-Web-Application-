@@ -7,6 +7,7 @@ const ForgotPassword = () => {
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const api_url = process.env.REACT_APP_API_URL
 
     const handleSendOTP = async () => {
         try {
@@ -15,7 +16,7 @@ const ForgotPassword = () => {
                 return;
             }
             setError("");
-            const response = await axios.post("https://localhost:5000/api/resetpasss/send-otp", { username });
+            const response = await axios.post(`${api_url}/resetpasss/send-otp`, { username });
             setMessage(response.data.message);
             setTimeout(() => navigate("/reset-password", { state: { username } }), 2000);
         } catch (err) {

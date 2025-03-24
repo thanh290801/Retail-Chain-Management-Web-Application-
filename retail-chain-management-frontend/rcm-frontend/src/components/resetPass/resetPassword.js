@@ -11,6 +11,7 @@ const ResetPassword = () => {
     const [PasswordHash, setNewPassword] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const api_url = process.env.REACT_APP_API_URL
 
     const resetPassword = async () => {
         try {
@@ -19,7 +20,7 @@ const ResetPassword = () => {
                 return;
             }
             setError("");
-            const response = await axios.post("https://localhost:5000/api/resetpasss/confirm-reset", {
+            const response = await axios.post(`${api_url}/resetpasss/confirm-reset`, {
                 username,
                 otp,
                 PasswordHash,

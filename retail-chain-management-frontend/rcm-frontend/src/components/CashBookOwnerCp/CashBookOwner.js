@@ -15,6 +15,7 @@ const CashBookOwner = () => {
     const [searchKeyword, setSearchKeyword] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
+    const api_url = process.env.REACT_APP_API_URL
 
     useEffect(() => {
         fetchBranches(); // Lấy danh sách chi nhánh khi load trang
@@ -35,7 +36,7 @@ const CashBookOwner = () => {
                 return;
             }
 
-            const response = await axios.get("https://localhost:5000/api/CashBookOwner/branches", {
+            const response = await axios.get(`${api_url}/CashBookOwner/branches`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -66,7 +67,7 @@ const CashBookOwner = () => {
             if (fromDate) params.append("fromDate", fromDate);
             if (toDate) params.append("toDate", toDate);
 
-            const response = await axios.get(`https://localhost:5000/api/CashBookOwner/cashbook?${params.toString()}`, {
+            const response = await axios.get(`${api_url}/CashBookOwner/cashbook?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -96,7 +97,7 @@ const CashBookOwner = () => {
             if (fromDate) params.append("fromDate", fromDate);
             if (toDate) params.append("toDate", toDate);
 
-            const response = await axios.get(`https://localhost:5000/api/CashBookOwner/summary?${params.toString()}`, {
+            const response = await axios.get(`${api_url}/CashBookOwner/summary?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
