@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+<<<<<<< HEAD
 const Calculator = ({ 
     cartData, 
     cashGiven, 
@@ -11,6 +12,15 @@ const Calculator = ({
     onCashUpdate, 
     isReturn, 
     paymentMethod, 
+=======
+const Calculator = ({
+    cartData,
+    cashGiven,
+    change,
+    onCashUpdate,
+    isReturn,
+    paymentMethod,
+>>>>>>> origin/thanh
     onPaymentMethodChange,
     invoiceId,
     orderId, // ✅ Nhận orderId từ props
@@ -22,6 +32,10 @@ const Calculator = ({
     const [qrCode, setQrCode] = useState("");
 
     const token = localStorage.getItem("token");
+<<<<<<< HEAD
+=======
+    const api_url = process.env.REACT_APP_API_URL
+>>>>>>> origin/thanh
 
     useEffect(() => {
         let totalItems = cartData.reduce((total, item) =>
@@ -205,9 +219,15 @@ const Calculator = ({
                     UnitPrice: item.price
                 }))
             };
+<<<<<<< HEAD
     
             const response = await axios.post(
                 "https://localhost:5000/api/sale-invoice/order/create",
+=======
+
+            const response = await axios.post(
+                `${api_url}/sale-invoice/order/create`,
+>>>>>>> origin/thanh
                 requestData,
                 {
                     headers: {
@@ -216,6 +236,7 @@ const Calculator = ({
                     }
                 }
             );
+<<<<<<< HEAD
     
             // ✅ Hiển thị thông báo
             toast.success(`💰 Thanh toán thành công!`);
@@ -223,6 +244,15 @@ const Calculator = ({
             // ✅ Gọi `handleRemoveInvoice` để xóa hóa đơn sau khi thanh toán
             handleRemoveInvoice(invoiceId);
     
+=======
+
+            // ✅ Hiển thị thông báo
+            toast.success(`💰 Thanh toán thành công!`);
+
+            // ✅ Gọi `handleRemoveInvoice` để xóa hóa đơn sau khi thanh toán
+            handleRemoveInvoice(invoiceId);
+
+>>>>>>> origin/thanh
         } catch (error) {
             console.error("❌ Lỗi khi gọi API thanh toán:", error);
     
@@ -233,12 +263,20 @@ const Calculator = ({
                 toast.error("❌ Không thể kết nối đến server, kiểm tra mạng hoặc API.");
             }
         }
+<<<<<<< HEAD
     };    
+=======
+    };
+>>>>>>> origin/thanh
 
     const handleRefund = async () => {
         try {
             const response = await axios.post(
+<<<<<<< HEAD
                 "https://localhost:5000/api/sale-invoice/order/refund",
+=======
+                `${api_url}/sale-invoice/order/refund`,
+>>>>>>> origin/thanh
                 {
                     OrderId: orderId,
                     RefundProducts: cartData.map((item) => ({
@@ -254,7 +292,11 @@ const Calculator = ({
                     }
                 }
             );
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/thanh
             toast.success(`🔄 Hoàn tiền thành công!`);
             handleRemoveInvoice(invoiceId);
             setTimeout(() => {

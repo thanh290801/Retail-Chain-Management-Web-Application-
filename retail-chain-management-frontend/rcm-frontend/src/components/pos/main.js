@@ -10,8 +10,13 @@ import { IoArrowBackOutline } from "react-icons/io5";
 import { useMemo } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = "https://localhost:5000/api/sale-invoice";
+const api_url = process.env.REACT_APP_API_URL
 
+<<<<<<< HEAD
+=======
+const API_BASE_URL = `${api_url}/sale-invoice`;
+
+>>>>>>> origin/thanh
 const Main = () => {
     const [invoices, setInvoices] = useState({
         'Hóa đơn 1': { cart: [], cashGiven: 0, change: 0, paymentMethod: 'cash' }

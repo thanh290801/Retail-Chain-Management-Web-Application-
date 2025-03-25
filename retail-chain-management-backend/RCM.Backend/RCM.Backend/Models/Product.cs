@@ -39,5 +39,7 @@ namespace RCM.Backend.Models
         public virtual ICollection<StockLevel> StockLevels { get; set; }
         public virtual ICollection<SupplierProduct> SupplierProducts { get; set; }
         public virtual ICollection<WarehouseTransferDetail> WarehouseTransferDetails { get; set; }
+
+        public virtual ICollection<ProductPrice> ProductPrices { get; set; }
     }
 }

@@ -8,6 +8,7 @@ const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
+    const api_url = process.env.REACT_APP_API_URL
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -17,7 +18,7 @@ const LoginPage = () => {
         try {
             const mappedRole = role === 'Owner' ? 'Owner' : 'Staff';
 
-            const response = await axios.post('https://localhost:5000/api/Auth/login', {
+            const response = await axios.post(`${api_url}/Auth/login`, {
                 username,
                 password,
                 role: mappedRole
@@ -28,26 +29,32 @@ const LoginPage = () => {
             // Kiểm tra nếu response có data
             if (!response || !response.data) {
                 throw new Error('API không trả về dữ liệu hợp lệ.');
+                localStorage.clear();
             }
 
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('role', response.data.role);
                 localStorage.setItem('username', response.data.username);
-
+                localStorage.setItem('employeeId', response.data.employeeId);
                 if (response.data.role === 'Owner' && role === 'Owner') {
-                    navigate('/header');
+                    navigate('/revenue-summary-owner');
                 } else if (response.data.role === 'Staff' && role === 'Staff') {
                     navigate('/staffHome');
                 } else {
                     setErrorMessage('Quyền truy cập không phù hợp.');
+                    localStorage.clear();
                 }
             } else {
+                localStorage.clear();
+
                 setErrorMessage('Lỗi đăng nhập, vui lòng thử lại.');
             }
         } catch (error) {
             console.error("Lỗi đăng nhập:", error.response?.data || error.message);
             setErrorMessage('Tên đăng nhập hoặc mật khẩu không đúng.');
+            localStorage.clear();
+
         }
     };
 

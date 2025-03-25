@@ -2,25 +2,19 @@ import React, { useState } from 'react';
 import { useEffect } from "react";
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import axios from "axios";
 
 
 const Header = () => {
     const [activeDropdown, setActiveDropdown] = useState(null);
-    const [branchDropdown, setBranchDropdown] = useState(false);
     const [accountDropdown, setAccountDropdown] = useState(false);
-    const [showProfileModal, setShowProfileModal] = useState(false);
 
     const navigate = useNavigate();
-    const [userInfo, setUserInfo] = useState(null);
 
     const handleDropdown = (dropdownName) => {
         setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
     };
 
-    const toggleBranchDropdown = () => {
-        setBranchDropdown((prev) => !prev);
-    };
+
 
     const toggleAccountDropdown = () => {
         setAccountDropdown((prev) => !prev);
@@ -28,7 +22,6 @@ const Header = () => {
 
     const closeDropdown = () => {
         setActiveDropdown(null);
-        setBranchDropdown(false);
         setAccountDropdown(false);
     };
     useEffect(() => {
@@ -47,41 +40,22 @@ const Header = () => {
         // Reload lại trang để đảm bảo trạng thái mới
         window.location.href = "/login";
     };
-    const fetchUserInfo = async () => {
-        try {
-            const token = localStorage.getItem("token");
 
-            console.log("🛠 Token được gửi lên API:", token); // 🔥 Kiểm tra token có hợp lệ không
-
-            if (!token) {
-                console.error("❌ Không có token trong Local Storage! Người dùng có thể chưa đăng nhập.");
-                return;
-            }
-
-            const response = await axios.get("http://localhost:5000/api/Account/me", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            console.log("✅ Dữ liệu từ API:", response.data);
-            setUserInfo(response.data);
-        } catch (error) {
-            console.error("❌ Lỗi khi lấy thông tin người dùng:", error.response ? error.response.data : error);
-        }
-    };
 
 
     return (
         <>
             <header className="bg-white shadow-md">
-                <div className="flex items-center justify-between p-4 bg-blue-600">
+                <div className="flex items-center justify-between p-2 bg-blue-600">
                     <div className="flex items-center space-x-4">
                         <h1 className="text-2xl font-bold text-white">RCM</h1>
                         <nav className="flex space-x-4">
-                            <Link to="/home" className="text-white flex items-center">Tổng quan</Link>
+                            <button onClick={() => navigate("/revenue-summary-owner")} className="text-white flex items-center">
+                                Tổng quan
+                            </button>
                             <div
                                 className="relative"
-                                onMouseLeave={closeDropdown}
-                            >
+                                onMouseLeave={closeDropdown}>
                                 <button onClick={() => handleDropdown('goods')} className="text-white flex items-center">
                                     Hàng hóa
                                 </button>
@@ -133,15 +107,18 @@ const Header = () => {
                                 </button>
                                 {activeDropdown === 'employees' && (
                                     <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                        <Link to="/button10" className="block px-4 py-2 hover:bg-gray-200">Danh sách nhân viên</Link>
-                                        <Link to="/button11" className="block px-4 py-2 hover:bg-gray-200">Lương</Link>
+                                        <Link to="/staffmanage" className="block px-4 py-2 hover:bg-gray-200">Danh sách nhân viên</Link>
+                                        <Link to="/salary" className="block px-4 py-2 hover:bg-gray-200">Lương</Link>
+                                        <Link to="/attendance" className="block px-4 py-2 hover:bg-gray-200">Bảng chấm công</Link>
                                         <Link to="/button12" className="block px-4 py-2 hover:bg-gray-200">Thiết lập lương</Link>
+                                        <Link to="/requests" className="block px-4 py-2 hover:bg-gray-200">Danh sách tăng ca</Link>
                                     </div>
                                 )}
                             </div>
 
-                            <Link to="/cashBookOwner" className="text-white flex items-center">Sổ quỹ</Link>
-                            <Link to="/baocao" className="text-white flex items-center">Báo cáo</Link>
+                            <button onClick={() => navigate("/cashBookOwner")} className="text-white flex items-center">Sổ quỹ </button>
+                            <button onClick={() => navigate("/financial-report")} className="text-white flex items-center">Báo cáo tài chính </button>
+
                         </nav>
                     </div>
                     <div className="flex items-center space-x-4">
@@ -157,10 +134,7 @@ const Header = () => {
                             {accountDropdown && (
                                 <div className="absolute right-0 bg-white shadow-md rounded p-2">
                                     <button
-                                        onClick={() => {
-                                            fetchUserInfo();
-                                            setShowProfileModal(true)
-                                        }}
+                                        onClick={() => navigate("/profile")}
                                         className="block w-full text-left px-4 py-2 hover:bg-gray-200"
                                     >
                                         Thông tin người dùng
@@ -178,28 +152,7 @@ const Header = () => {
                     </div>
                 </div>
             </header>
-            {/* Modal Profile */}
-            {showProfileModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-                        <h2 className="text-xl font-bold mb-4">Thông tin người dùng</h2>
-                        {userInfo ? (
-                            <>
-                                <p><strong>Tên đăng nhập:</strong> {userInfo.username}</p>
-                                <p><strong>Vai trò:</strong> {userInfo.role}</p>
-                                <button
-                                    onClick={() => setShowProfileModal(false)}
-                                    className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
-                                >
-                                    ✖
-                                </button>
-                            </>
-                        ) : (
-                            <p>Đang tải dữ liệu...</p>
-                        )}
-                    </div>
-                </div>
-            )}
+
         </>
     );
 };
