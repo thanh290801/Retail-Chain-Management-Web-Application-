@@ -66,7 +66,7 @@ public IActionResult GetWarehouseById(int id)
     }
 
     // 📌 3. API Tạo Phiếu Điều Chuyển Kho
-    [HttpPost("transfer")]
+[HttpPost("transfer")]
 public async Task<IActionResult> TransferStock([FromBody] WarehouseTransferRequest request)
 {
     if (request == null)
@@ -96,7 +96,7 @@ public async Task<IActionResult> TransferStock([FromBody] WarehouseTransferReque
         ToWarehouseId = request.DestinationWarehouseId,
         TransferDate = DateTime.UtcNow,
         CreatedBy = request.CreatedBy,
-        Status = "pending"
+        Status = "Chưa chuyển" // ✅ Trạng thái mặc định mới
     };
 
     _context.WarehouseTransfers.Add(transfer);
@@ -107,32 +107,15 @@ public async Task<IActionResult> TransferStock([FromBody] WarehouseTransferReque
     {
         var transferDetail = new WarehouseTransferDetail
         {
-            TransferId = transfer.TransferId,  // ID của phiếu điều chuyển vừa tạo
+            TransferId = transfer.TransferId,
             ProductId = item.ProductId,
             Quantity = item.Quantity
         };
 
         _context.WarehouseTransferDetails.Add(transferDetail);
-
-        // 🔹 Cập nhật tồn kho trong kho nguồn
-        var stockSource = _context.StockLevels.FirstOrDefault(s =>
-            s.WarehouseId == request.SourceWarehouseId && s.ProductId == item.ProductId);
-
-        if (stockSource != null)
-        {
-            stockSource.Quantity -= item.Quantity;
-        }
-
-        // 🔹 Cập nhật tồn kho trong kho đích
-        var stockDestination = _context.StockLevels.FirstOrDefault(s =>
-            s.WarehouseId == request.DestinationWarehouseId && s.ProductId == item.ProductId);
-
-        if (stockDestination != null)
-        {
-            stockDestination.Quantity += item.Quantity;
-        }
     }
 
+    // ❌ Không cập nhật tồn kho ở đây nữa
     await _context.SaveChangesAsync();
 
     return Ok(new { message = "Phiếu điều chuyển đã được tạo thành công." });

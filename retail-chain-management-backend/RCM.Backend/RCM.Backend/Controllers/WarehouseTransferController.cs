@@ -19,80 +19,194 @@ namespace RCM.Backend.Controllers
             _context = context;
         }
 
-        // ✅ API 1: Danh sách điều chuyển (trả về ID kho)
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<WarehouseTransferDto>>> GetAllTransfers()
+        // ✅ API 1: Danh sách điều chuyển theo kho
+        [HttpGet("for-warehouse/{warehouseId}")]
+        public async Task<IActionResult> GetTransfersForWarehouse(int warehouseId)
         {
             var transfers = await _context.WarehouseTransfers
-                .OrderByDescending(w => w.TransferDate)
-                .Select(w => new WarehouseTransferDto
+                .Include(t => t.FromWarehouse)
+                .Include(t => t.ToWarehouse)
+                .Include(t => t.WarehouseTransferDetails)
+                    .ThenInclude(d => d.Product)
+                .Where(t =>
+                    (t.FromWarehouseId == warehouseId && t.Status == "Chưa chuyển") ||
+                    (t.ToWarehouseId == warehouseId && t.Status == "Đã chuyển hàng"))
+                .Select(t => new WarehouseTransferDto
                 {
-                    TransferId = w.TransferId,
-                    FromWarehouseId = w.FromWarehouseId,
-                    ToWarehouseId = w.ToWarehouseId,
-                    TransferDate = w.TransferDate,
-                    Status = w.Status
+                    TransferId = t.TransferId,
+                    Status = t.Status,
+                    TransferDate = t.TransferDate,
+                    FromWarehouse = new WarehouseBasicDto
+                    {
+                        WarehouseId = t.FromWarehouse.WarehousesId,
+                        Name = t.FromWarehouse.Name
+                    },
+                    ToWarehouse = new WarehouseBasicDto
+                    {
+                        WarehouseId = t.ToWarehouse.WarehousesId,
+                        Name = t.ToWarehouse.Name
+                    },
+                    Products = t.WarehouseTransferDetails.Select(d => new ProductTransferItemDto
+                    {
+                        ProductId = d.ProductId,
+                        ProductName = d.Product.Name,
+                        Quantity = d.Quantity
+                    }).ToList()
                 })
                 .ToListAsync();
 
             return Ok(transfers);
         }
 
-        // ✅ API 2: Chi tiết điều chuyển (trả về ID kho)
-        [HttpGet("{id}")]
-        public async Task<ActionResult<WarehouseTransferDetailDto>> GetTransferDetail(int id)
+        // ✅ API 2: Chi tiết điều chuyển theo ID
+        [HttpGet("detail/{id}")]
+        public async Task<IActionResult> GetTransferDetail(int id)
         {
             var transfer = await _context.WarehouseTransfers
-                .FirstOrDefaultAsync(w => w.TransferId == id);
+                .Include(t => t.FromWarehouse)
+                .Include(t => t.ToWarehouse)
+                .Include(t => t.WarehouseTransferDetails)
+                    .ThenInclude(d => d.Product)
+                .FirstOrDefaultAsync(t => t.TransferId == id);
 
             if (transfer == null)
                 return NotFound();
 
-            var details = await _context.WarehouseTransferDetails
-                .Where(d => d.TransferId == id)
-                .Include(d => d.Product)
-                .Select(d => new ProductTransferItemDto
+            var result = new WarehouseTransferDto
+            {
+                TransferId = transfer.TransferId,
+                Status = transfer.Status,
+                TransferDate = transfer.TransferDate,
+                FromWarehouse = new WarehouseBasicDto
+                {
+                    WarehouseId = transfer.FromWarehouseId,
+                    Name = transfer.FromWarehouse?.Name
+                },
+                ToWarehouse = new WarehouseBasicDto
+                {
+                    WarehouseId = transfer.ToWarehouseId,
+                    Name = transfer.ToWarehouse?.Name
+                },
+                Products = transfer.WarehouseTransferDetails.Select(d => new ProductTransferItemDto
                 {
                     ProductId = d.ProductId,
                     ProductName = d.Product.Name,
                     Quantity = d.Quantity
-                })
-                .ToListAsync();
-
-            var result = new WarehouseTransferDetailDto
-            {
-                TransferId = transfer.TransferId,
-                FromWarehouseId = transfer.FromWarehouseId,
-                ToWarehouseId = transfer.ToWarehouseId,
-                TransferDate = transfer.TransferDate,
-                Status = transfer.Status,
-                Notes = transfer.Notes,
-                Products = details
+                }).ToList()
             };
 
             return Ok(result);
         }
+
+        // ✅ API 3: Xác nhận chuyển hàng
+        [HttpPost("confirm-transfer")]
+        public async Task<IActionResult> ConfirmTransfer([FromBody] WarehouseTransferConfirmDto dto)
+        {
+            var transfer = await _context.WarehouseTransfers
+                .Include(t => t.WarehouseTransferDetails)
+                .FirstOrDefaultAsync(t => t.TransferId == dto.TransferId && t.FromWarehouseId == dto.EmployeeWarehouseId);
+
+            if (transfer == null || transfer.Status != "Chưa chuyển")
+                return BadRequest("Không tìm thấy đơn hoặc trạng thái không phù hợp.");
+
+            transfer.Status = "Đã chuyển hàng";
+
+            foreach (var detail in transfer.WarehouseTransferDetails)
+            {
+                var stock = await _context.StockLevels
+                    .FirstOrDefaultAsync(s => s.WarehouseId == transfer.FromWarehouseId && s.ProductId == detail.ProductId);
+
+                if (stock == null || stock.Quantity < detail.Quantity)
+                    return BadRequest($"Không đủ tồn kho sản phẩm {detail.ProductId}.");
+
+                stock.Quantity -= detail.Quantity;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok("Xác nhận chuyển hàng thành công.");
+        }
+
+        // ✅ API 4: Xác nhận nhận hàng
+        [HttpPost("confirm-receive")]
+        public async Task<IActionResult> ConfirmReceive([FromBody] WarehouseTransferConfirmDto dto)
+        {
+            var transfer = await _context.WarehouseTransfers
+                .Include(t => t.WarehouseTransferDetails)
+                .FirstOrDefaultAsync(t => t.TransferId == dto.TransferId && t.ToWarehouseId == dto.EmployeeWarehouseId);
+
+            if (transfer == null || transfer.Status != "Đã chuyển hàng")
+                return BadRequest("Không tìm thấy đơn hoặc trạng thái không phù hợp.");
+
+            transfer.Status = "Hoàn tất";
+
+            foreach (var detail in transfer.WarehouseTransferDetails)
+            {
+                var stock = await _context.StockLevels
+                    .FirstOrDefaultAsync(s => s.WarehouseId == transfer.ToWarehouseId && s.ProductId == detail.ProductId);
+
+                if (stock == null)
+                {
+                    stock = new StockLevel
+                    {
+                        WarehouseId = transfer.ToWarehouseId,
+                        ProductId = detail.ProductId,
+                        Quantity = 0
+                    };
+                    _context.StockLevels.Add(stock);
+                }
+
+                stock.Quantity += detail.Quantity;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok("Xác nhận nhận hàng thành công.");
+        }
+
+        [HttpGet("all")]
+public async Task<IActionResult> GetAllTransfersForOwner()
+{
+    var transfers = await _context.WarehouseTransfers
+        .Include(t => t.FromWarehouse)
+        .Include(t => t.ToWarehouse)
+        .OrderByDescending(t => t.TransferDate)
+        .Select(t => new
+        {
+            TransferId = t.TransferId,
+            TransferDate = t.TransferDate,
+            Status = t.Status,
+            FromWarehouse = new
+            {
+                t.FromWarehouse.WarehousesId,
+                t.FromWarehouse.Name
+            },
+            ToWarehouse = new
+            {
+                t.ToWarehouse.WarehousesId,
+                t.ToWarehouse.Name
+            }
+        })
+        .ToListAsync();
+
+    return Ok(transfers);
+}
+
     }
 
-    // DTOs
+    // ✅ DTOs
     public class WarehouseTransferDto
     {
         public int TransferId { get; set; }
-        public int FromWarehouseId { get; set; }
-        public int ToWarehouseId { get; set; }
+        public string Status { get; set; } = string.Empty;
         public DateTime? TransferDate { get; set; }
-        public string? Status { get; set; }
+        public WarehouseBasicDto FromWarehouse { get; set; }
+        public WarehouseBasicDto ToWarehouse { get; set; }
+        public List<ProductTransferItemDto> Products { get; set; } = new();
     }
 
-    public class WarehouseTransferDetailDto
+    public class WarehouseBasicDto
     {
-        public int TransferId { get; set; }
-        public int FromWarehouseId { get; set; }
-        public int ToWarehouseId { get; set; }
-        public DateTime? TransferDate { get; set; }
-        public string? Status { get; set; }
-        public string? Notes { get; set; }
-        public List<ProductTransferItemDto> Products { get; set; } = new();
+        public int WarehouseId { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 
     public class ProductTransferItemDto
@@ -100,5 +214,11 @@ namespace RCM.Backend.Controllers
         public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public int Quantity { get; set; }
+    }
+
+    public class WarehouseTransferConfirmDto
+    {
+        public int TransferId { get; set; }
+        public int EmployeeWarehouseId { get; set; }
     }
 }
