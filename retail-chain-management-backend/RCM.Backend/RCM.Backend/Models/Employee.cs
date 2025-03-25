@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RCM.Backend.Models
 {
@@ -19,8 +18,7 @@ namespace RCM.Backend.Models
         }
 
         public int EmployeeId { get; set; }
-        [ForeignKey("Account")]
-        public int AccountId { get; set; }  // 🔥 Đảm bảo đúng cột
+        public int? AccountId { get; set; }
         public string? ProfileImage { get; set; }
         public string FullName { get; set; } = null!;
         public string? Phone { get; set; }

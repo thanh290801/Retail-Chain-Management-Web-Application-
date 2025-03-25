@@ -69,7 +69,7 @@ public class ProductsController : ControllerBase
 
             return Ok(new
             {
-                message = $"Sản phẩm đã được {(product.IsEnabled ? "bật" : "tắt")}.",
+                message = $"Sản phẩm đã được {(product.IsEnabled.GetValueOrDefault() ? "bật" : "tắt")}.",
              product
             });
     }

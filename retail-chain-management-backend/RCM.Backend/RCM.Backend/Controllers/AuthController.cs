@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
     public IActionResult Login([FromBody] LoginRequest request)
     {
         var user = _context.Accounts
-            .Include(a => a.Employee) // Lấy thông tin nhân viên
+            .Include(a => a.Employees) // Lấy thông tin nhân viên
             .FirstOrDefault(a => a.Username == request.Username);
 
         // Kiểm tra xem tài khoản có tồn tại và mật khẩu có khớp không

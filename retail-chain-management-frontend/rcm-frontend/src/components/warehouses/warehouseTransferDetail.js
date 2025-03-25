@@ -70,7 +70,6 @@ const WarehouseTransferDetail = () => {
         <div><strong>Kho nguồn:</strong> {getWarehouseName(transfer.fromWarehouseId)}</div>
         <div><strong>Kho nhận:</strong> {getWarehouseName(transfer.toWarehouseId)}</div>
         <div><strong>Ngày tạo:</strong> {new Date(transfer.transferDate).toLocaleString()}</div>
-        <div><strong>Trạng thái:</strong> {transfer.status}</div>
         {transfer.notes && (
           <div><strong>Ghi chú:</strong> {transfer.notes}</div>
         )}

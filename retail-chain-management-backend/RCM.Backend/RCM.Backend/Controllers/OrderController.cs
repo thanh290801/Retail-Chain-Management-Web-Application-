@@ -28,15 +28,15 @@ namespace RCM.Backend.Controllers
             }
 
             var purchaseOrders = await _context.PurchaseOrders
-                .Include(po => po.Warehouse)
+                .Include(po => po.Warehouses)
                 .Include(po => po.Supplier)
                 .Include(po => po.PurchaseCosts)
-                .Where(po => po.Warehouse.WarehousesId == branchId)
+                .Where(po => po.Warehouses.WarehousesId == branchId)
                 .Select(po => new OrderDto
                 {
                     OrderId = po.PurchaseOrdersId,
                     CreatedDate = po.OrderDate ?? DateTime.MinValue,
-                    WarehouseName = po.Warehouse != null ? po.Warehouse.Name : "N/A",
+                    WarehouseName = po.Warehouses != null ? po.Warehouses.Name : "N/A",
                     SupplierName = po.Supplier != null ? po.Supplier.Name : "Không có nhà cung cấp",
                     TotalAmount = po.PurchaseCosts.FirstOrDefault() != null ? po.PurchaseCosts.First().TotalCost : 0,
                     PaymentStatus = po.Status
@@ -47,61 +47,60 @@ namespace RCM.Backend.Controllers
         }
 
         // ✅ API 2: Lấy chi tiết đơn nhập hàng
-        [HttpGet("{id}")]
-        public async Task<ActionResult<OrderDetailDto>> GetPurchaseOrder(int id, [FromQuery] int branchId)
+[HttpGet("{id}")]
+public async Task<ActionResult<OrderDetailDto>> GetPurchaseOrder(int id, [FromQuery] int branchId)
+{
+    if (branchId == 0)
+        return BadRequest("BranchId không hợp lệ.");
+
+    var purchaseOrder = await _context.PurchaseOrders
+        .Include(po => po.Warehouses)
+        .Include(po => po.Supplier)
+        .Include(po => po.PurchaseOrderItems).ThenInclude(poi => poi.Product)
+        .Include(po => po.PurchaseCosts)
+        .Include(po => po.Batches)
+        .FirstOrDefaultAsync(po => po.PurchaseOrdersId == id);
+
+    if (purchaseOrder == null)
+        return NotFound("Không tìm thấy đơn hàng.");
+
+    // ✅ Load batchDetails riêng biệt nếu auto include lỗi
+    var batchDetails = await _context.BatchDetails
+        .Where(bd => bd.PurchaseOrderId == id)
+        .Include(bd => bd.Product)
+        .ToListAsync();
+
+    var orderDetailDto = new OrderDetailDto
+    {
+        OrderId = purchaseOrder.PurchaseOrdersId,
+        CreatedDate = purchaseOrder.OrderDate ?? DateTime.MinValue,
+        WarehouseName = purchaseOrder.Warehouses?.Name ?? "Không có thông tin",
+        SupplierName = purchaseOrder.Supplier?.Name ?? "Không có nhà cung cấp",
+        TotalAmount = purchaseOrder.PurchaseCosts.FirstOrDefault()?.TotalCost ?? 0,
+        PaymentStatus = purchaseOrder.Status,
+        Products = purchaseOrder.PurchaseOrderItems.Select(poi => new OrderProductDto
         {
-            if (branchId == 0)
-            {
-                return BadRequest("BranchId không hợp lệ.");
-            }
+            ProductId = poi.ProductId,
+            ProductName = poi.Product?.Name ?? "N/A",
+            Unit = poi.Product?.Unit ?? "-",
+            OrderedQuantity = poi.QuantityOrdered,
+            ReceivedQuantity = poi.QuantityReceived,
+            PurchasePrice = _context.StockLevels
+                .Where(sl => sl.ProductId == poi.ProductId && sl.WarehouseId == purchaseOrder.WarehousesId)
+                .Select(sl => sl.PurchasePrice)
+                .FirstOrDefault() ?? 0
+        }).ToList(),
+        Batches = purchaseOrder.Batches.Select(b => new BatchDto
+        {
+            BatchId = b.BatchesId,
+            ReceivedDate = b.ReceivedDate,
+            TotalPrice = b.BatchPrices,
+            Status = b.Status
+        }).ToList()
+    };
 
-            var purchaseOrder = await _context.PurchaseOrders
-    .Include(po => po.Warehouse) // ✅ Đảm bảo lấy Warehouse
-    .Include(po => po.Supplier)  // ✅ Đảm bảo lấy Supplier
-    .Include(po => po.PurchaseOrderItems)
-        .ThenInclude(poi => poi.Product)
-    .Include(po => po.Batches)
-        .ThenInclude(b => b.BatchDetails)
-    .Include(po => po.PurchaseCosts)
-    .FirstOrDefaultAsync(po => po.PurchaseOrdersId == id);
-
-if (purchaseOrder == null)
-{
-    return NotFound("Không tìm thấy đơn hàng.");
+    return Ok(orderDetailDto);
 }
-
-// ✅ Cập nhật để tránh null
-var orderDetailDto = new OrderDetailDto
-{
-    OrderId = purchaseOrder.PurchaseOrdersId,
-    CreatedDate = purchaseOrder.OrderDate ?? DateTime.MinValue,
-    WarehouseName = purchaseOrder.Warehouse?.Name ?? "Không có thông tin",
-    SupplierName = purchaseOrder.Supplier?.Name ?? "Không có nhà cung cấp",
-    TotalAmount = purchaseOrder.PurchaseCosts.FirstOrDefault()?.TotalCost ?? 0,
-    PaymentStatus = purchaseOrder.Status,
-    Products = purchaseOrder.PurchaseOrderItems.Select(poi => new OrderProductDto
-    {
-        ProductId = poi.ProductId,
-        ProductName = poi.Product.Name,
-        Unit = poi.Product.Unit,
-        OrderedQuantity = poi.QuantityOrdered,
-        ReceivedQuantity = poi.QuantityReceived,
-        PurchasePrice = _context.StockLevels
-                        .Where(sl => sl.ProductId == poi.ProductId && sl.WarehouseId == purchaseOrder.WarehousesId)
-                        .Select(sl => sl.PurchasePrice)
-                        .FirstOrDefault() ?? 0,
-    }).ToList(),
-    Batches = purchaseOrder.Batches.Select(b => new BatchDto
-    {
-        BatchId = b.BatchesId,
-        ReceivedDate = b.ReceivedDate,
-        TotalPrice = b.BatchPrices,
-        Status = b.Status
-    }).ToList()
-};
-
-return Ok(orderDetailDto);
-        }
 
         // ✅ API 3: Nhận hàng và cập nhật trạng thái đơn nhập
         [HttpPost("{id}/receive")]
@@ -268,30 +267,46 @@ public class PurchaseOrderItemDto
     
     // ✅ DTOs (Data Transfer Objects)
     public class OrderDto
-    {
-        public int OrderId { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public string WarehouseName { get; set; }
-        public string SupplierName { get; set; }
-        public decimal TotalAmount { get; set; }
-        public string PaymentStatus { get; set; }
-    }
+{
+    public int OrderId { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public string WarehouseName { get; set; }
+    public string SupplierName { get; set; }
+    public decimal TotalAmount { get; set; }
+    public string PaymentStatus { get; set; }
+}
+
 
     public class OrderDetailDto : OrderDto
-    {
-        public List<OrderProductDto> Products { get; set; }
-        public List<BatchDto> Batches { get; set; }
-    }
+{
+    public List<OrderProductDto> Products { get; set; }
+    public List<BatchDto> Batches { get; set; }
+
+    // ✅ Thêm dòng này nếu chưa có
+    public List<BatchDetailDto> BatchDetails { get; set; }
+}
+
+public class BatchDetailDto
+{
+    public int BatchDetailId { get; set; }
+    public int BatchId { get; set; }
+    public int ProductId { get; set; }
+    public string ProductName { get; set; }
+    public int Quantity { get; set; }
+}
+
+
 
     public class OrderProductDto
-    {
-        public int ProductId { get; set; }
-        public string ProductName { get; set; }
-        public string Unit { get; set; }
-        public int OrderedQuantity { get; set; }
-        public int? ReceivedQuantity { get; set; }
-        public decimal PurchasePrice { get; set; }
-    }
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; }
+    public string Unit { get; set; }
+    public int OrderedQuantity { get; set; }
+    public int? ReceivedQuantity { get; set; }
+    public decimal PurchasePrice { get; set; }
+}
+
 
     public class ReceiveOrderDto
     {
@@ -306,11 +321,12 @@ public class PurchaseOrderItemDto
         public decimal PurchasePrice { get; set; }
     }
 
-    public class BatchDto
-    {
-        public int BatchId { get; set; }
-        public DateTime? ReceivedDate { get; set; }
-        public decimal TotalPrice { get; set; }
-        public string Status { get; set; }
-    }
+ public class BatchDto
+{
+    public int BatchId { get; set; }
+    public DateTime? ReceivedDate { get; set; }
+    public decimal TotalPrice { get; set; }
+    public string Status { get; set; }
+}
+
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
 
 namespace RCM.Backend.Models
 {
@@ -9,6 +7,7 @@ namespace RCM.Backend.Models
     {
         public Account()
         {
+            Employees = new HashSet<Employee>();
             ProductPriceHistories = new HashSet<ProductPriceHistory>();
             StockAdjustments = new HashSet<StockAdjustment>();
             StockAuditRecordAuditors = new HashSet<StockAuditRecord>();
@@ -16,15 +15,13 @@ namespace RCM.Backend.Models
             WarehouseTransfers = new HashSet<WarehouseTransfer>();
         }
 
-        [Key]
-        [Column("AccountID")]  // 🔥 Đảm bảo EF nhận đúng tên cột
         public int AccountId { get; set; }
         public string Username { get; set; } = null!;
         public string PasswordHash { get; set; } = null!;
         public string Role { get; set; } = null!;
         public bool? IsActive { get; set; }
 
-        public virtual Employee? Employee { get; set; }
+        public virtual ICollection<Employee> Employees { get; set; }
         public virtual ICollection<ProductPriceHistory> ProductPriceHistories { get; set; }
         public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
         public virtual ICollection<StockAuditRecord> StockAuditRecordAuditors { get; set; }

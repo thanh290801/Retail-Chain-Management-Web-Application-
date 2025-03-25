@@ -158,7 +158,6 @@ const WarehouseTransferHistory = () => {
             <th className="py-2 px-4 text-left">Kho nguồn</th>
             <th className="py-2 px-4 text-left">Kho nhận</th>
             <th className="py-2 px-4 text-left">Ngày tạo</th>
-            <th className="py-2 px-4 text-left">Trạng thái</th>
           </tr>
         </thead>
         <tbody>
@@ -172,7 +171,7 @@ const WarehouseTransferHistory = () => {
               <td className="py-2 px-4">{getWarehouseName(transfer.fromWarehouseId)}</td>
               <td className="py-2 px-4">{getWarehouseName(transfer.toWarehouseId)}</td>
               <td className="py-2 px-4">{new Date(transfer.transferDate).toLocaleDateString()}</td>
-              <td className="py-2 px-4">{transfer.status}</td>
+              
             </tr>
           ))}
         </tbody>

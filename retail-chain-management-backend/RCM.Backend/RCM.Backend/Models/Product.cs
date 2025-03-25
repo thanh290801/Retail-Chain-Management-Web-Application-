@@ -1,5 +1,4 @@
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace RCM.Backend.Models
@@ -28,7 +27,7 @@ namespace RCM.Backend.Models
         public decimal? Volume { get; set; }
         public string? ImageUrl { get; set; }
         public string? Category { get; set; }
-        public bool IsEnabled { get; set; }
+        public bool? IsEnabled { get; set; }
 
         public virtual ICollection<BatchDetail> BatchDetails { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
@@ -40,6 +39,5 @@ namespace RCM.Backend.Models
         public virtual ICollection<StockLevel> StockLevels { get; set; }
         public virtual ICollection<SupplierProduct> SupplierProducts { get; set; }
         public virtual ICollection<WarehouseTransferDetail> WarehouseTransferDetails { get; set; }
-
     }
 }
