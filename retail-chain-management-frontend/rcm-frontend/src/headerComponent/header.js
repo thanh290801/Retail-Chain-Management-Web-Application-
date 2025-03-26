@@ -107,16 +107,18 @@ const Header = () => {
                                 </button>
                                 {activeDropdown === 'employees' && (
                                     <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                        <Link to="/button10" className="block px-4 py-2 hover:bg-gray-200">Danh sách nhân viên</Link>
-                                        <Link to="/button11" className="block px-4 py-2 hover:bg-gray-200">Lương</Link>
+                                        <Link to="/staffmanage" className="block px-4 py-2 hover:bg-gray-200">Danh sách nhân viên</Link>
+                                        <Link to="/salary" className="block px-4 py-2 hover:bg-gray-200">Lương</Link>
+                                        <Link to="/attendance" className="block px-4 py-2 hover:bg-gray-200">Bảng chấm công</Link>
                                         <Link to="/button12" className="block px-4 py-2 hover:bg-gray-200">Thiết lập lương</Link>
+                                        <Link to="/requests" className="block px-4 py-2 hover:bg-gray-200">Danh sách tăng ca</Link>
                                     </div>
                                 )}
                             </div>
 
                             <button onClick={() => navigate("/cashBookOwner")} className="text-white flex items-center">Sổ quỹ </button>
+                            <button onClick={() => navigate("/financial-report")} className="text-white flex items-center">Báo cáo tài chính </button>
 
-                            <Link to="/baocao" className="text-white flex items-center">Báo cáo</Link>
                         </nav>
                     </div>
                     <div className="flex items-center space-x-4">

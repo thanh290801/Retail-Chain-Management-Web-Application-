@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // 🔹 Import useNavigate
+const api_url = process.env.REACT_APP_API_URL
 
 const CashHandoverForm = () => {
     const [formData, setFormData] = useState({
@@ -19,13 +20,20 @@ const CashHandoverForm = () => {
     const navigate = useNavigate(); // 🔹 Sử dụng useNavigate để chuyển trang
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        // Nếu là amount thì chuyển sang số
+        if (name === "amount") {
+            setFormData({ ...formData, [name]: parseFloat(value) });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("https://localhost:5000/api/CashHandover/create", formData);
+            const response = await axios.post(`${api_url}/CashHandover/create`, formData);
             setMessage(response.data.Message);
             setTimeout(() => navigate("/staffHome"), 1000);
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using static RCM.Backend.DTOs.ShiftDTO;
 
 namespace RCM.Backend.Models
 {
@@ -17,43 +18,41 @@ namespace RCM.Backend.Models
         }
 
         public virtual DbSet<Account> Accounts { get; set; } = null!;
-        public virtual DbSet<AttendanceRecord> AttendanceRecords { get; set; } = null!;
+        public virtual DbSet<AttendanceCheckIn> AttendanceCheckIns { get; set; } = null!;
+        public virtual DbSet<AttendanceCheckOut> AttendanceCheckOuts { get; set; } = null!;
         public virtual DbSet<Batch> Batches { get; set; } = null!;
         public virtual DbSet<BatchDetail> BatchDetails { get; set; } = null!;
-        public virtual DbSet<CashHandover> CashHandovers { get; set; } = null!;
-        public virtual DbSet<DailySalesReport> DailySalesReports { get; set; } = null!;
+        public virtual DbSet<Cash> Cashes { get; set; } = null!;
         public virtual DbSet<Employee> Employees { get; set; } = null!;
-        public virtual DbSet<EndShift> EndShifts { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
+        public virtual DbSet<OvertimeRecord> OvertimeRecords { get; set; } = null!;
+        public virtual DbSet<PenaltyPayment> PenaltyPayments { get; set; } = null!;
         public virtual DbSet<Product> Products { get; set; } = null!;
-        public virtual DbSet<ProductPriceHistory> ProductPriceHistories { get; set; } = null!;
-        public virtual DbSet<Promotion> Promotions { get; set; } = null!;
-        public virtual DbSet<PurchaseCost> PurchaseCosts { get; set; } = null!;
+        public virtual DbSet<ProductPrice> ProductPrices { get; set; } = null!;
         public virtual DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
+        public virtual DbSet<PurchaseCost> PurchaseCosts { get; set; } = null!;
+
         public virtual DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; } = null!;
         public virtual DbSet<Refund> Refunds { get; set; } = null!;
         public virtual DbSet<RefundDetail> RefundDetails { get; set; } = null!;
         public virtual DbSet<Salary> Salaries { get; set; } = null!;
-        public virtual DbSet<SalesReport> SalesReports { get; set; } = null!;
+        public virtual DbSet<SalaryPaymentHistory> SalaryPaymentHistories { get; set; } = null!;
         public virtual DbSet<StockAdjustment> StockAdjustments { get; set; } = null!;
         public virtual DbSet<StockAdjustmentDetail> StockAdjustmentDetails { get; set; } = null!;
         public virtual DbSet<StockAuditDetail> StockAuditDetails { get; set; } = null!;
         public virtual DbSet<StockAuditRecord> StockAuditRecords { get; set; } = null!;
         public virtual DbSet<StockLevel> StockLevels { get; set; } = null!;
-        public virtual DbSet<Supplier> Suppliers { get; set; } = null!;
-        public virtual DbSet<SupplierProduct> SupplierProducts { get; set; } = null!;
-        public virtual DbSet<Transaction> Transactions { get; set; } = null!;
-        public virtual DbSet<Warehouse> Warehouses { get; set; } = null!;
-        public virtual DbSet<WarehouseTransfer> WarehouseTransfers { get; set; } = null!;
-        public virtual DbSet<WarehouseTransferDetail> WarehouseTransferDetails { get; set; } = null!;
 
+        public virtual DbSet<Transaction> Transactions { get; set; } = null!;
+        public virtual DbSet<Supplier> Suppliers { get; set; } = null!;
+        public virtual DbSet<Warehouse> Warehouses { get; set; } = null!;
+        public virtual DbSet<ShiftSetting> ShiftSettings { get; set; } = null!;
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=DESKTOP-O39DRQL\\SQLEXPRESS;Database=RetailChain;Trusted_Connection=True;TrustServerCertificate=True");
+
             }
         }
 
@@ -75,7 +74,13 @@ namespace RCM.Backend.Models
                 entity.Property(e => e.Role).HasMaxLength(20);
 
                 entity.Property(e => e.Username).HasMaxLength(50);
+
+                entity.HasOne(e => e.Employee)
+    .WithOne(a => a.Account)
+    .HasForeignKey<Account>(e => e.EmployeeId)  // 🔥 Sửa lỗi FK
+    .HasConstraintName("FK_Account_Employee");
             });
+
 
             modelBuilder.Entity<AttendanceRecord>(entity =>
             {
@@ -92,6 +97,8 @@ namespace RCM.Backend.Models
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Attendanc__Emplo__10566F31");
             });
+
+
 
             modelBuilder.Entity<Batch>(entity =>
             {
@@ -1140,6 +1147,171 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.WarehouseTransferDetails)
                     .HasForeignKey(d => d.TransferId)
                     .HasConstraintName("FK__warehouse__trans__40F9A68C");
+            });
+
+            modelBuilder.Entity<ProductPrice>(entity =>
+            {
+                entity.ToTable("product_prices");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.EffectiveDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("effective_date")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18, 2)")
+                    .HasColumnName("price");
+
+                entity.Property(e => e.ProductId).HasColumnName("product_id");
+
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.ProductPrices)
+                    .HasForeignKey(d => d.ProductId)
+                    .HasConstraintName("FK__product_p__produ__02FC7413");
+            });
+            modelBuilder.Entity<ShiftSetting>(entity =>
+            {
+                entity.ToTable("ShiftSettings");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Month);
+                entity.Property(e => e.Year);
+                entity.Property(e => e.TotalShifts);
+            });
+            modelBuilder.Entity<SalaryPaymentHistory>(entity =>
+            {
+                entity.ToTable("SalaryPaymentHistory");
+
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Note).HasMaxLength(255);
+
+                entity.Property(e => e.PaymentDate).HasColumnType("date");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.SalaryPaymentHistories)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__SalaryPay__Emplo__787EE5A0");
+
+                entity.HasOne(d => d.Salary)
+                    .WithMany(p => p.SalaryPaymentHistories)
+                    .HasForeignKey(d => d.SalaryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__SalaryPay__Salar__0B91BA14");
+            });
+
+            modelBuilder.Entity<AttendanceCheckIn>(entity =>
+            {
+                entity.ToTable("AttendanceCheckIn");
+
+                entity.Property(e => e.AttendanceDate).HasColumnType("date");
+
+                entity.Property(e => e.CheckInTime).HasColumnType("datetime");
+
+                entity.Property(e => e.Shift).HasMaxLength(50);
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.AttendanceCheckIns)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__Attendanc__Emplo__18EBB532");
+            });
+
+            modelBuilder.Entity<AttendanceCheckOut>(entity =>
+            {
+                entity.ToTable("AttendanceCheckOut");
+
+                entity.Property(e => e.AttendanceDate).HasColumnType("date");
+
+                entity.Property(e => e.CheckOutTime).HasColumnType("datetime");
+
+                entity.Property(e => e.Shift).HasMaxLength(50);
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.AttendanceCheckOuts)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__Attendanc__Emplo__1BC821DD");
+            });
+
+            modelBuilder.Entity<OvertimeRecord>(entity =>
+            {
+                entity.Property(e => e.Date).HasColumnType("date");
+
+                entity.Property(e => e.IsApproved).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Reason).HasMaxLength(255);
+
+                entity.Property(e => e.TotalHours).HasColumnType("decimal(5, 2)");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.OvertimeRecords)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__OvertimeR__Emplo__160F4887");
+            });
+
+            modelBuilder.Entity<PenaltyPayment>(entity =>
+            {
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Note).HasMaxLength(255);
+
+                entity.Property(e => e.PaymentDate).HasColumnType("date");
+
+                entity.Property(e => e.Reason).HasMaxLength(255);
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.PenaltyPayments)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__PenaltyPa__Emplo__0E6E26BF");
+            });
+
+            modelBuilder.Entity<ProductPrice>(entity =>
+            {
+                entity.ToTable("product_prices");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.EffectiveDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("effective_date")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18, 2)")
+                    .HasColumnName("price");
+
+                entity.Property(e => e.ProductId).HasColumnName("product_id");
+
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.ProductPrices)
+                    .HasForeignKey(d => d.ProductId)
+                    .HasConstraintName("FK__product_p__produ__02FC7413");
+            });
+
+
+            modelBuilder.Entity<Cash>(entity =>
+            {
+                entity.ToTable("CASH");
+
+                entity.Property(e => e.Date).HasColumnType("date");
+
+                entity.Property(e => e.Note)
+                    .HasMaxLength(255)
+                    .HasColumnName("note");
+
+                entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
+
+                entity.HasOne(d => d.Branch)
+                    .WithMany(p => p.Cashes)
+                    .HasForeignKey(d => d.BranchId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__CASH__BranchId__7A672E12");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.Cashes)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__CASH__EmployeeId__73BA3083");
             });
 
             OnModelCreatingPartial(modelBuilder);

@@ -20,7 +20,11 @@ namespace RCM.Backend.Models
         public string PasswordHash { get; set; } = null!;
         public string Role { get; set; } = null!;
         public bool? IsActive { get; set; }
+        public string? ResetOtp { get; set; }
+        public DateTime? OtpexpireTime { get; set; }
+        public int? EmployeeId { get; set; }
 
+        public virtual Employee? Employee { get; set; }
         public virtual ICollection<Employee> Employees { get; set; }
         public virtual ICollection<ProductPriceHistory> ProductPriceHistories { get; set; }
         public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
