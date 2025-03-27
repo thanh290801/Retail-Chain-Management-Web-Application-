@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../headerComponent/header";
 import { toast } from "react-toastify";
+import { Tag } from "antd";
 
 const SalaryHistory = () => {
   const [data, setData] = useState([]);
@@ -11,14 +12,14 @@ const SalaryHistory = () => {
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isBonusModalOpen, setIsBonusModalOpen] = useState(false);
-  const [bonusSalary, setBonusSalary] = useState(0);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [fixedSalary, setUpdateSalary] = useState(0);
   const [penalty, setPenalty] = useState(0);
   const [modalStep, setModalStep] = useState(1);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paidAmount, setPaidAmount] = useState(0);
   const [paymentNote, setPaymentNote] = useState("");
-  const api_url = process.env.REACT_APP_API_URL
+  const api_url = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     fetchPayrollData();
@@ -71,28 +72,29 @@ const SalaryHistory = () => {
   };
 
   const openPaymentModal = (employee) => {
+    if (employee.totalWorkDays === 0) {
+      toast.error("Không thể thanh toán vì số ngày công bằng 0!");
+      return; // Không mở modal nếu số ngày công bằng 0
+    }
+
     setSelectedEmployee(employee);
     setPaidAmount(employee.totalSalary); // Mặc định lấy tổng lương
     setPaymentNote(""); // Reset note khi mở modal mới
     setIsPaymentModalOpen(true);
   };
-
   const handlePayment = async () => {
     try {
-      const response = await fetch(
-        `${api_url}/Payroll/pay-salary`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            employeeId: selectedEmployee.employeeId,
-            month: selectedMonth,
-            year: selectedYear,
-            paidAmount,
-            note: paymentNote, // Gửi ghi chú kèm theo
-          }),
-        }
-      );
+      const response = await fetch(`${api_url}/Payroll/pay-salary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeId: selectedEmployee.employeeId,
+          month: selectedMonth,
+          year: selectedYear,
+          paidAmount,
+          note: paymentNote, // Gửi ghi chú kèm theo
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`Lỗi: ${response.status} - ${response.statusText}`);
@@ -122,41 +124,51 @@ const SalaryHistory = () => {
     }
   };
 
-  const openBonusModal = (employee) => {
+  const openUpdateModal = (employee) => {
     setSelectedEmployee(employee);
-    setBonusSalary(employee.bonusSalary);
+    setUpdateSalary(employee.fixedSalary);
     setPenalty(employee.penalty);
-    setIsBonusModalOpen(true);
+    setIsUpdateModalOpen(true);
   };
 
   const updateSalary = async () => {
     try {
-      const response = await fetch(
-        `${api_url}/Payroll/update-salary`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            employeeId: selectedEmployee.employeeId,
-            fixedSalary: selectedEmployee.fixedSalary,
-            startDate: new Date().toISOString(),
-            endDate: new Date().toISOString(),
-            finalSalary: 0,
-            bonusSalary,
-            penalty: 0,
-          }),
-        }
-      );
+      const response = await fetch(`${api_url}/Payroll/update-salary`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeId: selectedEmployee.employeeId,
+          fixedSalary,
+          startDate: new Date().toISOString(),
+          endDate: new Date().toISOString(),
+          finalSalary: 0,
+          bonusSalary: 0,
+          status: "",
+        }),
+      });
       if (!response.ok) throw new Error("Cập nhật thất bại");
       toast.success("Cập nhật lương thành công!");
-      setIsBonusModalOpen(false);
+      setIsUpdateModalOpen(false);
       fetchPayrollData();
     } catch (error) {
       console.error("Lỗi khi cập nhật lương:", error);
       toast.error("Cập nhật thất bại!");
     }
   };
-
+  const formatCurrency = (value) => {
+    if (typeof value !== "string") return ""; // Kiểm tra kiểu dữ liệu
+    const numberValue = parseFloat(value.replace(/[^0-9]/g, ""));
+    return numberValue
+      ? new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(numberValue)
+      : "";
+  };
+  const handleSalaryChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, ""); // Chỉ lấy số
+    setUpdateSalary(value); // Lưu giá trị số vào state
+  };
   return (
     <div>
       <Header />
@@ -210,12 +222,13 @@ const SalaryHistory = () => {
                 <th className="border p-2 text-center">SĐT</th>
                 <th className="border p-2 text-center">Quê quán</th>
                 <th className="border p-2 text-center">Lương cố định</th>
-                <th className="border p-2 text-center">Lương ngày</th>
+                {/* <th className="border p-2 text-center">Lương ngày</th> */}
                 <th className="border p-2 text-center">Số ngày công</th>
                 <th className="border p-2 text-center">Số giờ tăng ca</th>
                 <th className="border p-2 text-center">Lương tăng ca</th>
                 {/* <th className="border p-2 text-center">Tiền thưởng</th> */}
                 <th className="border p-2 text-center">Tổng lương</th>
+                <th className="border p-2 text-center">Cập nhật lương</th>
                 <th className="border p-2 text-center">Thanh toán</th>
               </tr>
             </thead>
@@ -236,12 +249,12 @@ const SalaryHistory = () => {
                       currency: "VND",
                     }).format(item.fixedSalary)}
                   </td>
-                  <td className="border p-2 text-center">
+                  {/* <td className="border p-2 text-center">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(item.salaryPerShift)}
-                  </td>
+                  </td> */}
                   <td className="border p-2 text-center">
                     {item.totalWorkDays}
                   </td>
@@ -268,26 +281,30 @@ const SalaryHistory = () => {
                   </td>
                   <td className="border p-2 text-center font-bold">
                     <button
-                      className="bg-yellow-500 text-white px-2 py-1 rounded "
+                      className="bg-green-500 text-white px-2 py-1 rounded "
                       onClick={(e) => {
                         e.stopPropagation();
-                        openPaymentModal(item);
+                        openUpdateModal(item);
                       }}
                     >
-                      Thanh toán
+                      Cập nhật lương
                     </button>
                   </td>
-                  {/* <td className="border p-2 text-center font-bold">
-                    <button
-                      className="bg-yellow-500 text-white px-2 py-1 rounded "
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openBonusModal(item);
-                      }}
-                    >
-                      Thưởng tăng ca
-                    </button>
-                  </td> */}
+                  <td className="border p-2 text-center font-bold">
+                    {item.paymentStatus === "Đã Thanh Toán" ? (
+                      <Tag color="green">Đã Thanh Toán</Tag>
+                    ) : (
+                      <button
+                        className="bg-yellow-500 text-white px-2 py-1 rounded "
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPaymentModal(item);
+                        }}
+                      >
+                        Thanh toán
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -295,21 +312,21 @@ const SalaryHistory = () => {
         </div>
       </div>
       {/* Modal cập nhật lương */}
-      {/* {isBonusModalOpen && (
+      {isUpdateModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white p-5 rounded shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Cập Nhật Lương</h2>
-            <label className="block mb-2">Tiền thưởng:</label>
+          <div className="bg-white p-5 rounded shadow-lg w-96" style={{ width: "660px" }}>
+            <h2 className="text-xl font-bold mb-4">Cập Nhật Lương Của {selectedEmployee.employeeName}</h2>
+            <label className="block mb-2">Tiền lương cần cập nhật:</label>
             <input
-              type="number"
-              value={bonusSalary}
-              onChange={(e) => setBonusSalary(e.target.value)}
+              type="text"
+              value={formatCurrency(fixedSalary.toString())}
+              onChange={handleSalaryChange}
               className="border p-2 w-full mb-4"
             />
             <div className="flex justify-end space-x-2">
               <button
                 className="bg-gray-500 text-white px-4 py-2 rounded"
-                onClick={() => setIsBonusModalOpen(false)}
+                onClick={() => setIsUpdateModalOpen(false)}
               >
                 Hủy
               </button>
@@ -322,7 +339,7 @@ const SalaryHistory = () => {
             </div>
           </div>
         </div>
-      )} */}
+      )}
       {/* Modal thông tin lương nhân viên */}
       {isDetailModalOpen && selectedEmployee && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
@@ -342,7 +359,7 @@ const SalaryHistory = () => {
                   { label: "Họ tên", value: selectedEmployee.employeeName },
                   { label: "Số điện thoại", value: selectedEmployee.phone },
                   { label: "CCCD", value: selectedEmployee.identityNumber },
-                  { label: "Địa chỉ", value: selectedEmployee.currentAddress },
+                  // { label: "Địa chỉ", value: selectedEmployee.currentAddress },
                   { label: "Quê quán", value: selectedEmployee.hometown },
                   {
                     label: "Lương ngày",
@@ -355,10 +372,10 @@ const SalaryHistory = () => {
                     label: "Số ngày công",
                     value: selectedEmployee.totalWorkDays,
                   },
-                  {
-                    label: "Số ca làm việc",
-                    value: selectedEmployee.totalShifts,
-                  },
+                  // {
+                  //   label: "Số ca làm việc",
+                  //   value: selectedEmployee.totalShifts,
+                  // },
                   {
                     label: "Số giờ tăng ca",
                     value: selectedEmployee.totalOvertimeHours,
@@ -370,13 +387,13 @@ const SalaryHistory = () => {
                       currency: "VND",
                     }).format(selectedEmployee.overtimePay),
                   },
-                  {
-                    label: "Tiền thưởng",
-                    value: new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    }).format(selectedEmployee.bonusSalary),
-                  },
+                  // {
+                  //   label: "Tiền thưởng",
+                  //   value: new Intl.NumberFormat("vi-VN", {
+                  //     style: "currency",
+                  //     currency: "VND",
+                  //   }).format(selectedEmployee.bonusSalary),
+                  // },
                   {
                     label: "Tổng lương",
                     value: new Intl.NumberFormat("vi-VN", {
