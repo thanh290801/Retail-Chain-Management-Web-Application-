@@ -3043,8 +3043,7 @@
             "nullable": true
           },
           "isDeleted": {
-            "type": "boolean",
-            "nullable": true
+            "type": "boolean"
           },
           "employee": {
             "$ref": "#/components/schemas/Employee"

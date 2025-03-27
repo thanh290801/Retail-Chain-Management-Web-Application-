@@ -16,6 +16,7 @@ import Header from "../../headerComponent/header";
 import { toast } from "react-toastify";
 import "dayjs/locale/vi";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 dayjs.locale("vi");
 dayjs.extend(isBetween);
@@ -28,6 +29,7 @@ const AttendanceTable = () => {
   const { id } = useParams();
   const localEmployeeId = localStorage.getItem("employeeId");
   const employeeId = id || localEmployeeId;
+  const navigate = useNavigate();
 
   // Kiểm tra nếu employeeId lấy từ localStorage = id từ URL
   const isCheckInRoute = window.location.pathname === "/checkin";
@@ -220,42 +222,42 @@ const AttendanceTable = () => {
 
         morningCheckIn: morningShift?.checkInTime
           ? dayjs(morningShift.checkInTime, [
-              "DD/MM/YYYY HH:mm:ss",
-              "YYYY-MM-DDTHH:mm:ss",
-            ]).format("HH:mm:ss")
+            "DD/MM/YYYY HH:mm:ss",
+            "YYYY-MM-DDTHH:mm:ss",
+          ]).format("HH:mm:ss")
           : "-",
 
         morningCheckOut: morningShift?.checkOutTime
           ? dayjs(morningShift.checkOutTime, [
-              "DD/MM/YYYY HH:mm:ss",
-              "YYYY-MM-DDTHH:mm:ss",
-            ]).format("HH:mm:ss")
+            "DD/MM/YYYY HH:mm:ss",
+            "YYYY-MM-DDTHH:mm:ss",
+          ]).format("HH:mm:ss")
           : "-",
 
         afternoonCheckIn: afternoonShift?.checkInTime
           ? dayjs(afternoonShift.checkInTime, [
-              "DD/MM/YYYY HH:mm:ss",
-              "YYYY-MM-DDTHH:mm:ss",
-            ]).format("HH:mm:ss")
+            "DD/MM/YYYY HH:mm:ss",
+            "YYYY-MM-DDTHH:mm:ss",
+          ]).format("HH:mm:ss")
           : "-",
 
         afternoonCheckOut: afternoonShift?.checkOutTime
           ? dayjs(afternoonShift.checkOutTime, [
-              "DD/MM/YYYY HH:mm:ss",
-              "YYYY-MM-DDTHH:mm:ss",
-            ]).format("HH:mm:ss")
+            "DD/MM/YYYY HH:mm:ss",
+            "YYYY-MM-DDTHH:mm:ss",
+          ]).format("HH:mm:ss")
           : "-",
 
         morningStatus: isFutureDate
           ? "-"
           : morningShift
-          ? getStatus(morningShift)
-          : "-",
+            ? getStatus(morningShift)
+            : "-",
         afternoonStatus: isFutureDate
           ? "-"
           : afternoonShift
-          ? getStatus(afternoonShift)
-          : "-",
+            ? getStatus(afternoonShift)
+            : "-",
       });
     }
 
@@ -271,8 +273,11 @@ const AttendanceTable = () => {
 
   return (
     <div>
-      <Header />
-      <div className="m-10 flex justify-between">
+      <button
+        onClick={() => navigate("/staffHome")}
+        className="px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold shadow-md">
+        Quay lại
+      </button>      <div className="m-10 flex justify-between">
         <h2 className="uppercase">Bảng Chấm Công Theo Tháng</h2>
         <div className="flex gap-2">
           <Select value={selectedMonth} onChange={setSelectedMonth}>
