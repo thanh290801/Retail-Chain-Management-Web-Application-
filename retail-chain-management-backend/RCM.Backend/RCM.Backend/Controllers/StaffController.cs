@@ -165,8 +165,9 @@ namespace RCM.Backend.Controllers
             var newAccount = new Account
             {
                 Username = request.Username,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.PasswordHash),
-                Role = request.Role
+                PasswordHash = /*BCrypt.Net.BCrypt.HashPassword(request.PasswordHash)*/(request.PasswordHash),
+                Role = request.Role,
+                EmployeeId= request.Id
             };
 
             _context.Accounts.Add(newAccount);
