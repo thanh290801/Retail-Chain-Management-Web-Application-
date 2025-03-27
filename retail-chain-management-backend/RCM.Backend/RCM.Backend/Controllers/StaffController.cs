@@ -28,8 +28,8 @@ namespace RCM.Backend.Controllers
                 .Join(_context.Accounts,
                       e => e.AccountId,
                       a => a.AccountId,
-                      (e, a) => new { Employee = e, Account = a }) 
-                .Where(ea => ea.Account.Role == "Staff"); 
+                      (e, a) => new { Employee = e, Account = a })
+                .Where(ea => ea.Account.Role == "Staff");
 
             if (!string.IsNullOrEmpty(name))
             {
@@ -51,7 +51,7 @@ namespace RCM.Backend.Controllers
                     BranchId = ea.Employee.BranchId,
                     IsStaff = true,
                     Username = ea.Account.Username,
-                    Role =ea.Account.Role
+                    Role = ea.Account.Role
                 })
                 .ToList();
 
@@ -62,13 +62,13 @@ namespace RCM.Backend.Controllers
         [HttpGet("{id}")]
         public IActionResult GetStaffById(int id)
         {
-            var employeeData = _context.Employees.Include(a=>a.Account).FirstOrDefault(a => a.EmployeeId == id);
+            var employeeData = _context.Employees.Include(a => a.Account).FirstOrDefault(a => a.EmployeeId == id);
 
-            if(employeeData == null)
+            if (employeeData == null)
             {
                 return NotFound(new { message = "Không tìm thấy nhân viên!" });
             }
-    
+
 
             EmployeeDTO employeeDTO = new EmployeeDTO
             {
@@ -83,14 +83,12 @@ namespace RCM.Backend.Controllers
                 StartDate = employeeData.StartDate,
                 BranchId = employeeData.BranchId,
                 IsStaff = true,
-                Username = employeeData.Account !=null ?employeeData.Account.Username : "" ,
+                Username = employeeData.Account != null ? employeeData.Account.Username : "",
                 Role = employeeData.Account != null ? employeeData.Account.Role : "",
                 //CurrentAddress = employeeData.CurrentAddress,
-                IdentityNumber = employeeData.IdentityNumber
+                IdentityNumber = employeeData.IdentityNumber,
+                FixedSalary = employeeData.FixedSalary
             };
-
-            var employeeSalaries = _context.Salaries.OrderBy(a=>a.StartDate).FirstOrDefault(a => a.EmployeeId == id);
-            employeeDTO.FixedSalary = employeeSalaries?.FixedSalary;
 
 
             var penalties = _context.PenaltyPayments
@@ -160,7 +158,7 @@ namespace RCM.Backend.Controllers
                 Username = request.Username,
                 PasswordHash = /*BCrypt.Net.BCrypt.HashPassword(request.PasswordHash)*/(request.PasswordHash),
                 Role = request.Role,
-                EmployeeId= request.Id
+                EmployeeId = request.Id
             };
 
             _context.Accounts.Add(newAccount);
@@ -182,10 +180,10 @@ namespace RCM.Backend.Controllers
                 StartDate = DateTime.Now,
                 BranchId = request.BranchId,
                 AccountId = newAccount.AccountId,
-        
+
             };
 
-             _context.Employees.Add(newEmployee);
+            _context.Employees.Add(newEmployee);
             _context.SaveChanges();
 
 
@@ -303,7 +301,7 @@ namespace RCM.Backend.Controllers
                                 IdentityNumber = worksheet.Cells[row, 4].Value?.ToString(),
                                 Hometown = worksheet.Cells[row, 5].Value?.ToString(),
                                 //CurrentAddress = worksheet.Cells[row, 6].Value?.ToString(),
-                                Phone= phoneNumber,
+                                Phone = phoneNumber,
                                 WorkShiftId = workShiftId,
                                 FixedSalary = fixedSalary,
                                 IsActive = true,
