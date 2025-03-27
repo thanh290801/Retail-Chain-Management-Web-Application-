@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RCM.Backend.DTO;
@@ -201,7 +202,11 @@ public class PayrollController : ControllerBase
                 };
                 _context.Salaries.Add(salaryRecord);
             }
-
+            bool hasReceivedSalary = await _context.SalaryPaymentHistories
+        .AnyAsync(p =>
+                       p.PaymentDate.HasValue &&
+                       p.PaymentDate.Value.Month == month &&
+                       p.PaymentDate.Value.Year == year);
             salaryRecords.Add(new
             {
                 salaryRecord.EmployeeId,
@@ -210,12 +215,14 @@ public class PayrollController : ControllerBase
                 FixedSalary = salaryRecord.FixedSalary ?? 0,
                 SalaryPerShift = (int)salaryPerShift,
                 TotalWorkDays = totalWorkDays,
+                FinalSalary = salaryRecord.FinalSalary ?? 0,
                 Shifts = shiftDetailsDict.ContainsKey(employee.EmployeeId) ? shiftDetailsDict[employee.EmployeeId] : new List<ShiftDetail>(),
                 TotalOvertimeHours = totalOvertimeHours,
                 OvertimePay = (int)overtimePay,
                 TotalSalary = salaryRecord.FinalSalary ?? 0,
                 IdentityNumber = employee.IdentityNumber,
-                Hometown = employee.Hometown
+                Hometown = employee.Hometown,
+                PaymentStatus = hasReceivedSalary ? "Đã thanh toán" : "Chưa thanh toán"
             });
         }
 
@@ -223,11 +230,12 @@ public class PayrollController : ControllerBase
         return Ok(salaryRecords);
     }
 
+
     [HttpGet("details")]
     public async Task<IActionResult> GetPayrollDetails(
-        [FromQuery] int employeeId,
-        [FromQuery] int month,
-        [FromQuery] int year)
+    [FromQuery] int employeeId,
+    [FromQuery] int month,
+    [FromQuery] int year)
     {
         var startDate = new DateTime(year, month, 1);
         var endDate = startDate.AddMonths(1).AddDays(-1);
@@ -479,19 +487,20 @@ public class PayrollController : ControllerBase
 
         bool hasReceivedSalary = await _context.SalaryPaymentHistories
             .AnyAsync(p => p.EmployeeId == request.EmployeeId &&
-                          p.PaymentDate.HasValue &&
-                          p.PaymentDate.Value.Month == month &&
-                          p.PaymentDate.Value.Year == year);
+                           p.PaymentDate.HasValue &&
+                           p.PaymentDate.Value.Month == month &&
+                           p.PaymentDate.Value.Year == year);
 
-        if (hasReceivedSalary && request.FixedSalary.HasValue && request.FixedSalary != salaryRecord.FixedSalary)
+        // Check if salary has been paid and FixedSalary is being modified
+        if (hasReceivedSalary && request.FixedSalary.HasValue)
         {
             return BadRequest("Không thể cập nhật FixedSalary vì lương đã được thanh toán.");
         }
 
         int totalWorkDays = await _context.AttendanceCheckIns
             .Where(ci => ci.EmployeeId == request.EmployeeId &&
-                        ci.AttendanceDate.Month == month &&
-                        ci.AttendanceDate.Year == year)
+                         ci.AttendanceDate.Month == month &&
+                         ci.AttendanceDate.Year == year)
             .Join(_context.AttendanceCheckOuts,
                 ci => new { ci.EmployeeId, ci.AttendanceDate, ci.Shift },
                 co => new { co.EmployeeId, co.AttendanceDate, co.Shift },
@@ -509,7 +518,8 @@ public class PayrollController : ControllerBase
         decimal overtimeRate = 50000;
         decimal overtimePay = totalOvertimeHours * overtimeRate;
 
-        if (request.FixedSalary.HasValue)
+        // Update FixedSalary only if it hasn't been paid and a new value is provided
+        if (!hasReceivedSalary && request.FixedSalary.HasValue)
         {
             if (request.FixedSalary < 0)
             {
@@ -544,7 +554,6 @@ public class PayrollController : ControllerBase
             TotalSalary = salaryRecord.FinalSalary
         });
     }
-
     [HttpPost("request-overtime")]
     public async Task<IActionResult> RequestOvertime([FromBody] OvertimeRequestDTO request)
     {
