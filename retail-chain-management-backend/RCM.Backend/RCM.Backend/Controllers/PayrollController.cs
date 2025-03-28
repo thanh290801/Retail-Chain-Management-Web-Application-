@@ -32,7 +32,7 @@ public class SalaryPaymentDTO
     public int Month { get; set; }
     public int Year { get; set; }
     public int PaidAmount { get; set; }
-    public string Note { get; set; }
+    public string? Note { get; set; }
 }
 
 public class ShiftDetail
@@ -237,17 +237,42 @@ public class PayrollController : ControllerBase
         return Ok(salaryRecords);
     }
 
+    [HttpPost("getSalaryList")]
+    public async Task<IActionResult> GetSalaryList(
+        [FromQuery] string? search,
+        [FromQuery] int? month,
+        [FromQuery] int? year)
+    {
+        var salaryList = _context.Salaries;
+
+        if (month != null && year != null)
+            salaryList.Where(a => a.StartDate.Value.Month == month
+            && a.StartDate.Value.Year == year
+            && a.EndDate.Value.Month == month
+            && a.EndDate.Value.Year == year);
+
+        return Ok(salaryList.ToList());
+    }
+
     [HttpPost("add-to-salary-record")]
     public async Task<IActionResult> AddToSalaryRecord(
-        [FromBody] AddSalaryRequestDTO addSalaryRequestDTO)
+   [FromBody] AddSalaryRequestDTO addSalaryRequestDTO)
     {
         var fixedSalary = addSalaryRequestDTO.FixedSalary;
         int month = addSalaryRequestDTO.Month;
         int year = addSalaryRequestDTO.Year;
         int staffId = addSalaryRequestDTO.StaffId;
-        if (fixedSalary <= 0)
+
+        bool hasReceivedSalary = await _context.SalaryPaymentHistories
+    .AnyAsync(p => p.EmployeeId == addSalaryRequestDTO.StaffId &&
+                   p.PaymentDate.HasValue &&
+                   p.PaymentDate.Value.Month == month &&
+                   p.PaymentDate.Value.Year == year);
+
+        // Check if salary has been paid and FixedSalary is being modified
+        if (hasReceivedSalary)
         {
-            return BadRequest(new { Message = "Lương cố định phải lớn hơn 0" });
+            return BadRequest(new { Message = "Không thể tính lại lương vì lương đã được thanh toán." });
         }
 
         var shiftSetting = await _context.ShiftSettings
@@ -728,7 +753,7 @@ public class PayrollController : ControllerBase
     {
         if (request.EmployeeId <= 0 || request.Month < 1 || request.Month > 12 || request.Year < 2000 || request.PaidAmount < 0)
         {
-            return BadRequest("Dữ liệu yêu cầu không hợp lệ.");
+            return BadRequest(new { Message = "Dữ liệu yêu cầu không hợp lệ." });
         }
 
         var salaryRecord = await _context.Salaries
@@ -740,12 +765,12 @@ public class PayrollController : ControllerBase
 
         if (salaryRecord == null)
         {
-            return NotFound("Không tìm thấy bảng lương của nhân viên trong tháng và năm đã cho.");
+            return NotFound(new { Message = "Không tìm thấy bảng lương của nhân viên trong tháng và năm đã cho." });
         }
 
         if (salaryRecord.FinalSalary == null || salaryRecord.FinalSalary <= 0)
         {
-            return BadRequest("Lương cuối cùng chưa được tính hoặc bằng 0, không thể thanh toán.");
+            return BadRequest(new { Message = "Lương cuối cùng chưa được tính hoặc bằng 0, không thể thanh toán." });
         }
 
         // Tính tổng số tiền đã thanh toán trước đó
@@ -761,12 +786,12 @@ public class PayrollController : ControllerBase
 
         if (remainingAmount <= 0)
         {
-            return BadRequest("Lương của nhân viên đã được thanh toán đầy đủ.");
+            return BadRequest(new { Message = "Lương của nhân viên đã được thanh toán đầy đủ." });
         }
 
         if (request.PaidAmount > remainingAmount)
         {
-            return BadRequest($"Số tiền thanh toán ({request.PaidAmount}) vượt quá số tiền còn lại ({remainingAmount}).");
+            return BadRequest(new { Message = $"Số tiền thanh toán ({request.PaidAmount}) vượt quá số tiền còn lại ({remainingAmount})." });
         }
 
         // Thêm bản ghi thanh toán vào lịch sử
