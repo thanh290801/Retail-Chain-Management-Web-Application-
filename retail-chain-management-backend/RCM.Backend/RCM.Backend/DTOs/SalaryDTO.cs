@@ -11,6 +11,6 @@
         public int? FinalSalary { get; set; }
         public string Status { get; set; } = "Pending";
     }
-  
+
 
 }

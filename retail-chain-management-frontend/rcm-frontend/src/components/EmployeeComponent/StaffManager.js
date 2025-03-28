@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Header from "../../headerComponent/header";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function StaffManager() {
   const [staffList, setStaffList] = useState([]);
@@ -21,6 +23,11 @@ export default function StaffManager() {
       fixedSalary: "",
     },
   });
+  const navigate = useNavigate();
+
+  const goToSalaryCal = (staffId) => {
+    navigate(`/salary/${staffId}`);
+  };
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       fetchStaff(searchTerm);
@@ -312,6 +319,12 @@ export default function StaffManager() {
                       }}
                     >
                       Sửa
+                    </button>
+                    <button
+                      onClick={(e) => goToSalaryCal(staff.id)}
+                      className="bg-green-500 text-white px-2 py-1 rounded"
+                    >
+                      Tính lương cho nhân viên
                     </button>
                   </td>
                 </tr>

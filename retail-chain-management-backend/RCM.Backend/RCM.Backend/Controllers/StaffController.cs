@@ -87,7 +87,7 @@ namespace RCM.Backend.Controllers
                 Role = employeeData.Account != null ? employeeData.Account.Role : "",
                 //CurrentAddress = employeeData.CurrentAddress,
                 IdentityNumber = employeeData.IdentityNumber,
-                FixedSalary = employeeData.FixedSalary,
+                FixedSalary = employeeData.FixedSalary
             };
 
             var penalties = _context.PenaltyPayments
@@ -167,7 +167,7 @@ namespace RCM.Backend.Controllers
                 Username = request.Username,
                 PasswordHash = /*BCrypt.Net.BCrypt.HashPassword(request.PasswordHash)*/(request.PasswordHash),
                 Role = request.Role,
-                EmployeeId= request.Id
+                EmployeeId = request.Id
             };
 
             _context.Accounts.Add(newAccount);
