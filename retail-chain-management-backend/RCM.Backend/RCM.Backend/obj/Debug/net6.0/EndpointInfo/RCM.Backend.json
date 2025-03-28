@@ -2071,6 +2071,10 @@
           "password": {
             "type": "string",
             "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -3043,8 +3047,7 @@
             "nullable": true
           },
           "isDeleted": {
-            "type": "boolean",
-            "nullable": true
+            "type": "boolean"
           },
           "employee": {
             "$ref": "#/components/schemas/Employee"

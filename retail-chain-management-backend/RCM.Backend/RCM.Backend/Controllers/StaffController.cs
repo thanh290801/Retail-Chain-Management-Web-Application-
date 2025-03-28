@@ -90,7 +90,6 @@ namespace RCM.Backend.Controllers
                 FixedSalary = employeeData.FixedSalary
             };
 
-
             var penalties = _context.PenaltyPayments
                 .Where(p => p.EmployeeId == id)
                 .Select(p => new { p.Amount, p.Note })
@@ -106,7 +105,7 @@ namespace RCM.Backend.Controllers
         [HttpPut("update-employee/{id}")]
         public IActionResult UpdateEmployee(int id, [FromBody] EmployeeDTO request)
         {
-            var employee = _context.Employees.FirstOrDefault(e => e.EmployeeId == id);
+            var employee = _context.Employees.Include(a => a.Salaries).FirstOrDefault(e => e.EmployeeId == id);
             if (employee == null)
             {
                 return NotFound(new { message = "Employee not found!" });
@@ -135,6 +134,16 @@ namespace RCM.Backend.Controllers
             employee.BranchId = request.BranchId ?? employee.BranchId;
 
             _context.SaveChanges();
+            if (employee.Salaries != null)
+            {
+                foreach (var item in employee.Salaries)
+                {
+                    item.FixedSalary = request.FixedSalary;
+                }
+            }
+
+            _context.SaveChanges();
+
 
             return Ok(new { message = "Employee updated successfully!" });
         }
