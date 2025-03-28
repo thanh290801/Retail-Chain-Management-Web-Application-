@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom"; // Import useNavigate nếu sử dụng React Router
+import Header from "../../headerComponent/header";
 
 
 const ProductStockForOwner = () => {
@@ -12,9 +13,12 @@ const ProductStockForOwner = () => {
     const [updatedPrices, setUpdatedPrices] = useState({});
     const [searchTerm, setSearchTerm] = useState(""); // Giữ trạng thái search khi đổi kho
     const [showLowStock, setShowLowStock] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 10;
+
 
     useEffect(() => {
-        fetch("https://localhost:5000/api/warehouses")
+        fetch("https://localhost:5000/api/warehouse")
             .then(response => response.json())
             .then(data => {
                 setWarehouses(data);
@@ -25,7 +29,7 @@ const ProductStockForOwner = () => {
 
     useEffect(() => {
         if (selectedWarehouse) {
-            fetch(`https://localhost:5000/api/warehouses/${selectedWarehouse}/products`)
+            fetch(`https://localhost:5000/api/warehouse/${selectedWarehouse}/products`)
                 .then(response => response.json())
                 .then(data => setProducts(data))
                 .catch(error => console.error("Error fetching stock:", error));
@@ -72,9 +76,19 @@ const ProductStockForOwner = () => {
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    // Tính toán phân trang
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
 
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+    const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
     return (
+        <div>
+             <Header/>
         <div className="p-6 bg-white rounded-lg shadow-md">
+           
             <div className="mb-4 flex justify-between items-center">
                 {/* Select Kho */}
                 <select 
@@ -169,6 +183,13 @@ const ProductStockForOwner = () => {
                     ))}
                 </tbody>
             </table>
+            {/* Phân trang */}
+            <div className="flex justify-center mt-4">
+                    {[...Array(totalPages).keys()].map(page => (
+                        <button key={page + 1} onClick={() => handlePageChange(page + 1)} className={`px-4 py-2 mx-1 rounded ${currentPage === page + 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>{page + 1}</button>
+                    ))}
+                </div>
+        </div>
         </div>
     );
 };

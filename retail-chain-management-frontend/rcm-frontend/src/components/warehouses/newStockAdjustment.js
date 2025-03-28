@@ -29,7 +29,7 @@ const CreateStockAdjustment = () => {
 
     useEffect(() => {
         if (warehouseId) {
-            axios.get(`https://localhost:5000/api/warehouses/${warehouseId}/products`)
+            axios.get(`https://localhost:5000/api/warehouse/${warehouseId}/products`)
                 .then(res => setProducts(res.data))
                 .catch(err => console.error("Failed to fetch products:", err));
         }

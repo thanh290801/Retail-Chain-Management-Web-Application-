@@ -20,10 +20,8 @@ namespace RCM.Backend.Models
         public string? Description { get; set; }
         public string CreatedBy { get; set; } = null!;
         public string PersonName { get; set; } = null!;
-
         public DateTime CreatedAt { get; set; }
-
-        public string Note { get; set; }
+        public string? Note { get; set; }
 
         public virtual Warehouse Branch { get; set; } = null!;
         public virtual Employee Employee { get; set; } = null!;

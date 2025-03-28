@@ -2,13 +2,27 @@ import React, { useState } from 'react';
 import { useEffect } from "react";
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-
+import { jwtDecode } from 'jwt-decode';
 
 const Header = () => {
     const [activeDropdown, setActiveDropdown] = useState(null);
     const [accountDropdown, setAccountDropdown] = useState(false);
-
+    const [branchId, setBranchId] = useState(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
+        } else {
+            try {
+                const decodedToken = jwtDecode(token);
+                setBranchId(decodedToken.BranchId);
+            } catch (error) {
+                console.error("Lỗi khi decode token:", error);
+            }
+        }
+    }, [navigate]);
 
     const handleDropdown = (dropdownName) => {
         setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
@@ -61,7 +75,7 @@ const Header = () => {
                                 </button>
                                 {activeDropdown === 'goods' && (
                                     <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                        <Link to="/button1" className="block px-4 py-2 hover:bg-gray-200">Danh sách sản phẩm</Link>
+                                        <Link to={branchId === "0" ? "/ownerproductstock" : "/productstock"} className="block px-4 py-2 hover:bg-gray-200">Danh sách sản phẩm</Link>
                                         <Link to="/button2" className="block px-4 py-2 hover:bg-gray-200">Kiểm kho</Link>
                                         <Link to="/button3" className="block px-4 py-2 hover:bg-gray-200">Nhập hàng</Link>
                                     </div>

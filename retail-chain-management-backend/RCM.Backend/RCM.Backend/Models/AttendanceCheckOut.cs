@@ -1,4 +1,6 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+
 namespace RCM.Backend.Models
 {
     public partial class AttendanceCheckOut

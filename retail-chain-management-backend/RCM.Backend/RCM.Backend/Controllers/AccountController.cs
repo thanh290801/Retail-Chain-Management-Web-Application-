@@ -63,15 +63,15 @@ namespace RCM.Backend.Controllers
 
                 // 📌 Truy vấn thông tin người dùng từ Database
                 var user = await _context.Accounts
-                    .Include(a => a.Employees) // ✅ Sửa lỗi Include
-                    .Where(a => a.Username == username)
-                    .Select(a => new
-{
-    Fullname = a.Employees.Select(e => e.FullName).FirstOrDefault() ?? "Chưa có nhân viên",
-    Role = a.Role
-})
+    .Include(a => a.Employee)
+    .Where(a => a.Username == username)
+    .Select(a => new
+    {
+        Fullname = a.Employee != null ? a.Employee.FullName : "Chưa có nhân viên",
+        Role = a.Role
+    })
+    .FirstOrDefaultAsync();
 
-                    .FirstOrDefaultAsync();
 
                 if (user == null)
                     return NotFound(new { message = "Người dùng không tồn tại." });

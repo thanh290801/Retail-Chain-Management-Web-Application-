@@ -94,7 +94,8 @@ public async Task<ActionResult<OrderDetailDto>> GetPurchaseOrder(int id, [FromQu
         {
             BatchId = b.BatchesId,
             ReceivedDate = b.ReceivedDate,
-            TotalPrice = b.BatchPrices,
+           TotalPrice = b.BatchPrices ?? 0m,
+
             Status = b.Status
         }).ToList()
     };

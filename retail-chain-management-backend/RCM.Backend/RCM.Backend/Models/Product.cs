@@ -10,6 +10,7 @@ namespace RCM.Backend.Models
             BatchDetails = new HashSet<BatchDetail>();
             OrderDetails = new HashSet<OrderDetail>();
             ProductPriceHistories = new HashSet<ProductPriceHistory>();
+            ProductPrices = new HashSet<ProductPrice>();
             Promotions = new HashSet<Promotion>();
             PurchaseOrderItems = new HashSet<PurchaseOrderItem>();
             StockAdjustmentDetails = new HashSet<StockAdjustmentDetail>();
@@ -32,6 +33,7 @@ namespace RCM.Backend.Models
         public virtual ICollection<BatchDetail> BatchDetails { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual ICollection<ProductPriceHistory> ProductPriceHistories { get; set; }
+        public virtual ICollection<ProductPrice> ProductPrices { get; set; }
         public virtual ICollection<Promotion> Promotions { get; set; }
         public virtual ICollection<PurchaseOrderItem> PurchaseOrderItems { get; set; }
         public virtual ICollection<StockAdjustmentDetail> StockAdjustmentDetails { get; set; }
@@ -39,7 +41,5 @@ namespace RCM.Backend.Models
         public virtual ICollection<StockLevel> StockLevels { get; set; }
         public virtual ICollection<SupplierProduct> SupplierProducts { get; set; }
         public virtual ICollection<WarehouseTransferDetail> WarehouseTransferDetails { get; set; }
-
-        public virtual ICollection<ProductPrice> ProductPrices { get; set; }
     }
 }

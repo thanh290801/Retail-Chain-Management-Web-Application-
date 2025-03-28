@@ -42,6 +42,17 @@ import RevenueSummaryOwner from './sale-dashboadConponent/RevenueOwner';
 import PendingOvertimeList from "./components/EmployeeComponent/PendingOvertimeList";
 
 import FinancialReport from './components/FinancialReportConponent/financialReport';
+import CreateSupplierForm from './components/Supplier_Order/AddSupplier.js';
+import AddProductsToSupplier from './components/Supplier_Order/AddProductsToSupplier.js';
+import CreatePurchaseOrder from './components/Supplier_Order/CreatePurchaseOrder.js';
+import EditSupplier from './components/Supplier_Order/EditSupplier.js';
+import OwnerOrderList from './components/Supplier_Order/OrderList.js';
+import ProductDetail from './components/Supplier_Order/ProductDetail.js';
+import ProductEdit from './components/Supplier_Order/ProductEdit.js';
+import ProductsOfSupplier from './components/Supplier_Order/ProductsOfSupplier.js';
+import PurchaseOrderDetail from './components/Supplier_Order/PurchaseOrderDetail.js';
+import SupplierList from './components/Supplier_Order/SupplierList.js';
+import WarehousesListDetail from './components/Supplier_Order/WarehousesListDetail.js';
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" />;
@@ -86,6 +97,19 @@ function App() {
           <Route path='/order/:orderId' element= {<OrderCheck/>} />
           <Route path='/stockcheck' element= {<StockCheck/>} />
           <Route path='/stockadjustment' element= {<CreateStockAdjustment/>} />
+          {/* Đại */}
+          <Route path='/addsupplier' element= {<CreateSupplierForm/>} />
+          <Route path='/addproductsupplier' element= {<AddProductsToSupplier/>} />
+          <Route path='/createpurchaseorder' element= {<CreatePurchaseOrder/>} />
+          <Route path='/editsupplier' element= {<EditSupplier/>} />
+          <Route path='/ownerorderlist' element= {<OwnerOrderList/>} />
+          <Route path='/productdetail' element= {<ProductDetail/>} />
+          <Route path='/productedit' element= {<ProductEdit/>} />
+          <Route path='/supplierproducts' element= {<ProductsOfSupplier/>} />
+          <Route path='/purchaseorderdetail' element= {<PurchaseOrderDetail/>} />
+          <Route path='/supplierlist' element= {<SupplierList/>} />
+          <Route path='/warehouselistdetail' element= {<WarehousesListDetail/>} />
+
           <Route path="/header" element={<ProtectedRoute><Header /></ProtectedRoute>} />
           <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
           <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />

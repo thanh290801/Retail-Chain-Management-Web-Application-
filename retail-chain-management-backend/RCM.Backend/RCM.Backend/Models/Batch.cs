@@ -13,7 +13,7 @@ namespace RCM.Backend.Models
         public int BatchesId { get; set; }
         public int WarehouseId { get; set; }
         public DateTime? ReceivedDate { get; set; }
-        public decimal BatchPrices { get; set; }
+        public decimal? BatchPrices { get; set; }
         public string? Status { get; set; }
         public int? PurchaseOrderId { get; set; }
 

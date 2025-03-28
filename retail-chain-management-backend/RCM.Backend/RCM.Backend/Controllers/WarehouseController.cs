@@ -7,7 +7,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using RCM.Backend.Models;
 
-[Route("api/warehouses")]
+[Route("api/warehouse")]
 [ApiController]
 public class WarehouseController : ControllerBase
 {

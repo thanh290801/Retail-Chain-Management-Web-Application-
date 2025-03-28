@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using static RCM.Backend.DTOs.ShiftDTO;
 
 namespace RCM.Backend.Models
 {
@@ -20,39 +19,49 @@ namespace RCM.Backend.Models
         public virtual DbSet<Account> Accounts { get; set; } = null!;
         public virtual DbSet<AttendanceCheckIn> AttendanceCheckIns { get; set; } = null!;
         public virtual DbSet<AttendanceCheckOut> AttendanceCheckOuts { get; set; } = null!;
+        public virtual DbSet<AttendanceRecord> AttendanceRecords { get; set; } = null!;
         public virtual DbSet<Batch> Batches { get; set; } = null!;
         public virtual DbSet<BatchDetail> BatchDetails { get; set; } = null!;
         public virtual DbSet<Cash> Cashes { get; set; } = null!;
+        public virtual DbSet<CashHandover> CashHandovers { get; set; } = null!;
+        public virtual DbSet<DailySalesReport> DailySalesReports { get; set; } = null!;
         public virtual DbSet<Employee> Employees { get; set; } = null!;
+        public virtual DbSet<EndShift> EndShifts { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
         public virtual DbSet<OvertimeRecord> OvertimeRecords { get; set; } = null!;
         public virtual DbSet<PenaltyPayment> PenaltyPayments { get; set; } = null!;
         public virtual DbSet<Product> Products { get; set; } = null!;
         public virtual DbSet<ProductPrice> ProductPrices { get; set; } = null!;
-        public virtual DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
+        public virtual DbSet<ProductPriceHistory> ProductPriceHistories { get; set; } = null!;
+        public virtual DbSet<Promotion> Promotions { get; set; } = null!;
         public virtual DbSet<PurchaseCost> PurchaseCosts { get; set; } = null!;
-
+        public virtual DbSet<PurchaseOrder> PurchaseOrders { get; set; } = null!;
         public virtual DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; } = null!;
         public virtual DbSet<Refund> Refunds { get; set; } = null!;
         public virtual DbSet<RefundDetail> RefundDetails { get; set; } = null!;
         public virtual DbSet<Salary> Salaries { get; set; } = null!;
         public virtual DbSet<SalaryPaymentHistory> SalaryPaymentHistories { get; set; } = null!;
+        public virtual DbSet<SalesReport> SalesReports { get; set; } = null!;
+        public virtual DbSet<ShiftSetting> ShiftSettings { get; set; } = null!;
         public virtual DbSet<StockAdjustment> StockAdjustments { get; set; } = null!;
         public virtual DbSet<StockAdjustmentDetail> StockAdjustmentDetails { get; set; } = null!;
         public virtual DbSet<StockAuditDetail> StockAuditDetails { get; set; } = null!;
         public virtual DbSet<StockAuditRecord> StockAuditRecords { get; set; } = null!;
         public virtual DbSet<StockLevel> StockLevels { get; set; } = null!;
-
-        public virtual DbSet<Transaction> Transactions { get; set; } = null!;
         public virtual DbSet<Supplier> Suppliers { get; set; } = null!;
+        public virtual DbSet<SupplierProduct> SupplierProducts { get; set; } = null!;
+        public virtual DbSet<Transaction> Transactions { get; set; } = null!;
         public virtual DbSet<Warehouse> Warehouses { get; set; } = null!;
-        public virtual DbSet<ShiftSetting> ShiftSettings { get; set; } = null!;
+        public virtual DbSet<WarehouseTransfer> WarehouseTransfers { get; set; } = null!;
+        public virtual DbSet<WarehouseTransferDetail> WarehouseTransferDetails { get; set; } = null!;
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("Server=localhost;Database=RetailChain;Trusted_Connection=True;TrustServerCertificate=True;");
             }
         }
 
@@ -62,7 +71,7 @@ namespace RCM.Backend.Models
             {
                 entity.ToTable("Account");
 
-                entity.HasIndex(e => e.Username, "UQ__Account__536C85E41DA20EAE")
+                entity.HasIndex(e => e.Username, "UQ__Account__536C85E46CF97CE1")
                     .IsUnique();
 
                 entity.Property(e => e.AccountId).HasColumnName("AccountID");
@@ -75,17 +84,66 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.Username).HasMaxLength(50);
 
-                entity.HasOne(e => e.Employee)
-    .WithOne(a => a.Account)
-    .HasForeignKey<Account>(e => e.EmployeeId)  // 🔥 Sửa lỗi FK
-    .HasConstraintName("FK_Account_Employee");
+                entity.HasMany(d => d.EmployeesEmployees)
+                    .WithMany(p => p.AccountsAccounts)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "AccountEmployee",
+                        l => l.HasOne<Employee>().WithMany().HasForeignKey("EmployeesEmployeeId"),
+                        r => r.HasOne<Account>().WithMany().HasForeignKey("AccountsAccountId"),
+                        j =>
+                        {
+                            j.HasKey("AccountsAccountId", "EmployeesEmployeeId");
+
+                            j.ToTable("AccountEmployee");
+
+                            j.HasIndex(new[] { "EmployeesEmployeeId" }, "IX_AccountEmployee_EmployeesEmployeeId");
+                        });
             });
 
+            modelBuilder.Entity<AttendanceCheckIn>(entity =>
+            {
+                entity.ToTable("AttendanceCheckIn");
+
+                entity.HasIndex(e => e.EmployeeId, "IX_AttendanceCheckIn_EmployeeId");
+
+                entity.Property(e => e.AttendanceDate).HasColumnType("date");
+
+                entity.Property(e => e.CheckInTime).HasColumnType("datetime");
+
+                entity.Property(e => e.Shift).HasMaxLength(50);
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.AttendanceCheckIns)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__Attendanc__Emplo__18EBB532");
+            });
+
+            modelBuilder.Entity<AttendanceCheckOut>(entity =>
+            {
+                entity.ToTable("AttendanceCheckOut");
+
+                entity.HasIndex(e => e.EmployeeId, "IX_AttendanceCheckOut_EmployeeId");
+
+                entity.Property(e => e.AttendanceDate).HasColumnType("date");
+
+                entity.Property(e => e.CheckOutTime).HasColumnType("datetime");
+
+                entity.Property(e => e.Shift).HasMaxLength(50);
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.AttendanceCheckOuts)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__Attendanc__Emplo__1BC821DD");
+            });
 
             modelBuilder.Entity<AttendanceRecord>(entity =>
             {
                 entity.HasKey(e => e.AttendanceRecordsId)
-                    .HasName("PK__Attendan__6D2B1F0C01B89077");
+                    .HasName("PK__Attendan__6D2B1F0C4A22C7E5");
+
+                entity.ToTable("AttendanceRecord");
+
+                entity.HasIndex(e => e.EmployeeId, "IX_AttendanceRecord_EmployeeId");
 
                 entity.Property(e => e.CheckIn).HasColumnType("datetime");
 
@@ -95,17 +153,17 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.AttendanceRecords)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Attendanc__Emplo__10566F31");
+                    .HasConstraintName("FK__Attendanc__Emplo__114A936A");
             });
-
-
 
             modelBuilder.Entity<Batch>(entity =>
             {
                 entity.HasKey(e => e.BatchesId)
-                    .HasName("PK__batches__D7870D5C062BD52A");
+                    .HasName("PK__batches__D7870D5CBB7EFCFE");
 
                 entity.ToTable("batches");
+
+                entity.HasIndex(e => e.WarehouseId, "IX_batches_warehouse_id");
 
                 entity.Property(e => e.BatchPrices)
                     .HasColumnType("decimal(18, 2)")
@@ -127,21 +185,26 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.PurchaseOrder)
                     .WithMany(p => p.Batches)
                     .HasForeignKey(d => d.PurchaseOrderId)
-                    .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_batches_purchase_order");
 
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.Batches)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__batches__warehou__14270015");
+                    .HasConstraintName("FK__batches__warehou__151B244E");
             });
 
             modelBuilder.Entity<BatchDetail>(entity =>
             {
                 entity.HasKey(e => e.BatchDetailsId)
-                    .HasName("PK__batch_de__04D3CE301304DA00");
+                    .HasName("PK__batch_de__04D3CE3069F8D36A");
 
                 entity.ToTable("batch_details");
+
+                entity.HasIndex(e => e.BatchId, "IX_batch_details_batch_id");
+
+                entity.HasIndex(e => e.ProductId, "IX_batch_details_product_id");
+
+                entity.HasIndex(e => e.PurchaseOrderId, "IX_batch_details_purchase_order_id");
 
                 entity.Property(e => e.BatchDetailsId).HasColumnName("Batch_detailsId");
 
@@ -156,26 +219,60 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Batch)
                     .WithMany(p => p.BatchDetails)
                     .HasForeignKey(d => d.BatchId)
-                    .HasConstraintName("FK__batch_det__batch__114A936A");
+                    .HasConstraintName("FK__batch_det__batch__123EB7A3");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.BatchDetails)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__batch_det__produ__123EB7A3");
+                    .HasConstraintName("FK__batch_det__produ__1332DBDC");
 
                 entity.HasOne(d => d.PurchaseOrder)
                     .WithMany(p => p.BatchDetails)
                     .HasForeignKey(d => d.PurchaseOrderId)
                     .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK__batch_det__purch__1332DBDC");
+                    .HasConstraintName("FK__batch_det__purch__14270015");
+            });
+
+            modelBuilder.Entity<Cash>(entity =>
+            {
+                entity.ToTable("CASH");
+
+                entity.HasIndex(e => e.BranchId, "IX_CASH_BranchId");
+
+                entity.HasIndex(e => e.EmployeeId, "IX_CASH_EmployeeId");
+
+                entity.Property(e => e.Date).HasColumnType("date");
+
+                entity.Property(e => e.Note)
+                    .HasMaxLength(255)
+                    .HasColumnName("note");
+
+                entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
+
+                entity.HasOne(d => d.Branch)
+                    .WithMany(p => p.Cashes)
+                    .HasForeignKey(d => d.BranchId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__CASH__BranchId__7A672E12");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.Cashes)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__CASH__EmployeeId__73BA3083");
             });
 
             modelBuilder.Entity<CashHandover>(entity =>
             {
                 entity.HasKey(e => e.HandoverId)
-                    .HasName("PK__Cash_Han__DB2A1F61AB84A483");
+                    .HasName("PK__Cash_Han__DB2A1F61CE3A7914");
 
                 entity.ToTable("Cash_Handover");
+
+                entity.HasIndex(e => e.BranchId, "IX_Cash_Handover_BranchID");
+
+                entity.HasIndex(e => e.EmployeeId, "IX_Cash_Handover_EmployeeID");
+
+                entity.HasIndex(e => e.ReceiverId, "IX_Cash_Handover_ReceiverID");
 
                 entity.Property(e => e.HandoverId).HasColumnName("HandoverID");
 
@@ -183,11 +280,17 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.BranchId).HasColumnName("BranchID");
 
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
                 entity.Property(e => e.CreatedBy).HasMaxLength(255);
 
                 entity.Property(e => e.Description).HasMaxLength(255);
 
                 entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
+
+                entity.Property(e => e.Note).HasMaxLength(500);
 
                 entity.Property(e => e.PersonName)
                     .HasMaxLength(255)
@@ -200,33 +303,35 @@ namespace RCM.Backend.Models
                     .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.TransactionType)
-                    .HasMaxLength(20)
+                    .HasMaxLength(50)
                     .HasDefaultValueSql("('Thu')");
 
                 entity.HasOne(d => d.Branch)
                     .WithMany(p => p.CashHandovers)
                     .HasForeignKey(d => d.BranchId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Cash_Hand__Branc__151B244E");
+                    .HasConstraintName("FK__Cash_Hand__Branc__160F4887");
 
                 entity.HasOne(d => d.Employee)
                     .WithMany(p => p.CashHandoverEmployees)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Cash_Hand__Emplo__160F4887");
+                    .HasConstraintName("FK__Cash_Hand__Emplo__17036CC0");
 
                 entity.HasOne(d => d.Receiver)
                     .WithMany(p => p.CashHandoverReceivers)
                     .HasForeignKey(d => d.ReceiverId)
-                    .HasConstraintName("FK__Cash_Hand__Recei__17036CC0");
+                    .HasConstraintName("FK__Cash_Hand__Recei__17F790F9");
             });
 
             modelBuilder.Entity<DailySalesReport>(entity =>
             {
                 entity.HasKey(e => e.ReportId)
-                    .HasName("PK__daily_sa__D5BD48E575862035");
+                    .HasName("PK__daily_sa__D5BD48E518F85104");
 
                 entity.ToTable("daily_sales_reports");
+
+                entity.HasIndex(e => e.WarehouseId, "IX_daily_sales_reports_warehouse_id");
 
                 entity.Property(e => e.ReportId).HasColumnName("ReportID");
 
@@ -250,14 +355,20 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.DailySalesReports)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__daily_sal__wareh__17F790F9");
+                    .HasConstraintName("FK__daily_sal__wareh__18EBB532");
             });
 
             modelBuilder.Entity<Employee>(entity =>
             {
                 entity.ToTable("Employee");
 
-                entity.HasIndex(e => e.IdentityNumber, "UQ__Employee__6354A73F12F41AE6")
+                entity.HasIndex(e => e.AccountId, "IX_Employee_AccountID")
+                    .IsUnique()
+                    .HasFilter("([AccountID] IS NOT NULL)");
+
+                entity.HasIndex(e => e.BranchId, "IX_Employee_BranchID");
+
+                entity.HasIndex(e => e.IdentityNumber, "UQ__Employee__6354A73FB4499D6D")
                     .IsUnique();
 
                 entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
@@ -297,22 +408,26 @@ namespace RCM.Backend.Models
                     .HasDefaultValueSql("(getdate())");
 
                 entity.HasOne(d => d.Account)
-                    .WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.AccountId)
-                    .HasConstraintName("FK__Employee__Accoun__18EBB532");
+                    .WithOne(p => p.Employee)
+                    .HasForeignKey<Employee>(d => d.AccountId)
+                    .HasConstraintName("FK_Employee_Account");
 
                 entity.HasOne(d => d.Branch)
                     .WithMany(p => p.Employees)
                     .HasForeignKey(d => d.BranchId)
-                    .HasConstraintName("FK__Employee__Branch__19DFD96B");
+                    .HasConstraintName("FK__Employee__Branch__1AD3FDA4");
             });
 
             modelBuilder.Entity<EndShift>(entity =>
             {
                 entity.HasKey(e => e.ShiftId)
-                    .HasName("PK__End_Shif__C0A838E1C7E79C0F");
+                    .HasName("PK__End_Shif__C0A838E1F05C106C");
 
                 entity.ToTable("End_Shifts");
+
+                entity.HasIndex(e => e.BranchId, "IX_End_Shifts_BranchID");
+
+                entity.HasIndex(e => e.EmployeeId, "IX_End_Shifts_EmployeeID");
 
                 entity.Property(e => e.ShiftId).HasColumnName("ShiftID");
 
@@ -338,18 +453,22 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.EndShifts)
                     .HasForeignKey(d => d.BranchId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__End_Shift__Branc__1AD3FDA4");
+                    .HasConstraintName("FK__End_Shift__Branc__1BC821DD");
 
                 entity.HasOne(d => d.Employee)
                     .WithMany(p => p.EndShifts)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__End_Shift__Emplo__1BC821DD");
+                    .HasConstraintName("FK__End_Shift__Emplo__1CBC4616");
             });
 
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.ToTable("Order");
+
+                entity.HasIndex(e => e.Employeeid, "IX_Order_employeeid");
+
+                entity.HasIndex(e => e.ShopId, "IX_Order_shop_id");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
@@ -373,17 +492,21 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.Employeeid)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Order__employeei__1CBC4616");
+                    .HasConstraintName("FK__Order__employeei__1DB06A4F");
 
                 entity.HasOne(d => d.Shop)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.ShopId)
-                    .HasConstraintName("FK__Order__shop_id__1DB06A4F");
+                    .HasConstraintName("FK__Order__shop_id__1EA48E88");
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
             {
                 entity.ToTable("OrderDetail");
+
+                entity.HasIndex(e => e.OrderId, "IX_OrderDetail_order_id");
+
+                entity.HasIndex(e => e.ProductId, "IX_OrderDetail_product_id");
 
                 entity.Property(e => e.OrderId).HasColumnName("order_id");
 
@@ -404,23 +527,58 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Order)
                     .WithMany(p => p.OrderDetails)
                     .HasForeignKey(d => d.OrderId)
-                    .HasConstraintName("FK__OrderDeta__order__1EA48E88");
+                    .HasConstraintName("FK__OrderDeta__order__1F98B2C1");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.OrderDetails)
                     .HasForeignKey(d => d.ProductId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__OrderDeta__produ__1F98B2C1");
+                    .HasConstraintName("FK__OrderDeta__produ__208CD6FA");
+            });
+
+            modelBuilder.Entity<OvertimeRecord>(entity =>
+            {
+                entity.HasIndex(e => e.EmployeeId, "IX_OvertimeRecords_EmployeeId");
+
+                entity.Property(e => e.Date).HasColumnType("date");
+
+                entity.Property(e => e.Reason).HasMaxLength(255);
+
+                entity.Property(e => e.TotalHours).HasColumnType("decimal(5, 2)");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.OvertimeRecords)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__OvertimeR__Emplo__160F4887");
+            });
+
+            modelBuilder.Entity<PenaltyPayment>(entity =>
+            {
+                entity.HasIndex(e => e.EmployeeId, "IX_PenaltyPayments_EmployeeId");
+
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Note).HasMaxLength(255);
+
+                entity.Property(e => e.PaymentDate).HasColumnType("date");
+
+                entity.Property(e => e.Reason).HasMaxLength(255);
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.PenaltyPayments)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__PenaltyPa__Emplo__0E6E26BF");
             });
 
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.ProductsId)
-                    .HasName("PK__products__BB48EDE5B3F073E8");
+                    .HasName("PK__products__BB48EDE5F3F1EB85");
 
                 entity.ToTable("products");
 
-                entity.HasIndex(e => e.Barcode, "UQ__products__C16E36F81B434910")
+                entity.HasIndex(e => e.Barcode, "UQ__products__C16E36F8C3CC1692")
                     .IsUnique();
 
                 entity.Property(e => e.Barcode)
@@ -456,12 +614,43 @@ namespace RCM.Backend.Models
                     .HasColumnName("weight");
             });
 
+            modelBuilder.Entity<ProductPrice>(entity =>
+            {
+                entity.ToTable("product_prices");
+
+                entity.HasIndex(e => e.ProductId, "IX_product_prices_product_id");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.EffectiveDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("effective_date")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18, 2)")
+                    .HasColumnName("price");
+
+                entity.Property(e => e.ProductId).HasColumnName("product_id");
+
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.ProductPrices)
+                    .HasForeignKey(d => d.ProductId)
+                    .HasConstraintName("FK__product_p__produ__02FC7413");
+            });
+
             modelBuilder.Entity<ProductPriceHistory>(entity =>
             {
                 entity.HasKey(e => e.PriceHistoryId)
-                    .HasName("PK__product___A927CB2B016D3C51");
+                    .HasName("PK__product___A927CB2B68C0B1C4");
 
                 entity.ToTable("product_price_history");
+
+                entity.HasIndex(e => e.ChangedBy, "IX_product_price_history_changed_by");
+
+                entity.HasIndex(e => e.ProductId, "IX_product_price_history_product_id");
+
+                entity.HasIndex(e => e.WarehouseId, "IX_product_price_history_warehouse_id");
 
                 entity.Property(e => e.PriceHistoryId).HasColumnName("PriceHistoryID");
 
@@ -492,25 +681,29 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.ProductPriceHistories)
                     .HasForeignKey(d => d.ChangedBy)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__product_p__chang__208CD6FA");
+                    .HasConstraintName("FK__product_p__chang__2180FB33");
 
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.ProductPriceHistories)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__product_p__produ__2180FB33");
+                    .HasConstraintName("FK__product_p__produ__22751F6C");
 
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.ProductPriceHistories)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__product_p__wareh__22751F6C");
+                    .HasConstraintName("FK__product_p__wareh__236943A5");
             });
 
             modelBuilder.Entity<Promotion>(entity =>
             {
                 entity.HasKey(e => e.PromotionsId)
-                    .HasName("PK__promotio__DBE22B92B960A6EB");
+                    .HasName("PK__promotio__DBE22B922F2EDACB");
 
                 entity.ToTable("promotions");
+
+                entity.HasIndex(e => e.ProductId, "IX_promotions_product_id");
+
+                entity.HasIndex(e => e.WarehouseId, "IX_promotions_warehouse_id");
 
                 entity.Property(e => e.Description)
                     .HasMaxLength(500)
@@ -539,20 +732,24 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.Promotions)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__promotion__produ__236943A5");
+                    .HasConstraintName("FK__promotion__produ__245D67DE");
 
                 entity.HasOne(d => d.Warehouse)
                     .WithMany(p => p.Promotions)
                     .HasForeignKey(d => d.WarehouseId)
-                    .HasConstraintName("FK__promotion__wareh__245D67DE");
+                    .HasConstraintName("FK__promotion__wareh__25518C17");
             });
 
             modelBuilder.Entity<PurchaseCost>(entity =>
             {
                 entity.HasKey(e => e.CostId)
-                    .HasName("PK__Purchase__8285231ED9690021");
+                    .HasName("PK__Purchase__8285231E4A994A7F");
 
                 entity.ToTable("Purchase_Costs");
+
+                entity.HasIndex(e => e.BranchId, "IX_Purchase_Costs_BranchID");
+
+                entity.HasIndex(e => e.PurchaseOrderId, "IX_Purchase_Costs_PurchaseOrderID");
 
                 entity.Property(e => e.CostId).HasColumnName("CostID");
 
@@ -570,21 +767,25 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.PurchaseCosts)
                     .HasForeignKey(d => d.BranchId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Purchase___Branc__25518C17");
+                    .HasConstraintName("FK__Purchase___Branc__2645B050");
 
                 entity.HasOne(d => d.PurchaseOrder)
                     .WithMany(p => p.PurchaseCosts)
                     .HasForeignKey(d => d.PurchaseOrderId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Purchase___Purch__2645B050");
+                    .HasConstraintName("FK__Purchase___Purch__2739D489");
             });
 
             modelBuilder.Entity<PurchaseOrder>(entity =>
             {
                 entity.HasKey(e => e.PurchaseOrdersId)
-                    .HasName("PK__purchase__9736EF3ED184F2F8");
+                    .HasName("PK__purchase__9736EF3EF43D85EF");
 
                 entity.ToTable("purchase_orders");
+
+                entity.HasIndex(e => e.WarehousesId, "IX_purchase_orders_WarehousesId");
+
+                entity.HasIndex(e => e.SupplierId, "IX_purchase_orders_supplier_id");
 
                 entity.Property(e => e.PurchaseOrdersId).HasColumnName("Purchase_ordersId");
 
@@ -603,26 +804,27 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.SupplierId).HasColumnName("supplier_id");
 
-                entity.Property(e => e.WarehousesId).HasColumnName("warehousesId");
-
                 entity.HasOne(d => d.Supplier)
                     .WithMany(p => p.PurchaseOrders)
                     .HasForeignKey(d => d.SupplierId)
                     .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK__purchase___suppl__29221CFB");
+                    .HasConstraintName("FK__purchase___suppl__2A164134");
 
                 entity.HasOne(d => d.Warehouses)
                     .WithMany(p => p.PurchaseOrders)
-                    .HasForeignKey(d => d.WarehousesId)
-                    .HasConstraintName("FK_PurchaseOrders_Warehouses");
+                    .HasForeignKey(d => d.WarehousesId);
             });
 
             modelBuilder.Entity<PurchaseOrderItem>(entity =>
             {
                 entity.HasKey(e => e.PurchaseOrderItemsId)
-                    .HasName("PK__purchase__4120509F61FE445A");
+                    .HasName("PK__purchase__4120509F6B7B071E");
 
                 entity.ToTable("purchase_order_items");
+
+                entity.HasIndex(e => e.ProductId, "IX_purchase_order_items_product_id");
+
+                entity.HasIndex(e => e.PurchaseOrderId, "IX_purchase_order_items_purchase_order_id");
 
                 entity.Property(e => e.PurchaseOrderItemsId).HasColumnName("Purchase_order_itemsId");
 
@@ -639,17 +841,21 @@ namespace RCM.Backend.Models
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.PurchaseOrderItems)
                     .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__purchase___produ__2739D489");
+                    .HasConstraintName("FK__purchase___produ__282DF8C2");
 
                 entity.HasOne(d => d.PurchaseOrder)
                     .WithMany(p => p.PurchaseOrderItems)
                     .HasForeignKey(d => d.PurchaseOrderId)
-                    .HasConstraintName("FK__purchase___purch__282DF8C2");
+                    .HasConstraintName("FK__purchase___purch__29221CFB");
             });
 
             modelBuilder.Entity<Refund>(entity =>
             {
                 entity.ToTable("Refund");
+
+                entity.HasIndex(e => e.Employeeid, "IX_Refund_employeeid");
+
+                entity.HasIndex(e => e.OrderId, "IX_Refund_order_id");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
@@ -687,6 +893,8 @@ namespace RCM.Backend.Models
             {
                 entity.ToTable("RefundDetail");
 
+                entity.HasIndex(e => e.RefundId, "IX_RefundDetail_refund_id");
+
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ProductId).HasColumnName("product_id");
@@ -715,6 +923,8 @@ namespace RCM.Backend.Models
             {
                 entity.ToTable("Salary");
 
+                entity.HasIndex(e => e.EmployeeId, "IX_Salary_EmployeeId");
+
                 entity.Property(e => e.EndDate).HasColumnType("date");
 
                 entity.Property(e => e.StartDate).HasColumnType("date");
@@ -724,6 +934,32 @@ namespace RCM.Backend.Models
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Salary__Employee__2DE6D218");
+            });
+
+            modelBuilder.Entity<SalaryPaymentHistory>(entity =>
+            {
+                entity.ToTable("SalaryPaymentHistory");
+
+                entity.HasIndex(e => e.EmployeeId, "IX_SalaryPaymentHistory_EmployeeId");
+
+                entity.HasIndex(e => e.SalaryId, "IX_SalaryPaymentHistory_SalaryId");
+
+                entity.Property(e => e.IsDeleted).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Note).HasMaxLength(255);
+
+                entity.Property(e => e.PaymentDate).HasColumnType("date");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.SalaryPaymentHistories)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK__SalaryPay__Emplo__787EE5A0");
+
+                entity.HasOne(d => d.Salary)
+                    .WithMany(p => p.SalaryPaymentHistories)
+                    .HasForeignKey(d => d.SalaryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__SalaryPay__Salar__0B91BA14");
             });
 
             modelBuilder.Entity<SalesReport>(entity =>
@@ -758,9 +994,13 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<StockAdjustment>(entity =>
             {
                 entity.HasKey(e => e.StockAdjustmentsId)
-                    .HasName("PK__stock_ad__02056934A4838CBF");
+                    .HasName("PK__stock_ad__02056934008DB342");
 
                 entity.ToTable("stock_adjustments");
+
+                entity.HasIndex(e => e.AuditorId, "IX_stock_adjustments_auditor_id");
+
+                entity.HasIndex(e => e.WarehouseId, "IX_stock_adjustments_warehouse_id");
 
                 entity.Property(e => e.AdjustmentDate)
                     .HasColumnType("datetime")
@@ -790,9 +1030,13 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<StockAdjustmentDetail>(entity =>
             {
                 entity.HasKey(e => e.StockAdjustmentDetailsId)
-                    .HasName("PK__stock_ad__5443DBDD917221EA");
+                    .HasName("PK__stock_ad__5443DBDDEC7A5983");
 
                 entity.ToTable("stock_adjustment_details");
+
+                entity.HasIndex(e => e.AdjustmentId, "IX_stock_adjustment_details_adjustment_id");
+
+                entity.HasIndex(e => e.ProductId, "IX_stock_adjustment_details_product_id");
 
                 entity.Property(e => e.AdjustedQuantity).HasColumnName("adjusted_quantity");
 
@@ -820,9 +1064,13 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<StockAuditDetail>(entity =>
             {
                 entity.HasKey(e => e.StockAuditDetailsId)
-                    .HasName("PK__stock_au__814DB73879DD26E8");
+                    .HasName("PK__stock_au__814DB73894F66C3F");
 
                 entity.ToTable("stock_audit_details");
+
+                entity.HasIndex(e => e.AuditId, "IX_stock_audit_details_audit_id");
+
+                entity.HasIndex(e => e.ProductId, "IX_stock_audit_details_product_id");
 
                 entity.Property(e => e.AuditId).HasColumnName("audit_id");
 
@@ -844,9 +1092,15 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<StockAuditRecord>(entity =>
             {
                 entity.HasKey(e => e.StockAuditRecordsId)
-                    .HasName("PK__stock_au__1C0D2BE366A28447");
+                    .HasName("PK__stock_au__1C0D2BE394761EEE");
 
                 entity.ToTable("stock_audit_records");
+
+                entity.HasIndex(e => e.AuditorId, "IX_stock_audit_records_auditor_id");
+
+                entity.HasIndex(e => e.CoAuditorId, "IX_stock_audit_records_co_auditor_id");
+
+                entity.HasIndex(e => e.WarehouseId, "IX_stock_audit_records_warehouse_id");
 
                 entity.Property(e => e.AuditDate)
                     .HasColumnType("datetime")
@@ -880,9 +1134,13 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<StockLevel>(entity =>
             {
                 entity.HasKey(e => e.StockLevelsId)
-                    .HasName("PK__stock_le__76AB5D15FE21254B");
+                    .HasName("PK__stock_le__76AB5D15AAAE7868");
 
                 entity.ToTable("stock_levels");
+
+                entity.HasIndex(e => e.ProductId, "IX_stock_levels_product_id");
+
+                entity.HasIndex(e => e.WarehouseId, "IX_stock_levels_warehouse_id");
 
                 entity.Property(e => e.StockLevelsId).HasColumnName("Stock_levelsId");
 
@@ -901,6 +1159,10 @@ namespace RCM.Backend.Models
                 entity.Property(e => e.RetailPrice)
                     .HasColumnType("decimal(18, 2)")
                     .HasColumnName("retail_price");
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("status")
+                    .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
 
@@ -922,7 +1184,7 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<Supplier>(entity =>
             {
                 entity.HasKey(e => e.SuppliersId)
-                    .HasName("PK__supplier__8AB703A468E7511F");
+                    .HasName("PK__supplier__8AB703A4D1582F49");
 
                 entity.ToTable("suppliers");
 
@@ -938,6 +1200,8 @@ namespace RCM.Backend.Models
                     .HasMaxLength(255)
                     .HasColumnName("email");
 
+                entity.Property(e => e.Fax).HasMaxLength(50);
+
                 entity.Property(e => e.Name)
                     .HasMaxLength(255)
                     .HasColumnName("name");
@@ -945,14 +1209,30 @@ namespace RCM.Backend.Models
                 entity.Property(e => e.Phone)
                     .HasMaxLength(50)
                     .HasColumnName("phone");
+
+                entity.Property(e => e.RPhone)
+                    .HasMaxLength(20)
+                    .HasColumnName("r_phone");
+
+                entity.Property(e => e.TaxCode)
+                    .HasMaxLength(20)
+                    .HasColumnName("Tax_Code");
+
+                entity.Property(e => e.Website)
+                    .HasMaxLength(255)
+                    .HasColumnName("website");
             });
 
             modelBuilder.Entity<SupplierProduct>(entity =>
             {
                 entity.HasKey(e => e.SupplierProductsId)
-                    .HasName("PK__supplier__6892C21E3AF66085");
+                    .HasName("PK__supplier__6892C21ED19AEF7F");
 
                 entity.ToTable("supplier_products");
+
+                entity.HasIndex(e => e.ProductId, "IX_supplier_products_product_id");
+
+                entity.HasIndex(e => e.SupplierId, "IX_supplier_products_supplier_id");
 
                 entity.Property(e => e.ProductId).HasColumnName("product_id");
 
@@ -971,6 +1251,16 @@ namespace RCM.Backend.Models
 
             modelBuilder.Entity<Transaction>(entity =>
             {
+                entity.HasIndex(e => e.BranchId, "IX_Transactions_branch_id");
+
+                entity.HasIndex(e => e.EmployeeId, "IX_Transactions_employee_id");
+
+                entity.HasIndex(e => e.HandoverId, "IX_Transactions_handover_id");
+
+                entity.HasIndex(e => e.OrderId, "IX_Transactions_order_id");
+
+                entity.HasIndex(e => e.RefundId, "IX_Transactions_refund_id");
+
                 entity.HasIndex(e => e.TransactionCode, "UQ__Transact__DD5740BEF432A0F9")
                     .IsUnique();
 
@@ -1060,7 +1350,7 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<Warehouse>(entity =>
             {
                 entity.HasKey(e => e.WarehousesId)
-                    .HasName("PK__warehous__00D1C5838DDAC517");
+                    .HasName("PK__warehous__00D1C5832338674B");
 
                 entity.ToTable("warehouses");
 
@@ -1078,9 +1368,15 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<WarehouseTransfer>(entity =>
             {
                 entity.HasKey(e => e.TransferId)
-                    .HasName("PK__warehous__95490171EA39FB81");
+                    .HasName("PK__warehous__9549017165A1B91A");
 
                 entity.ToTable("warehouse_transfers");
+
+                entity.HasIndex(e => e.CreatedBy, "IX_warehouse_transfers_created_by");
+
+                entity.HasIndex(e => e.FromWarehouseId, "IX_warehouse_transfers_from_warehouse_id");
+
+                entity.HasIndex(e => e.ToWarehouseId, "IX_warehouse_transfers_to_warehouse_id");
 
                 entity.Property(e => e.TransferId).HasColumnName("TransferID");
 
@@ -1095,7 +1391,7 @@ namespace RCM.Backend.Models
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
                     .HasColumnName("status")
-                    .HasDefaultValueSql("('pending')");
+                    .HasDefaultValueSql("(N'Chưa chuyển')");
 
                 entity.Property(e => e.ToWarehouseId).HasColumnName("to_warehouse_id");
 
@@ -1126,9 +1422,13 @@ namespace RCM.Backend.Models
             modelBuilder.Entity<WarehouseTransferDetail>(entity =>
             {
                 entity.HasKey(e => e.TransferDetailId)
-                    .HasName("PK__warehous__F9BF690F824FA889");
+                    .HasName("PK__warehous__F9BF690F258FA262");
 
                 entity.ToTable("warehouse_transfer_details");
+
+                entity.HasIndex(e => e.ProductId, "IX_warehouse_transfer_details_product_id");
+
+                entity.HasIndex(e => e.TransferId, "IX_warehouse_transfer_details_transfer_id");
 
                 entity.Property(e => e.TransferDetailId).HasColumnName("TransferDetailID");
 
@@ -1147,171 +1447,6 @@ namespace RCM.Backend.Models
                     .WithMany(p => p.WarehouseTransferDetails)
                     .HasForeignKey(d => d.TransferId)
                     .HasConstraintName("FK__warehouse__trans__40F9A68C");
-            });
-
-            modelBuilder.Entity<ProductPrice>(entity =>
-            {
-                entity.ToTable("product_prices");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.EffectiveDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("effective_date")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.Price)
-                    .HasColumnType("decimal(18, 2)")
-                    .HasColumnName("price");
-
-                entity.Property(e => e.ProductId).HasColumnName("product_id");
-
-                entity.HasOne(d => d.Product)
-                    .WithMany(p => p.ProductPrices)
-                    .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__product_p__produ__02FC7413");
-            });
-            modelBuilder.Entity<ShiftSetting>(entity =>
-            {
-                entity.ToTable("ShiftSettings");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Month);
-                entity.Property(e => e.Year);
-                entity.Property(e => e.TotalShifts);
-            });
-            modelBuilder.Entity<SalaryPaymentHistory>(entity =>
-            {
-                entity.ToTable("SalaryPaymentHistory");
-
-                entity.Property(e => e.IsDeleted).HasDefaultValueSql("((0))");
-
-                entity.Property(e => e.Note).HasMaxLength(255);
-
-                entity.Property(e => e.PaymentDate).HasColumnType("date");
-
-                entity.HasOne(d => d.Employee)
-                    .WithMany(p => p.SalaryPaymentHistories)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK__SalaryPay__Emplo__787EE5A0");
-
-                entity.HasOne(d => d.Salary)
-                    .WithMany(p => p.SalaryPaymentHistories)
-                    .HasForeignKey(d => d.SalaryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__SalaryPay__Salar__0B91BA14");
-            });
-
-            modelBuilder.Entity<AttendanceCheckIn>(entity =>
-            {
-                entity.ToTable("AttendanceCheckIn");
-
-                entity.Property(e => e.AttendanceDate).HasColumnType("date");
-
-                entity.Property(e => e.CheckInTime).HasColumnType("datetime");
-
-                entity.Property(e => e.Shift).HasMaxLength(50);
-
-                entity.HasOne(d => d.Employee)
-                    .WithMany(p => p.AttendanceCheckIns)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK__Attendanc__Emplo__18EBB532");
-            });
-
-            modelBuilder.Entity<AttendanceCheckOut>(entity =>
-            {
-                entity.ToTable("AttendanceCheckOut");
-
-                entity.Property(e => e.AttendanceDate).HasColumnType("date");
-
-                entity.Property(e => e.CheckOutTime).HasColumnType("datetime");
-
-                entity.Property(e => e.Shift).HasMaxLength(50);
-
-                entity.HasOne(d => d.Employee)
-                    .WithMany(p => p.AttendanceCheckOuts)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK__Attendanc__Emplo__1BC821DD");
-            });
-
-            modelBuilder.Entity<OvertimeRecord>(entity =>
-            {
-                entity.Property(e => e.Date).HasColumnType("date");
-
-                entity.Property(e => e.IsApproved).HasDefaultValueSql("((0))");
-
-                entity.Property(e => e.Reason).HasMaxLength(255);
-
-                entity.Property(e => e.TotalHours).HasColumnType("decimal(5, 2)");
-
-                entity.HasOne(d => d.Employee)
-                    .WithMany(p => p.OvertimeRecords)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__OvertimeR__Emplo__160F4887");
-            });
-
-            modelBuilder.Entity<PenaltyPayment>(entity =>
-            {
-                entity.Property(e => e.IsDeleted).HasDefaultValueSql("((0))");
-
-                entity.Property(e => e.Note).HasMaxLength(255);
-
-                entity.Property(e => e.PaymentDate).HasColumnType("date");
-
-                entity.Property(e => e.Reason).HasMaxLength(255);
-
-                entity.HasOne(d => d.Employee)
-                    .WithMany(p => p.PenaltyPayments)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK__PenaltyPa__Emplo__0E6E26BF");
-            });
-
-            modelBuilder.Entity<ProductPrice>(entity =>
-            {
-                entity.ToTable("product_prices");
-
-                entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.EffectiveDate)
-                    .HasColumnType("datetime")
-                    .HasColumnName("effective_date")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.Price)
-                    .HasColumnType("decimal(18, 2)")
-                    .HasColumnName("price");
-
-                entity.Property(e => e.ProductId).HasColumnName("product_id");
-
-                entity.HasOne(d => d.Product)
-                    .WithMany(p => p.ProductPrices)
-                    .HasForeignKey(d => d.ProductId)
-                    .HasConstraintName("FK__product_p__produ__02FC7413");
-            });
-
-
-            modelBuilder.Entity<Cash>(entity =>
-            {
-                entity.ToTable("CASH");
-
-                entity.Property(e => e.Date).HasColumnType("date");
-
-                entity.Property(e => e.Note)
-                    .HasMaxLength(255)
-                    .HasColumnName("note");
-
-                entity.Property(e => e.PaymentMethod).HasColumnName("payment_method");
-
-                entity.HasOne(d => d.Branch)
-                    .WithMany(p => p.Cashes)
-                    .HasForeignKey(d => d.BranchId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__CASH__BranchId__7A672E12");
-
-                entity.HasOne(d => d.Employee)
-                    .WithMany(p => p.Cashes)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK__CASH__EmployeeId__73BA3083");
             });
 
             OnModelCreatingPartial(modelBuilder);

@@ -17,6 +17,10 @@ namespace RCM.Backend.Models
         public string? Phone { get; set; }
         public string? Email { get; set; }
         public string? Address { get; set; }
+        public string? TaxCode { get; set; }
+        public string? Fax { get; set; }
+        public string? Website { get; set; }
+        public string? RPhone { get; set; }
 
         public virtual ICollection<PurchaseOrder> PurchaseOrders { get; set; }
         public virtual ICollection<SupplierProduct> SupplierProducts { get; set; }

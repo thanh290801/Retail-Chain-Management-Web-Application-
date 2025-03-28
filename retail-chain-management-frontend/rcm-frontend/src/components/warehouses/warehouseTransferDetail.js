@@ -19,7 +19,7 @@ const WarehouseTransferDetail = () => {
         const [transferRes, productRes, warehouseRes] = await Promise.all([
           axios.get(`https://localhost:5000/api/warehouse-transfers/${id}`),
           axios.get(`https://localhost:5000/api/products`),
-          axios.get(`https://localhost:5000/api/warehouses`)
+          axios.get(`https://localhost:5000/api/warehouse`)
         ]);
 
         setTransfer(transferRes.data);

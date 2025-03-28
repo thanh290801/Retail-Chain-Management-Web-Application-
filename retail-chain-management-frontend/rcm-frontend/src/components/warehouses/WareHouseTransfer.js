@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import Header from "../../headerComponent/header";
 
 const WarehouseTransfer = () => {
+    const navigate = useNavigate();
     const [warehouses, setWarehouses] = useState([]);
     const [sourceWarehouse, setSourceWarehouse] = useState("");
     const [destinationWarehouse, setDestinationWarehouse] = useState("");
@@ -26,7 +29,7 @@ const WarehouseTransfer = () => {
 
     // Fetch danh sách kho
     useEffect(() => {
-        fetch("https://localhost:5000/api/warehouses")
+        fetch("https://localhost:5000/api/warehouse")
             .then(response => response.json())
             .then(data => setWarehouses(data))
             .catch(error => console.error("Error fetching warehouses:", error));
@@ -35,7 +38,7 @@ const WarehouseTransfer = () => {
     // Fetch danh sách sản phẩm có thể điều chuyển
     const fetchProductsForTransfer = () => {
         if (sourceWarehouse && destinationWarehouse) {
-            fetch(`https://localhost:5000/api/warehouses/available-products?sourceWarehouseId=${sourceWarehouse}&destinationWarehouseId=${destinationWarehouse}`)
+            fetch(`https://localhost:5000/api/warehouse/available-products?sourceWarehouseId=${sourceWarehouse}&destinationWarehouseId=${destinationWarehouse}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("Sản phẩm nhận được từ API:", data);
@@ -117,7 +120,7 @@ const WarehouseTransfer = () => {
     
         console.log("📤 Payload gửi lên API:", transferPayload);
     
-        fetch("https://localhost:5000/api/warehouses/transfer", {
+        fetch("https://localhost:5000/api/warehouse/transfer", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(transferPayload)
@@ -132,17 +135,16 @@ const WarehouseTransfer = () => {
         })
         .then(() => {
             alert("✅ Tạo phiếu điều chuyển thành công!");
-            setSourceWarehouse("");
-            setDestinationWarehouse("");
-            setTransferList([]);
-            fetchProductsForTransfer();
+            navigate("/ownerproductstock"); // Điều hướng về trang ownerproductstock
         })
         .catch(error => console.error("❌ Lỗi khi tạo phiếu điều chuyển:", error.message));
     };
     
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md">
+        <div>
+            <Header/>
+            <div className="p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">🔄 Tạo Phiếu Điều Chuyển Kho</h2>
 
             <div className="flex space-x-4">
@@ -229,6 +231,8 @@ const WarehouseTransfer = () => {
                     ✅ Tạo Phiếu Điều Chuyển
                 </button>
         </div>
+        </div>
+        
     );
 };
 

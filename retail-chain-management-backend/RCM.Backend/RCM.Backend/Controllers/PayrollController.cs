@@ -71,7 +71,7 @@ public class PayrollController : ControllerBase
         }
         else
         {
-            _context.ShiftSettings.Add(new ShiftDTO.ShiftSetting
+            _context.ShiftSettings.Add(new ShiftSetting
             {
                 Month = request.Month,
                 Year = request.Year,
@@ -733,4 +733,11 @@ public class PayrollController : ControllerBase
             })
         });
     }
+
+    public class ShiftSettingDTO
+        {
+            public int Month { get; set; }
+            public int Year { get; set; }
+            public int TotalShifts { get; set; }
+        }
 }

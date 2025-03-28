@@ -26,7 +26,7 @@ const LowStockProducts = () => {
     }, []);
 
     useEffect(() => {
-        fetch("https://localhost:5000/api/warehouses")
+        fetch("https://localhost:5000/api/warehouse")
             .then((response) => response.json())
             .then((data) => setWarehouses(data))
             .catch((error) => console.error("Error fetching warehouses:", error));

@@ -15,7 +15,6 @@ namespace RCM.Backend.Models
 
         public int PurchaseOrdersId { get; set; }
         public int? SupplierId { get; set; }
-        public int? WarehousesId { get; set; }
         public DateTime? OrderDate { get; set; }
         public string? Status { get; set; }
         public string? Notes { get; set; }

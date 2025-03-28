@@ -7,15 +7,21 @@ namespace RCM.Backend.Models
     {
         public Employee()
         {
-            Accounts = new HashSet<Account>();
+            AttendanceCheckIns = new HashSet<AttendanceCheckIn>();
+            AttendanceCheckOuts = new HashSet<AttendanceCheckOut>();
             AttendanceRecords = new HashSet<AttendanceRecord>();
             CashHandoverEmployees = new HashSet<CashHandover>();
             CashHandoverReceivers = new HashSet<CashHandover>();
+            Cashes = new HashSet<Cash>();
             EndShifts = new HashSet<EndShift>();
             Orders = new HashSet<Order>();
+            OvertimeRecords = new HashSet<OvertimeRecord>();
+            PenaltyPayments = new HashSet<PenaltyPayment>();
             Refunds = new HashSet<Refund>();
             Salaries = new HashSet<Salary>();
+            SalaryPaymentHistories = new HashSet<SalaryPaymentHistory>();
             Transactions = new HashSet<Transaction>();
+            AccountsAccounts = new HashSet<Account>();
         }
 
         public int EmployeeId { get; set; }
@@ -38,21 +44,21 @@ namespace RCM.Backend.Models
 
         public virtual Account? Account { get; set; }
         public virtual Warehouse? Branch { get; set; }
-        public virtual ICollection<Account> Accounts { get; set; }
+        public virtual ICollection<AttendanceCheckIn> AttendanceCheckIns { get; set; }
+        public virtual ICollection<AttendanceCheckOut> AttendanceCheckOuts { get; set; }
         public virtual ICollection<AttendanceRecord> AttendanceRecords { get; set; }
         public virtual ICollection<CashHandover> CashHandoverEmployees { get; set; }
         public virtual ICollection<CashHandover> CashHandoverReceivers { get; set; }
+        public virtual ICollection<Cash> Cashes { get; set; }
         public virtual ICollection<EndShift> EndShifts { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
-        public virtual ICollection<Refund> Refunds { get; set; }
-        public virtual ICollection<Salary> Salaries { get; set; }
-        public virtual ICollection<Transaction> Transactions { get; set; }
-
-        public virtual ICollection<AttendanceCheckIn> AttendanceCheckIns { get; set; }
-        public virtual ICollection<AttendanceCheckOut> AttendanceCheckOuts { get; set; }
-        public virtual ICollection<Cash> Cashes { get; set; }
         public virtual ICollection<OvertimeRecord> OvertimeRecords { get; set; }
         public virtual ICollection<PenaltyPayment> PenaltyPayments { get; set; }
+        public virtual ICollection<Refund> Refunds { get; set; }
+        public virtual ICollection<Salary> Salaries { get; set; }
         public virtual ICollection<SalaryPaymentHistory> SalaryPaymentHistories { get; set; }
+        public virtual ICollection<Transaction> Transactions { get; set; }
+
+        public virtual ICollection<Account> AccountsAccounts { get; set; }
     }
 }

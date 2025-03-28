@@ -33,7 +33,7 @@ const StockCheck = () => {
 
     // Lấy thông tin kho từ API
     const fetchWarehouseInfo = (branchId) => {
-        fetch(`https://localhost:5000/api/warehouses/${branchId}`)
+        fetch(`https://localhost:5000/api/warehouse/${branchId}`)
             .then(response => response.json())
             .then(data => setWarehouseName(data.name))
             .catch(error => console.error("Lỗi khi lấy tên kho:", error));

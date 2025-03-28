@@ -9,6 +9,7 @@ namespace RCM.Backend.Models
         {
             Batches = new HashSet<Batch>();
             CashHandovers = new HashSet<CashHandover>();
+            Cashes = new HashSet<Cash>();
             DailySalesReports = new HashSet<DailySalesReport>();
             Employees = new HashSet<Employee>();
             EndShifts = new HashSet<EndShift>();
@@ -32,6 +33,7 @@ namespace RCM.Backend.Models
 
         public virtual ICollection<Batch> Batches { get; set; }
         public virtual ICollection<CashHandover> CashHandovers { get; set; }
+        public virtual ICollection<Cash> Cashes { get; set; }
         public virtual ICollection<DailySalesReport> DailySalesReports { get; set; }
         public virtual ICollection<Employee> Employees { get; set; }
         public virtual ICollection<EndShift> EndShifts { get; set; }
@@ -46,7 +48,5 @@ namespace RCM.Backend.Models
         public virtual ICollection<Transaction> Transactions { get; set; }
         public virtual ICollection<WarehouseTransfer> WarehouseTransferFromWarehouses { get; set; }
         public virtual ICollection<WarehouseTransfer> WarehouseTransferToWarehouses { get; set; }
-
-        public virtual ICollection<Cash> Cashes { get; set; }
     }
 }

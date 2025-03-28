@@ -26,7 +26,7 @@ const InventoryCheckHistory = () => {
             .then(res => res.json())
             .then(data => setEmployees(data || []));
 
-        fetch("https://localhost:5000/api/warehouses")
+        fetch("https://localhost:5000/api/warehouse")
             .then(res => res.json())
             .then(data => setWarehouses(data || []));
     }, []);
