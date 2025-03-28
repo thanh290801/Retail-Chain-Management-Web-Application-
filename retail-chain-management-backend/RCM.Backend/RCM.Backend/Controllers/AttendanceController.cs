@@ -38,17 +38,17 @@ namespace RCM.Backend.Controllers
             var now = DateTime.Now;
             var currentTime = now.TimeOfDay;
 
-            var morningShiftStart = new TimeSpan(8, 0, 0);    // 8:00
-            var morningShiftEnd = new TimeSpan(15, 0, 0);     // 15:00
-            var afternoonShiftStart = new TimeSpan(15, 0, 0); // 15:00
-            var afternoonShiftEnd = new TimeSpan(22, 0, 0);   // 22:00
-            var gracePeriod = new TimeSpan(0, 15, 0);         // 15 phút ân hạn
+            var morningShiftStart = new TimeSpan(6, 0, 0);    // 6:00 AM
+            var morningShiftEnd = new TimeSpan(13, 0, 0);     // 1:00 PM
+            var afternoonShiftStart = new TimeSpan(13, 0, 0); // 1:00 PM
+            var afternoonShiftEnd = new TimeSpan(20, 0, 0);   // 8:00 PM
+            var gracePeriod = new TimeSpan(0, 15, 0);         // 15-minute grace period
 
             string shift;
             string status;
             int lateMinutes = 0;
 
-            // Xác định ca dựa trên giờ hiện tại
+            // Determine shift based on current time
             if (currentTime >= morningShiftStart && currentTime < afternoonShiftStart)
             {
                 shift = "Ca sáng";
@@ -77,10 +77,10 @@ namespace RCM.Backend.Controllers
             }
             else
             {
-                return BadRequest("Ngoài giờ check-in cho phép (8:00-22:00).");
+                return BadRequest("Ngoài giờ check-in cho phép (6:00-20:00).");
             }
 
-            // Kiểm tra xem đã check-in cho ca này chưa
+            // Check if already checked in for this shift
             var existingCheckIn = await _context.AttendanceCheckIns
                 .FirstOrDefaultAsync(a => a.EmployeeId == request.EmployeeId
                     && a.AttendanceDate == now.Date
@@ -91,13 +91,13 @@ namespace RCM.Backend.Controllers
                 return BadRequest($"Nhân viên đã check-in cho {shift} hôm nay.");
             }
 
-            // Kiểm tra xem có check-in ca khác trong ngày không
+            // Check if checked in for another shift today
             var otherShiftCheckIn = await _context.AttendanceCheckIns
                 .FirstOrDefaultAsync(a => a.EmployeeId == request.EmployeeId
                     && a.AttendanceDate == now.Date
                     && a.Shift != shift);
 
-            // Nếu đã check-in ca khác, kiểm tra quyền làm thêm ca
+            // If checked in for another shift, verify overtime approval
             if (otherShiftCheckIn != null)
             {
                 var approvedOvertime = await _context.OvertimeRecords
@@ -121,7 +121,7 @@ namespace RCM.Backend.Controllers
 
             _context.AttendanceCheckIns.Add(checkIn);
 
-            // Nếu có quyền tăng ca và đã check-in ca khác, cập nhật bản ghi tăng ca
+            // Update overtime record if applicable
             if (otherShiftCheckIn != null)
             {
                 var approvedOvertime = await _context.OvertimeRecords
@@ -131,7 +131,7 @@ namespace RCM.Backend.Controllers
 
                 if (approvedOvertime != null && approvedOvertime.EndTime == TimeSpan.Zero)
                 {
-                    approvedOvertime.StartTime = currentTime; // Cập nhật thời gian bắt đầu tăng ca
+                    approvedOvertime.StartTime = currentTime;
                     approvedOvertime.Reason = $"Check-in lệch ca - {shift}";
                 }
             }
@@ -150,6 +150,7 @@ namespace RCM.Backend.Controllers
                 Overtime = otherShiftCheckIn != null ? "Đã ghi nhận tăng ca (dựa trên quyền được phê duyệt)" : "Không tăng ca"
             });
         }
+
         [HttpPost("CheckOut")]
         public async Task<IActionResult> CheckOut([FromBody] CheckOutRequest request)
         {
@@ -167,10 +168,10 @@ namespace RCM.Backend.Controllers
             var now = DateTime.Now;
             var currentTime = now.TimeOfDay;
 
-            var morningShiftEnd = new TimeSpan(15, 0, 0);    // 15:00
-            var afternoonShiftEnd = new TimeSpan(22, 0, 0);  // 22:00
+            var morningShiftEnd = new TimeSpan(13, 0, 0);    // 1:00 PM
+            var afternoonShiftEnd = new TimeSpan(20, 0, 0);  // 8:00 PM
 
-            // Tìm bản ghi check-in gần nhất trong ngày
+            // Find the most recent check-in for the day
             var checkIn = await _context.AttendanceCheckIns
                 .Where(a => a.EmployeeId == request.EmployeeId
                     && a.AttendanceDate == now.Date)
@@ -182,7 +183,7 @@ namespace RCM.Backend.Controllers
                 return BadRequest("Bạn chưa check-in trong ngày hôm nay. Vui lòng check-in trước khi check-out.");
             }
 
-            // Kiểm tra xem đã check-out cho ca này chưa
+            // Check if already checked out for this shift
             var existingCheckOut = await _context.AttendanceCheckOuts
                 .FirstOrDefaultAsync(a => a.EmployeeId == request.EmployeeId
                     && a.AttendanceDate == now.Date
@@ -193,14 +194,14 @@ namespace RCM.Backend.Controllers
                 return BadRequest($"Bạn đã check-out cho {checkIn.Shift} hôm nay.");
             }
 
-            // Kiểm tra thời gian check-out hợp lệ
+            // Validate checkout time
             TimeSpan shiftEnd = checkIn.Shift == "Ca sáng" ? morningShiftEnd : afternoonShiftEnd;
             bool isValidCheckout = currentTime >= shiftEnd;
             decimal overtimeHours = 0;
 
             if (!isValidCheckout)
             {
-                return BadRequest($"Check-out không hợp lệ. Phải sau {(checkIn.Shift == "Ca sáng" ? "15:00" : "22:00")}");
+                return BadRequest($"Check-out không hợp lệ. Phải sau {(checkIn.Shift == "Ca sáng" ? "13:00" : "20:00")}");
             }
 
             if (currentTime > shiftEnd)
@@ -218,7 +219,7 @@ namespace RCM.Backend.Controllers
 
             _context.AttendanceCheckOuts.Add(checkOut);
 
-            // Kiểm tra và cập nhật bản ghi tăng ca (nếu có)
+            // Handle overtime records
             var existingOvertime = await _context.OvertimeRecords
                 .FirstOrDefaultAsync(o => o.EmployeeId == request.EmployeeId
                     && o.Date == now.Date
@@ -259,7 +260,7 @@ namespace RCM.Backend.Controllers
                     : "Không tăng ca"
             });
         }
-        // API mới: Xin phép tăng ca
+
         [HttpPost("RequestOvertime")]
         public async Task<IActionResult> RequestOvertime([FromBody] OvertimeRequest request)
         {
@@ -274,7 +275,6 @@ namespace RCM.Backend.Controllers
                 return NotFound("Không tìm thấy nhân viên.");
             }
 
-            // Kiểm tra xem đã có yêu cầu tăng ca cho ngày này chưa
             var existingRequest = await _context.OvertimeRecords
                 .FirstOrDefaultAsync(o => o.EmployeeId == request.EmployeeId
                     && o.Date == request.Date.Date
@@ -289,11 +289,11 @@ namespace RCM.Backend.Controllers
             {
                 EmployeeId = request.EmployeeId,
                 Date = request.Date.Date,
-                StartTime = request.StartTime ?? TimeSpan.Zero, // Nếu không có giờ bắt đầu cụ thể
-                EndTime = TimeSpan.Zero, // Chưa xác định, sẽ cập nhật khi check-out nếu cần
+                StartTime = request.StartTime ?? TimeSpan.Zero,
+                EndTime = TimeSpan.Zero,
                 TotalHours = request.TotalHours,
                 Reason = request.Reason ?? "Yêu cầu tăng ca",
-                IsApproved = false // Chờ duyệt
+                IsApproved = false
             };
 
             _context.OvertimeRecords.Add(overtimeRecord);
@@ -319,11 +319,10 @@ namespace RCM.Backend.Controllers
                 return BadRequest("Invalid Employee ID.");
             }
 
-            var morningShiftStart = new TimeSpan(8, 0, 0);
-            var afternoonShiftStart = new TimeSpan(15, 0, 0);
+            var morningShiftStart = new TimeSpan(6, 0, 0);    // 6:00 AM
+            var afternoonShiftStart = new TimeSpan(13, 0, 0); // 1:00 PM
             var gracePeriod = new TimeSpan(0, 15, 0);
 
-            // Fetch raw data without performing TimeSpan calculations in the query
             var attendanceRecords = await _context.AttendanceCheckIns
                 .Where(a => a.EmployeeId == employeeId)
                 .GroupJoin(_context.AttendanceCheckOuts,
@@ -346,7 +345,6 @@ namespace RCM.Backend.Controllers
                 return NotFound("No attendance records found.");
             }
 
-            // Perform TimeSpan calculations in memory after materializing the data
             var formattedRecords = attendanceRecords.Select(a => new
             {
                 AttendanceDate = a.AttendanceDate.ToString("dd/MM/yyyy"),
@@ -367,6 +365,7 @@ namespace RCM.Backend.Controllers
 
             return Ok(formattedRecords);
         }
+
         [HttpGet("AttendanceReport/Range")]
         public async Task<IActionResult> GetAttendanceReportByRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
@@ -478,8 +477,8 @@ namespace RCM.Backend.Controllers
             }
 
             var today = DateTime.Today;
-            var morningShiftStart = new TimeSpan(8, 0, 0);
-            var afternoonShiftStart = new TimeSpan(15, 0, 0);
+            var morningShiftStart = new TimeSpan(6, 0, 0);    // 6:00 AM
+            var afternoonShiftStart = new TimeSpan(13, 0, 0); // 1:00 PM
             var gracePeriod = new TimeSpan(0, 15, 0);
 
             var checkIn = await _context.AttendanceCheckIns
@@ -544,9 +543,9 @@ namespace RCM.Backend.Controllers
         {
             public int EmployeeId { get; set; }
             public DateTime Date { get; set; }
-            public TimeSpan? StartTime { get; set; } // Giờ bắt đầu tăng ca (tùy chọn)
-            public decimal TotalHours { get; set; }  // Tổng số giờ dự kiến tăng ca
-            public string Reason { get; set; }       // Lý do tăng ca
+            public TimeSpan? StartTime { get; set; }
+            public decimal TotalHours { get; set; }
+            public string Reason { get; set; }
         }
     }
 }

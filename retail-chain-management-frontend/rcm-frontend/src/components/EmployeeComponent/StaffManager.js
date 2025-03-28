@@ -88,6 +88,7 @@ export default function StaffManager() {
       setValue("currentAddress", staffData.currentAddress);
       setValue("branchId", staffData.branchId);
       setValue("fixedSalary", staffData.fixedSalary);
+      setValue("workShiftId", staffData.workShiftId);
       setIsModalOpen(true);
       setStep(1);
     } catch (error) {
