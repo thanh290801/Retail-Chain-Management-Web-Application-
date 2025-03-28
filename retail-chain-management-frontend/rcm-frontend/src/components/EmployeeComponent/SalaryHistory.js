@@ -27,7 +27,7 @@ const SalaryHistory = () => {
 
   const fetchPayrollData = async () => {
     try {
-      let url = `${api_url}/Payroll/getAllPayroll?month=${selectedMonth}&year=${selectedYear}`;
+      let url = `${api_url}/Payroll/getSalaryList?month=${selectedMonth}&year=${selectedYear}`;
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,7 +78,7 @@ const SalaryHistory = () => {
     }
 
     setSelectedEmployee(employee);
-    setPaidAmount(employee.totalSalary); // Mặc định lấy tổng lương
+    setPaidAmount(employee.finalSalary); // Mặc định lấy tổng lương
     setPaymentNote(""); // Reset note khi mở modal mới
     setIsPaymentModalOpen(true);
   };
@@ -94,18 +94,16 @@ const SalaryHistory = () => {
           paidAmount,
           note: paymentNote, // Gửi ghi chú kèm theo
         }),
+      }).then((res) => {
+        console.log(res);
+        console.log(res.data);
       });
 
-      if (!response.ok) {
-        throw new Error(`Lỗi: ${response.status} - ${response.statusText}`);
-      }
-
-      toast.success("Thanh toán thành công!");
       setIsPaymentModalOpen(false);
       fetchPayrollData(); // Cập nhật lại danh sách
     } catch (error) {
-      console.error("Lỗi khi thanh toán lương:", error);
-      toast.error("Thanh toán thất bại!");
+      console.error(error);
+      toast.error(error?.data);
     }
   };
 
@@ -219,16 +217,15 @@ const SalaryHistory = () => {
               <tr className="bg-gray-100">
                 <th className="border p-2 text-center">Mã Nhân viên</th>
                 <th className="border p-2 text-center">Tên nhân viên</th>
-                <th className="border p-2 text-center">SĐT</th>
-                <th className="border p-2 text-center">Quê quán</th>
                 <th className="border p-2 text-center">Lương cố định</th>
-                {/* <th className="border p-2 text-center">Lương ngày</th> */}
+                <th className="border p-2 text-center">Lương một công làm</th>
                 <th className="border p-2 text-center">Số ngày công</th>
                 <th className="border p-2 text-center">Số giờ tăng ca</th>
                 <th className="border p-2 text-center">Lương tăng ca</th>
-                {/* <th className="border p-2 text-center">Tiền thưởng</th> */}
+                <th className="border p-2 text-center">Tiền thưởng</th>
+                <th className="border p-2 text-center">Tiền phạt</th>
                 <th className="border p-2 text-center">Tổng lương</th>
-                <th className="border p-2 text-center">Cập nhật lương</th>
+                <th className="border p-2 text-center">Ngày cập nhật</th>
                 <th className="border p-2 text-center">Thanh toán</th>
               </tr>
             </thead>
@@ -241,54 +238,46 @@ const SalaryHistory = () => {
                 >
                   <td className="border p-2 text-center">{item.employeeId}</td>
                   <td className="border p-2">{item.employeeName}</td>
-                  <td className="border p-2 text-center">{item.phone}</td>
-                  <td className="border p-2 text-center">{item.hometown}</td>
                   <td className="border p-2 text-center">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(item.fixedSalary)}
                   </td>
-                  {/* <td className="border p-2 text-center">
+                  <td className="border p-2 text-center">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(item.salaryPerShift)}
-                  </td> */}
-                  <td className="border p-2 text-center">
-                    {item.totalWorkDays}
                   </td>
-                  <td className="border p-2 text-center">
-                    {item.totalOvertimeHours}
-                  </td>
+                  <td className="border p-2 text-center">{item.workingDays}</td>
+                  <td className="border p-2 text-center">{item.bonusHours}</td>
                   <td className="border p-2 text-center">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(item.overtimePay)}
                   </td>
-                  {/* <td className="border p-2 text-center">
+                  <td className="border p-2 text-center">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(item.bonusSalary)}
-                  </td> */}
+                  </td>
+                  <td className="border p-2 text-center">
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(item.penalty)}
+                  </td>
                   <td className="border p-2 text-center font-bold">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
-                    }).format(item.totalSalary)}
+                    }).format(item.finalSalary)}
                   </td>
                   <td className="border p-2 text-center font-bold">
-                    <button
-                      className="bg-green-500 text-white px-2 py-1 rounded "
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openUpdateModal(item);
-                      }}
-                    >
-                      Cập nhật lương
-                    </button>
+                    {item.updateAt}
                   </td>
                   <td className="border p-2 text-center font-bold">
                     {item.paymentStatus === "Đã Thanh Toán" ? (
@@ -314,8 +303,13 @@ const SalaryHistory = () => {
       {/* Modal cập nhật lương */}
       {isUpdateModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white p-5 rounded shadow-lg w-96" style={{ width: "660px" }}>
-            <h2 className="text-xl font-bold mb-4">Cập Nhật Lương Của {selectedEmployee.employeeName}</h2>
+          <div
+            className="bg-white p-5 rounded shadow-lg w-96"
+            style={{ width: "660px" }}
+          >
+            <h2 className="text-xl font-bold mb-4">
+              Cập Nhật Lương Của {selectedEmployee.employeeName}
+            </h2>
             <label className="block mb-2">Tiền lương cần cập nhật:</label>
             <input
               type="text"
@@ -399,7 +393,7 @@ const SalaryHistory = () => {
                     value: new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
-                    }).format(selectedEmployee.totalSalary),
+                    }).format(selectedEmployee.finalSalary),
                   },
                 ].map((item, index) => (
                   <div key={index} className="flex">

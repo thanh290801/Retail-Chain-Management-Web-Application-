@@ -174,7 +174,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* <Route
+          <Route
             path="/salary"
             element={
               <ProtectedRoute>
@@ -182,7 +182,7 @@ function App() {
                 <ToastContainer position="top-right" autoClose={3000} />
               </ProtectedRoute>
             }
-          /> */}
+          />
         </Routes>
       </BrowserRouter>
     </>

@@ -82,7 +82,8 @@ const SalaryForm = () => {
       );
       setMessage(response.data.Message || "Lưu thành công!");
     } catch (error) {
-      setMessage(error.response?.data?.Message || "Lỗi không xác định");
+      console.log(error);
+      setMessage(error.response?.data?.message || "Lỗi không xác định");
     }
   };
 
