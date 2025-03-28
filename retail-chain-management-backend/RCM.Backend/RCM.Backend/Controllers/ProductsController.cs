@@ -250,4 +250,44 @@ public async Task<IActionResult> GetLowStockProducts([FromQuery] int? warehouseI
     return Ok(result);
 }
 
+
+    [HttpGet("{id}")]
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null) return NotFound();
+
+            return Ok(product);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductsDTO product)
+        {
+            var existing = await _context.Products.FindAsync(id);
+            if (existing == null) return NotFound();
+
+            existing.Name = product.Name;
+            existing.Barcode = product.Barcode;
+            existing.Unit = product.Unit;
+            existing.Weight = product.Weight;
+            existing.Volume = product.Volume;
+            existing.ImageUrl = product.ImageUrl;
+            existing.Category = product.Category;
+            
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        public class ProductsDTO
+    {
+        public int ProductsId { get; set; }
+        public string Name { get; set; } = null!;
+        public string Barcode { get; set; } = null!;
+        public string Unit { get; set; } = null!;
+        public decimal? Weight { get; set; }
+        public decimal? Volume { get; set; }
+        public string? ImageUrl { get; set; }
+        public string? Category { get; set; }
+    }
 }
