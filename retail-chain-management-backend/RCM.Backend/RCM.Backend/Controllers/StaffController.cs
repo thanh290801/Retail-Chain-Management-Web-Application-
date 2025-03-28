@@ -419,7 +419,69 @@ namespace RCM.Backend.Controllers
 
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "StaffList.xlsx");
         }
+        [HttpPost("auto-schedule")]
+        public IActionResult AutoScheduleStaff()
+        {
+            try
+            {
+                TimeZoneInfo vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                DateTime vietnamNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
+                int currentMonth = vietnamNow.Month;
+                int currentYear = vietnamNow.Year;
+                Calendar calendar = CultureInfo.InvariantCulture.Calendar;
+                int currentWeek = calendar.GetWeekOfYear(vietnamNow, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
+                var shiftSetting = _context.ShiftSettings
+                    .FirstOrDefault(s => s.Month == currentMonth && s.Year == currentYear);
 
+                if (shiftSetting == null)
+                {
+                    return BadRequest(new { message = "Chưa có cài đặt ca làm việc cho tháng này!" });
+                }
+
+                int totalShiftsPerMonth = shiftSetting.TotalShifts;
+                var staffList = _context.Employees
+                    .Join(_context.Accounts,
+                          e => e.AccountId,
+                          a => a.AccountId,
+                          (e, a) => new { Employee = e, Account = a })
+                    .Where(ea => ea.Account.Role == "Staff" && ea.Employee.IsActive == true)
+                    .Select(ea => new
+                    {
+                        ea.Employee.EmployeeId,
+                        ea.Employee.FullName,
+                        CurrentShiftId = ea.Employee.WorkShiftId
+                    })
+                    .ToList();
+
+                const int morningShiftId = 1;
+                const int afternoonShiftId = 2;
+                int daysInMonth = DateTime.DaysInMonth(currentYear, currentMonth);
+                int shiftsAssigned = 0;
+
+                foreach (var staff in staffList)
+                {
+                    if (shiftsAssigned >= totalShiftsPerMonth * staffList.Count)
+                    {
+                        break;
+                    }
+
+                    int newShiftId = (currentWeek % 2 == 0) ? morningShiftId : afternoonShiftId;
+                    var employee = _context.Employees.FirstOrDefault(e => e.EmployeeId == staff.EmployeeId);
+                    if (employee != null && employee.WorkShiftId != newShiftId)
+                    {
+                        employee.WorkShiftId = newShiftId;
+                        shiftsAssigned++;
+                    }
+                }
+
+                _context.SaveChanges();
+                return Ok(new { message = "Lịch làm việc đã được tự động xếp thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Đã xảy ra lỗi khi xếp lịch: " + ex.Message });
+            }
+        }
         [HttpGet("download-template")]
         public IActionResult DownloadTemplate()
         {
