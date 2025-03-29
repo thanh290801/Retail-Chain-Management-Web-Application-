@@ -12,7 +12,7 @@ const ProductEdit = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        axios.get(`https://localhost:5000/api/Product/${id}`)
+        axios.get(`https://localhost:5000/api/products/${id}`)
             .then((res) => {
                 setProduct(res.data);
                 setOriginalBarcode(res.data.barcode);
@@ -30,7 +30,7 @@ const ProductEdit = () => {
             return;
         }
 
-        axios.get("https://localhost:5000/api/Product")
+        axios.get("https://localhost:5000/api/products")
             .then((res) => {
                 const exists = res.data.some(p =>
                     p.barcode === product.barcode && p.productsId !== parseInt(id)
@@ -49,7 +49,7 @@ const ProductEdit = () => {
             return;
         }
 
-        axios.put(`https://localhost:5000/api/Product/${id}`, {
+        axios.put(`https://localhost:5000/api/products/${id}`, {
             name: product.name,
             barcode: product.barcode,
             unit: product.unit,

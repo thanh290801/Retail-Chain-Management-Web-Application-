@@ -81,6 +81,21 @@ const Header = () => {
                                     </div>
                                 )}
                             </div>
+                            {/* Dropdown Kho hàng - Chỉ hiển thị khi branchId = "0" */}
+                            {branchId === "0" && (
+                                <div className="relative" onMouseLeave={closeDropdown}>
+                                    <button onClick={() => handleDropdown('warehouse')} className="text-white flex items-center">
+                                        Kho hàng
+                                    </button>
+                                    {activeDropdown === 'warehouse' && (
+                                        <div className="absolute bg-white shadow-md rounded p-2 z-50">
+                                            <Link to="/warehouselistdetail" className="block px-4 py-2 hover:bg-gray-200">Danh sách kho</Link>
+                                            <Link to="/warehouse-transfer" className="block px-4 py-2 hover:bg-gray-200">Điều chuyển kho</Link>
+                                            <Link to="/warehouse-audit" className="block px-4 py-2 hover:bg-gray-200">Kiểm kho</Link>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             <div
                                 className="relative"
                                 onMouseLeave={closeDropdown}
@@ -105,7 +120,7 @@ const Header = () => {
                                 </button>
                                 {activeDropdown === 'partners' && (
                                     <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                        <Link to="/button7" className="block px-4 py-2 hover:bg-gray-200">Nhà cung cấp</Link>
+                                        <Link to="/supplierlist" className="block px-4 py-2 hover:bg-gray-200">Nhà cung cấp</Link>
                                         <Link to="/button8" className="block px-4 py-2 hover:bg-gray-200">...</Link>
                                         <Link to="/button9" className="block px-4 py-2 hover:bg-gray-200">...</Link>
                                     </div>

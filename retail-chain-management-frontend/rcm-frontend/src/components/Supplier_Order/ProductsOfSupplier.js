@@ -90,13 +90,13 @@ const ProductsOfSupplier = () => {
                 <h2 className="text-2xl font-bold">📦 Sản phẩm của nhà cung cấp</h2>
                 <div className="flex gap-4">
                     <button
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate('/supplierlist')}
                         className="text-blue-600 hover:underline"
                     >
                         ← Quay lại
                     </button>
                     <button
-                        onClick={() => navigate(`/AddProductsToSupplier/${supplierId}`)}
+                        onClick={() => navigate(`/addproductsupplier/${supplierId}`)}
                         className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
                     >
                         ➕ Thêm sản phẩm

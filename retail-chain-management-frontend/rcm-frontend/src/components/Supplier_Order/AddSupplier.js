@@ -13,7 +13,7 @@ const CreateSupplierForm = () => {
         Fax: "",
         Address: "",
         ContactPerson: "",
-        R_Phone: "",
+        RPhone: "",
     });
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -44,8 +44,9 @@ const CreateSupplierForm = () => {
                 Fax: "",
                 Address: "",
                 ContactPerson: "",
-                R_Phone: "",
+                RPhone: "",
             });
+            navigate('/supplierlist');
         } catch (err) {
             console.error("❌ Lỗi API:", err.response?.data || err.message); // 🔴 Log lỗi cụ thể
             setError("Có lỗi xảy ra khi thêm nhà cung cấp. Vui lòng thử lại!");
@@ -97,7 +98,7 @@ const CreateSupplierForm = () => {
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Số điện thoại</Form.Label>
-                            <Form.Control type="text" placeholder="Nhập số điện thoại người đại diện" name="R_Phone" value={formData.R_Phone} onChange={handleChange} />
+                            <Form.Control type="text" placeholder="Nhập số điện thoại người đại diện" name="RPhone" value={formData.RPhone} onChange={handleChange} />
                         </Form.Group>
                         <td>
                             <Button variant="primary" type="submit" className="w-100" disabled={loading}>
@@ -105,7 +106,7 @@ const CreateSupplierForm = () => {
                             </Button>
 
                         </td>
-                        <td><button type="button" className="btn btn-secondary ms-2" onClick={() => navigate("/SupplierList")}>
+                        <td><button type="button" className="btn btn-secondary ms-2" onClick={() => navigate("/supplierlist")}>
                             ⬅️ Quay lại
                         </button></td>
                         

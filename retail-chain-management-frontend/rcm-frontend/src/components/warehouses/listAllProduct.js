@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from '../../headerComponent/header';
 
 const ProductListComponent = () => {
     const [products, setProducts] = useState([]);
@@ -17,7 +18,9 @@ const ProductListComponent = () => {
             alert(`Sản phẩm "${product.name}" đang có giao dịch xử lý, không thể ẩn!`);
             return;
         }
-        const confirmMessage = product.isEnabled ? "Bạn có chắc chắn muốn ẩn sản phẩm này?" : "Bạn có chắc chắn muốn hiển thị sản phẩm này?";
+        const confirmMessage = product.isEnabled
+            ? "Bạn có chắc chắn muốn ẩn sản phẩm này?"
+            : "Bạn có chắc chắn muốn hiển thị sản phẩm này?";
         if (window.confirm(confirmMessage)) {
             try {
                 const response = await fetch(`https://localhost:5000/api/products/${product.productsId}/toggle-status`, {
@@ -37,12 +40,17 @@ const ProductListComponent = () => {
         }
     };
 
+    const handleProductClick = (productsId) => {
+        navigate(`/listallproduct/${productsId}`);
+    };
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md">
+        <div>
+            <Header/>
+            <div className="p-6 bg-white rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">📦 Danh Sách Sản Phẩm</h2>
-                <button 
+                <button
                     className="bg-green-500 text-white px-4 py-2 rounded"
                     onClick={() => navigate('/addproduct')}
                 >
@@ -66,7 +74,11 @@ const ProductListComponent = () => {
                 </thead>
                 <tbody>
                     {products.map((product) => (
-                        <tr key={product.productsId}>
+                        <tr
+                            key={product.productsId}
+                            onClick={() => handleProductClick(product.productsId)}
+                            className="cursor-pointer hover:bg-gray-100"
+                        >
                             <td className="p-2">{product.productsId}</td>
                             <td className="p-2">{product.name}</td>
                             <td className="p-2">{product.barcode}</td>
@@ -80,9 +92,9 @@ const ProductListComponent = () => {
                             </td>
                             <td className="p-2">{product.category}</td>
                             <td className="p-2">{product.isEnabled ? 'Hiển thị' : 'Ẩn'}</td>
-                            <td className="p-2 space-x-2">
-                                <button 
-                                    className={`px-3 py-1 rounded ${product.isEnabled ? 'bg-red-500' : 'bg-blue-500'} text-white`} 
+                            <td className="p-2 space-x-2" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                    className={`px-3 py-1 rounded ${product.isEnabled ? 'bg-red-500' : 'bg-blue-500'} text-white`}
                                     onClick={() => toggleProductStatus(product)}
                                 >
                                     {product.isEnabled ? 'Ẩn' : 'Hiển thị'}
@@ -92,6 +104,7 @@ const ProductListComponent = () => {
                     ))}
                 </tbody>
             </table>
+        </div>
         </div>
     );
 };

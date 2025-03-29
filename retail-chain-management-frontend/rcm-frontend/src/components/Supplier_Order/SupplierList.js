@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaSearch, FaPlusCircle } from "react-icons/fa";
+import Header from "../../headerComponent/header";
 
 const SupplierList = () => {
     const [suppliers, setSuppliers] = useState([]);
@@ -48,7 +49,9 @@ const SupplierList = () => {
     const currentSuppliers = filteredSuppliers.slice(indexOfFirstSupplier, indexOfLastSupplier);
 
     return (
-        <div className="container mt-4">
+        <div>
+            <Header/>
+            <div className="container mt-4">
             <h2 className="mb-4 text-center">
                 📋 Danh Sách Nhà Cung Cấp
             </h2>
@@ -106,14 +109,14 @@ const SupplierList = () => {
                                     <td>
                                         <button
                                             className="btn btn-sm btn-warning me-2"
-                                            onClick={() => navigate(`/EditSupplier/${supplier.suppliersId}`)}
+                                            onClick={() => navigate(`/editsupplier/${supplier.suppliersId}`)}
                                         >
                                             <FaEdit /> Sửa
                                         </button>
 
                                         <button
                                             className="btn btn-sm btn-info"
-                                            onClick={() => navigate(`/ProductsOfSupplier/${supplier.suppliersId}`)}
+                                            onClick={() => navigate(`/supplierproducts/${supplier.suppliersId}`)}
                                         >
                                             📦 Xem sản phẩm
                                         </button>
@@ -158,6 +161,7 @@ const SupplierList = () => {
             <button type="button" className="btn btn-success mt-3" onClick={() => navigate("/AddSupplier")}>
                 <FaPlusCircle /> Thêm mới
             </button>
+        </div>
         </div>
     );
 };

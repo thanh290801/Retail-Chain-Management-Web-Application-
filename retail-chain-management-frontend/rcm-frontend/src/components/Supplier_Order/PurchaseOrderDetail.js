@@ -47,7 +47,7 @@ const PurchaseOrderDetail = () => {
         axios.put(`https://localhost:5000/api/PurchaseOrders/${id}/items`, payload)
             .then(() => {
                 alert("Đã lưu thành công!");
-                navigate("/OrderList");
+                navigate("/ownerorderlist");
             })
             .catch(err => {
                 console.error("Lỗi khi lưu:", err);

@@ -53,6 +53,7 @@ import ProductsOfSupplier from './components/Supplier_Order/ProductsOfSupplier.j
 import PurchaseOrderDetail from './components/Supplier_Order/PurchaseOrderDetail.js';
 import SupplierList from './components/Supplier_Order/SupplierList.js';
 import WarehousesListDetail from './components/Supplier_Order/WarehousesListDetail.js';
+
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" />;
@@ -99,14 +100,14 @@ function App() {
           <Route path='/stockadjustment' element= {<CreateStockAdjustment/>} />
           {/* Đại */}
           <Route path='/addsupplier' element= {<CreateSupplierForm/>} />
-          <Route path='/addproductsupplier' element= {<AddProductsToSupplier/>} />
+          <Route path='/addproductsupplier/:supplierId' element= {<AddProductsToSupplier/>} />
           <Route path='/createpurchaseorder' element= {<CreatePurchaseOrder/>} />
-          <Route path='/editsupplier' element= {<EditSupplier/>} />
+          <Route path='/editsupplier/:id' element= {<EditSupplier/>} />
           <Route path='/ownerorderlist' element= {<OwnerOrderList/>} />
-          <Route path='/productdetail' element= {<ProductDetail/>} />
-          <Route path='/productedit' element= {<ProductEdit/>} />
-          <Route path='/supplierproducts' element= {<ProductsOfSupplier/>} />
-          <Route path='/purchaseorderdetail' element= {<PurchaseOrderDetail/>} />
+          <Route path='/listallproduct/:productId' element= {<ProductDetail/>} />
+          <Route path='/productedit/:id' element= {<ProductEdit/>} />
+          <Route path='/supplierproducts/:supplierId' element= {<ProductsOfSupplier/>} />
+          <Route path='/purchaseorderdetail/:id' element= {<PurchaseOrderDetail/>} />
           <Route path='/supplierlist' element= {<SupplierList/>} />
           <Route path='/warehouselistdetail' element= {<WarehousesListDetail/>} />
 

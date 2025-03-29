@@ -16,7 +16,7 @@ const EditSupplier = () => {
         fax: "",
         address: "",
         contactPerson: "",
-        r_Phone: ""
+        RPhone: ""
     });
 
     const [loading, setLoading] = useState(true);
@@ -122,7 +122,7 @@ const EditSupplier = () => {
 
                             <div className="mb-3">
                                 <label className="form-label fw-bold">Số điện thoại người đại diện</label>
-                                <input type="text" name="r_Phone" className="form-control" value={supplier.r_Phone} onChange={handleChange} />
+                                <input type="text" name="RPhone" className="form-control" value={supplier.rPhone} onChange={handleChange} />
                             </div>
                         </div>
                     </div>
@@ -130,7 +130,7 @@ const EditSupplier = () => {
                     {/* Nút lưu & quay lại */}
                     <div className="text-center mt-4">
                         <button type="submit" className="btn btn-success px-4">💾 Lưu thay đổi</button>
-                        <button type="button" className="btn btn-secondary ms-3 px-4" onClick={() => navigate("/SupplierList")}>
+                        <button type="button" className="btn btn-secondary ms-3 px-4" onClick={() => navigate("/supplierlist")}>
                             ⬅️ Quay lại
                         </button>
                     </div>

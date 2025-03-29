@@ -11,7 +11,7 @@ const ProductDetail = () => {
 
 
     useEffect(() => {
-        axios.get(`https://localhost:5000/api/Product/${productId}`)
+        axios.get(`https://localhost:5000/api/products/${productId}`)
             .then(res => setProduct(res.data))
             .catch(err => {
                 console.error("Lỗi khi lấy chi tiết sản phẩm:", err);
@@ -62,7 +62,7 @@ const ProductDetail = () => {
             <Button
                 variant="success"
                 className="fw-semibold px-4 py-2 rounded-pill shadow-sm ms-3"
-                onClick={() => navigate(`/ProductEdit/${productId}`)}
+                onClick={() => navigate(`/productedit/${productId}`)}
             >
                 ✏️ Sửa
             </Button>

@@ -84,6 +84,7 @@ const AddProductsToSupplier = () => {
                 console.error("Lỗi khi thêm sản phẩm:", err);
                 alert("Thêm sản phẩm thất bại.");
             });
+            navigate(`/supplierproducts/${supplierId}`);
     };
 
 

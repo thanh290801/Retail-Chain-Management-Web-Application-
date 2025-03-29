@@ -67,15 +67,32 @@ const CreatePurchaseOrder = () => {
 
     const handleAddProduct = (product) => {
         setOrderItems((prev) => {
-            return prev.some(item => item.productId === product.productId)
-                ? prev.map(item => item.productId === product.productId ? { ...item, quantity: item.quantity + 1 } : item)
-                : [...prev, { ...product, quantity: 1 }];
+            // Kiểm tra nếu sản phẩm đã tồn tại trong danh sách order
+            if (prev.some(item => item.productId === product.productId)) {
+                return prev.map(item =>
+                    item.productId === product.productId
+                        ? { ...item, quantity: item.quantity + 1 }
+                        : item
+                );
+            }
+            return [...prev, { ...product, quantity: 1 }];
         });
+    
+        // Loại bỏ sản phẩm khỏi danh sách sản phẩm hiển thị
+        setFilteredProducts((prev) => prev.filter(p => p.productId !== product.productId));
     };
-
+    
     const handleRemoveProduct = (productId) => {
+        // Xoá sản phẩm khỏi danh sách order
+        const removedProduct = orderItems.find(item => item.productId === productId);
         setOrderItems(prev => prev.filter(item => item.productId !== productId));
+    
+        // Thêm sản phẩm trở lại danh sách sản phẩm hiển thị
+        if (removedProduct) {
+            setFilteredProducts((prev) => [...prev, removedProduct]);
+        }
     };
+    
 
     const handleQuantityChange = (index, value) => {
         setOrderItems(prev => {
@@ -116,7 +133,7 @@ const CreatePurchaseOrder = () => {
         axios.post("https://localhost:5000/api/PurchaseOrders/Create", payload)
             .then((res) => {
                 alert("Đơn hàng được tạo thành công!");
-                navigate("/OrderList");
+                navigate("/ownerorderlist");
             })
             .catch(err => {
                 console.error("Lỗi khi tạo đơn hàng:", err.response?.data || err.message);

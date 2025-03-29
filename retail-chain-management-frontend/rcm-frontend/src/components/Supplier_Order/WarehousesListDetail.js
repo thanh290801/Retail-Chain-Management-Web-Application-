@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Modal, Form } from "react-bootstrap";
+import Header from "../../headerComponent/header";
 
 const WarehousesListDetail = () => {
     const [warehouses, setWarehouses] = useState([]);
@@ -43,7 +44,9 @@ const WarehousesListDetail = () => {
     };
 
     return (
-        <div className="container mt-4">
+       <div>
+            <Header/>
+            <div className="container mt-4">
             <h2 className="mb-4">🏬 Danh sách kho hàng</h2>
             <table className="table table-bordered">
                 <thead>
@@ -114,6 +117,7 @@ const WarehousesListDetail = () => {
                 </Modal.Footer>
             </Modal>
         </div>
+       </div>
     );
 };
 

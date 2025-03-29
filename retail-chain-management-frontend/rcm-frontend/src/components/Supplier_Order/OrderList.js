@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Header from "../../headerComponent/header";
 
 const OwnerOrderList = () => {
     const [orders, setOrders] = useState([]);
@@ -48,7 +49,9 @@ const OwnerOrderList = () => {
     }, [searchTerm, statusFilter, dateFrom, dateTo]);
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
+        <div>
+            <Header/>
+            <div className="p-6 max-w-6xl mx-auto">
             <h2 className="text-3xl font-bold mb-4 text-gray-800">📋 Danh sách đơn hàng</h2>
 
             {/* Bộ lọc */}
@@ -112,7 +115,7 @@ const OwnerOrderList = () => {
                                     <td className="p-2">{order.status}</td>
                                     <td className="p-2 text-center">
                                         <button
-                                            onClick={() => navigate(`/PurchaseOrderDetail/${order.purchaseOrdersId}`)}
+                                            onClick={() => navigate(`/purchaseorderdetail/${order.purchaseOrdersId}`)}
                                             className="text-blue-600 hover:underline"
                                         >
                                             Xem
@@ -164,6 +167,7 @@ const OwnerOrderList = () => {
             <td><button type="button" className="btn btn-secondary ms-2" onClick={() => navigate("/CreatePurchaseOrder")}>
                 ⬅️ Tạo đơn hàng
             </button></td>
+        </div>
         </div>
     );
 };
