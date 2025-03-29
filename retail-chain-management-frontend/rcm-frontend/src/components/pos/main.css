@@ -61,18 +61,10 @@
     height: 20px;
 }
 
-<<<<<<< HEAD
-.order-history{
-=======
 .order-history {
->>>>>>> origin/thanh
     width: 800px;
 }
 
 .search-suggestions:empty {
     display: none;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/thanh

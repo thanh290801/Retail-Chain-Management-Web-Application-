@@ -21,12 +21,9 @@ import SalaryHistory from "./components/EmployeeComponent/SalaryHistory";
 import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
 import RevenueSummaryOwner from './sale-dashboadConponent/RevenueOwner';
 import PendingOvertimeList from "./components/EmployeeComponent/PendingOvertimeList";
+import OrderList from './sale-dashboadConponent/orderList.js';
 
-<<<<<<< HEAD
-
-=======
 import FinancialReport from './components/FinancialReportConponent/financialReport';
->>>>>>> origin/thanh
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" />;
@@ -58,6 +55,8 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/revenue-summary-owner" element={<ProtectedRoute><RevenueSummaryOwner /></ProtectedRoute>} />
           <Route path="/financial-report" element={<ProtectedRoute><FinancialReport /></ProtectedRoute>} />
+          <Route path="/order-list" element={<OrderList />} />
+
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
 

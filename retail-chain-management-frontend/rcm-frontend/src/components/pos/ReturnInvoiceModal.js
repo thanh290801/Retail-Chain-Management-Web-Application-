@@ -56,11 +56,7 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
             Barcode: filters.barcode || null,
             ProductName: filters.productName || null
         },
-<<<<<<< HEAD
-        {
-=======
             {
->>>>>>> origin/thanh
                 headers: {
                     "Content-Type": "application/json",  // ✅ Định dạng JSON
                     "Authorization": `Bearer ${token}`, // ✅ Thêm token nếu có

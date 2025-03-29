@@ -13,8 +13,4 @@
         public decimal Quantity { get; set; }
         public decimal UnitPrice { get; set; }
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/thanh
