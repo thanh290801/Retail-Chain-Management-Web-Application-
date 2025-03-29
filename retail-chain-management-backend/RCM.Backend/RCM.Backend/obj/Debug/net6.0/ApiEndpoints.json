@@ -307,6 +307,22 @@
   },
   {
     "ContainingType": "PayrollController",
+    "Method": "AddToSalaryRecord",
+    "RelativePath": "api/Payroll/add-to-salary-record",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "addSalaryRequestDTO",
+        "Type": "AddSalaryRequestDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PayrollController",
     "Method": "ApproveOvertime",
     "RelativePath": "api/Payroll/approve-overtime/{id}",
     "HttpMethod": "PUT",
@@ -377,6 +393,11 @@
     "Order": 0,
     "Parameters": [
       {
+        "Name": "staffId",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
         "Name": "search",
         "Type": "System.String",
         "IsRequired": false
@@ -389,6 +410,32 @@
       {
         "Name": "year",
         "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PayrollController",
+    "Method": "GetSalaryList",
+    "RelativePath": "api/Payroll/getSalaryList",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "month",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "year",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       }
     ],
