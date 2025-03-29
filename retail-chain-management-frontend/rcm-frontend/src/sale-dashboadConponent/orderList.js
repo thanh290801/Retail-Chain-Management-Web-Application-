@@ -15,13 +15,24 @@ const OrderList = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showModal, setShowModal] = useState(false);
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [ordersPerPage] = useState(10); // Number of orders per page
+    const indexOfLastOrder = currentPage * ordersPerPage;
+    const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+    const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+
     useEffect(() => {
         fetchOrders();
-    }, [paymentFilter]);
+    }, [paymentFilter, currentPage]);
 
     const fetchOrders = async () => {
         try {
-            const params = { paymentMethod: paymentFilter };
+            const params = {
+                paymentMethod: paymentFilter,
+                page: currentPage,
+                limit: ordersPerPage
+            };
             if (branchId) params.branchId = branchId;
             if (fromDate) params.fromDate = fromDate;
             if (toDate) params.toDate = toDate;
@@ -40,7 +51,13 @@ const OrderList = () => {
                 grouped[row.orderId] = {
                     ...row,
                     details: [],
-                    refund: null // Thêm trường refund để lưu thông tin hoàn tiền
+                    refund: row.refund_id ? {
+                        refundId: row.refund_id,
+                        refundDate: row.refund_date,
+                        refundProductId: row.refund_product_id,
+                        refundQuantity: row.refund_quantity,
+                        refundTotalPrice: row.refund_total_price
+                    } : null // Include refund data if exists
                 };
             }
             grouped[row.orderId].details.push({
@@ -50,19 +67,16 @@ const OrderList = () => {
                 unitPrice: row.unit_price || 0,
                 totalPrice: row.total_price || 0
             });
-
-            // Nếu có thông tin hoàn tiền thì lưu vào trường refund
-            if (row.refund_id) {
-                grouped[row.orderId].refund = {
-                    refundId: row.refund_id,
-                    refundDate: row.refund_date,
-                    refundProductId: row.refund_product_id,
-                    refundQuantity: row.refund_quantity,
-                    refundTotalPrice: row.refund_total_price
-                };
-            }
         });
         return Object.values(grouped);
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage(prevPage => prevPage + 1);
+    };
+
+    const handlePrevPage = () => {
+        setCurrentPage(prevPage => prevPage - 1);
     };
 
     const handleShowModal = (order) => {
@@ -84,32 +98,46 @@ const OrderList = () => {
                 </Col>
             </Row>
 
-            <Table striped bordered hover responsive>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Ngày tạo</th>
-                        <th>Nhân viên</th>
-                        <th>Tổng tiền</th>
-                        <th>Chi tiết</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {orders.map((order, idx) => (
-                        <tr key={order.orderId}>
-                            <td>{idx + 1}</td>
-                            <td>{new Date(order.created_date).toLocaleString()}</td>
-                            <td>{order.employee_name}</td>
-                            <td>{order.total_amount.toLocaleString()} VND</td>
-                            <td>
-                                <Button variant="info" size="sm" onClick={(e) => { e.stopPropagation(); handleShowModal(order); }}>
-                                    Xem
-                                </Button>
-                            </td>
+            {/* Table with fixed height and scroll */}
+            <div style={{ height: '510px', overflowY: 'auto' }}>
+                <Table striped bordered hover responsive>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Ngày tạo</th>
+                            <th>Nhân viên</th>
+                            <th>Tổng tiền</th>
+                            <th>Chi tiết</th>
                         </tr>
-                    ))}
-                </tbody>
-            </Table>
+                    </thead>
+                    <tbody>
+                        {currentOrders.map((order, idx) => (
+                            <tr key={order.orderId}>
+                                <td>{indexOfFirstOrder + idx + 1}</td>
+                                <td>{new Date(order.created_date).toLocaleString()}</td>
+                                <td>{order.employee_name}</td>
+                                <td>{order.total_amount.toLocaleString()} VND</td>
+                                <td>
+                                    <Button variant="info" size="sm" onClick={(e) => { e.stopPropagation(); handleShowModal(order); }}>
+                                        Xem
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
+            </div>
+
+            {/* Pagination */}
+            <div className="d-flex justify-content-between mt-4">
+                <Button variant="secondary" onClick={handlePrevPage} disabled={currentPage === 1}>
+                    Trước
+                </Button>
+                <span>Trang {currentPage}</span>
+                <Button variant="secondary" onClick={handleNextPage} disabled={orders.length < ordersPerPage}>
+                    Tiếp theo
+                </Button>
+            </div>
 
             {/* Modal Chi tiết đơn hàng */}
             <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
@@ -147,15 +175,29 @@ const OrderList = () => {
                             </Table>
 
                             {/* Hiển thị thông tin Refund nếu có */}
-                            {/* {selectedOrder.refund && (
+                            {selectedOrder.refund && (
                                 <>
                                     <h5 className="mt-4">Thông tin hoàn tiền:</h5>
-                                    <p><strong>Ngày hoàn tiền:</strong> {new Date(selectedOrder.refund.refundDate).toLocaleString()}</p>
-                                    <p><strong>Sản phẩm hoàn tiền:</strong> SP #{selectedOrder.refund.refundProductId}</p>
-                                    <p><strong>Số lượng hoàn tiền:</strong> {selectedOrder.refund.refundQuantity}</p>
-                                    <p><strong>Tổng tiền hoàn tiền:</strong> {selectedOrder.refund.refundTotalPrice.toLocaleString()} VND</p>
+                                    <Table striped bordered>
+                                        <thead>
+                                            <tr>
+                                                <th>Sản phẩm hoàn tiền</th>
+                                                <th>Số lượng hoàn tiền</th>
+                                                <th>Tổng tiền hoàn tiền</th>
+                                                <th>Ngày hoàn tiền</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{selectedOrder.product_name}</td>
+                                                <td>{selectedOrder.refund.refundQuantity}</td>
+                                                <td>{selectedOrder.refund.refundTotalPrice.toLocaleString()} VND</td>
+                                                <td>{new Date(selectedOrder.refund.refundDate).toLocaleString()}</td>
+                                            </tr>
+                                        </tbody>
+                                    </Table>
                                 </>
-                            )} */}
+                            )}
                         </>
                     )}
                 </Modal.Body>
