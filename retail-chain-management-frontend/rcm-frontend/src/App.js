@@ -28,6 +28,8 @@ import CreateStockAdjustment from './components/warehouses/newStockAdjustment';
 
 
 import CashBookComponent from './components/cashbookConponent/cashBook';
+import Main from './components/pos/main';
+// import FundTransactionReport from './components/cashbookConponent/historyTrans';
 import CashBookOwner from './components/CashBookOwnerCp/CashBookOwner';
 import UserProfile from './components/profileUser/profile';
 import ForgotPassword from './components/resetPass/sendOTP';
@@ -40,6 +42,7 @@ import SalaryHistory from "./components/EmployeeComponent/SalaryHistory";
 import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
 import RevenueSummaryOwner from './sale-dashboadConponent/RevenueOwner';
 import PendingOvertimeList from "./components/EmployeeComponent/PendingOvertimeList";
+import OrderList from './sale-dashboadConponent/orderList.js';
 
 import FinancialReport from './components/FinancialReportConponent/financialReport';
 import CreateSupplierForm from './components/Supplier_Order/AddSupplier.js';
@@ -118,10 +121,8 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/revenue-summary-owner" element={<ProtectedRoute><RevenueSummaryOwner /></ProtectedRoute>} />
           <Route path="/financial-report" element={<ProtectedRoute><FinancialReport /></ProtectedRoute>} />
-          <Route path="/cashBook" element={<ProtectedRoute><CashBookStaff /></ProtectedRoute>} />
-          {/* <Route path="/cashBookOwner" element={<ProtectedRoute><CashBookOwner /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} /> */}
-          {/* <Route path="/revenue-summary-owner" element={<ProtectedRoute><RevenueSummaryOwner /></ProtectedRoute>} /> */}
+          <Route path="/order-list" element={<OrderList />} />
+
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
 

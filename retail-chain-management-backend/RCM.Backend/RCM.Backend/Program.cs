@@ -1,21 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
-using RCM.Backend.Services;
+﻿using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using RCM.Backend.Services;
 using RCM.Backend.Models;
-using Newtonsoft.Json;
-using System.Security.Claims;
-
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 🔹 Kết nối Database
 builder.Services.AddDbContext<RetailChainContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-// Đăng ký các service cho Dependency Injection
+
+// 🔹 Đăng ký các service
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-// Add services to the container.
+// 🔹 Cấu hình CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -26,6 +27,8 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+
+// 🔹 Cấu hình JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -40,33 +43,69 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"])),
-            RoleClaimType = ClaimTypes.Role, // ✅ Đảm bảo API lấy role đúng
-            NameClaimType = ClaimTypes.Name // ✅ Đảm bảo API lấy Name đúng
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]))
         };
     });
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+
+// 🔹 Thêm Swagger vào services
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "RetailChain API",
+        Version = "v1",
+        Description = "API cho hệ thống quản lý bán lẻ",
+        Contact = new OpenApiContact
+        {
+            Name = "Hỗ trợ kỹ thuật",
+            Email = "support@retailchain.com",
+            Url = new Uri("https://retailchain.com")
+        }
+    });
+
+    // 🔹 Cấu hình Bearer Token trong Swagger UI
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Nhập token theo định dạng: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 var app = builder.Build();
 
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// 🔹 Thêm Swagger vào Middleware
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowReactApp");
 
+app.UseCors("AllowReactApp");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

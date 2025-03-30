@@ -359,6 +359,68 @@ namespace RCM.Backend.Controllers
                 return StatusCode(500, new { message = "Lỗi hệ thống khi hoàn tiền", error = ex.Message });
             }
         }
-    }
 
+        [HttpGet("list")]
+        public async Task<IActionResult> GetOrders(
+            [FromQuery] string? paymentMethod,
+            [FromQuery] int? branchId,
+            [FromQuery] DateTime? fromDate,
+            [FromQuery] DateTime? toDate)
+        {
+            var orders = new List<dynamic>();
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand("pos_GetOrdersByPaymentMethod", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@PaymentMethod", string.IsNullOrEmpty(paymentMethod) ? (object)DBNull.Value : paymentMethod);
+                    cmd.Parameters.AddWithValue("@BranchId", branchId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@FromDate", fromDate ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ToDate", toDate ?? (object)DBNull.Value);
+
+                    await conn.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var order = new
+                            {
+                                orderId = reader["OrderId"] as int? ?? 0,
+                                created_date = reader["created_date"] as DateTime?,
+                                shop_id = reader["shop_id"] as int? ?? 0,
+                                total_amount = reader["total_amount"] as decimal? ?? 0,
+                                employeeid = reader["employeeid"] as int? ?? 0,
+                                employee_name = reader["employee_name"]?.ToString() ?? "Unknown",
+                                product_name = reader["product_name"]?.ToString() ?? "Unknown",
+                                warehouse = reader["warehouse"]?.ToString() ?? "Unknown",
+                                payment_status = reader["payment_status"]?.ToString() ?? "Unknown",
+                                product_id = reader["product_id"] as int? ?? 0,
+                                quantity = reader["quantity"] as decimal? ?? 0,
+                                unit_price = reader["unit_price"] as decimal? ?? 0,
+                                total_price = reader["total_price"] as decimal? ?? 0,
+                                payment_method = reader["payment_method"]?.ToString() ?? "Unknown",
+                                refund_id = reader["id"] as int?,
+                                refund_date = reader["refund_date"] as DateTime?,
+                                refund_product_id = reader["refund_product_id"] as int?,
+                                refund_quantity = reader["refund_quantity"] as decimal?,
+                                refund_total_price = reader["refund_total_price"] as decimal?
+                            };
+
+                            orders.Add(order);
+                        }
+                    }
+                }
+
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi lấy danh sách đơn hàng", error = ex.Message });
+            }
+        }
+    }
 }
