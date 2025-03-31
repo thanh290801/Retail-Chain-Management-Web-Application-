@@ -48,9 +48,15 @@ const AttendanceTable = () => {
   const [startTime, setStartTime] = useState(null);
   const [totalHours, setTotalHours] = useState(1);
   const [reason, setReason] = useState("");
+  const [totalOvertimeHours, setTotalOvertimeHours] = useState(0);
+  const [overtimeHoursForMonth, setOvertimeHoursForMonth] = useState({});
 
   useEffect(() => {
     fetchAttendanceData();
+    fetchApprovedOvertimeData();
+    fetchOvertimeHoursForMonth().then(overtimeHours => {
+      setOvertimeHoursForMonth(overtimeHours); // Lưu trữ số giờ tăng ca vào state
+    });
   }, [selectedMonth, selectedYear, employeeId]);
 
   const fetchAttendanceData = async () => {
@@ -66,6 +72,48 @@ const AttendanceTable = () => {
     }
   };
 
+  const fetchApprovedOvertimeData = async () => {
+    try {
+      const response = await fetch(
+        `${api_url}/Staff/ApprovedOvertimeList?employeeId=${employeeId}&month=${selectedMonth}&year=${selectedYear}`
+      );
+      const result = await response.json();
+      
+      // Tính tổng số giờ tăng ca
+      const totalHours = result.approvedOvertimeRecords.reduce((sum, record) => {
+        return sum + parseFloat(record.totalHours);
+      }, 0);
+      
+      setTotalOvertimeHours(totalHours);
+    } catch (error) {
+      toast.error("Lỗi khi tải dữ liệu tăng ca!");
+    }
+  };
+
+  const fetchOvertimeHoursForMonth = async () => {
+    const overtimeHours = {};
+    const monthDays = dayjs(`${selectedYear}-${selectedMonth}-01`).daysInMonth();
+  
+    try {
+      const response = await fetch(
+        `${api_url}/Staff/ApprovedOvertimeList?employeeId=${employeeId}&month=${selectedMonth}&year=${selectedYear}`
+      );
+      const result = await response.json();
+  
+      // Duyệt qua các bản ghi tăng ca
+      result.approvedOvertimeRecords.forEach(record => {
+        const date = dayjs(record.date, "DD/MM/YYYY").format("YYYY-MM-DD"); // Đảm bảo định dạng ngày đúng
+        if (!overtimeHours[date]) {
+          overtimeHours[date] = 0; // Khởi tạo nếu chưa có
+        }
+        overtimeHours[date] += parseFloat(record.totalHours); // Cộng dồn số giờ tăng ca
+      });
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu tăng ca:", error);
+    }
+  
+    return overtimeHours;
+  };
   const calculateWorkDaysAndLates = (attendanceData) => {
     const uniqueDates = new Set();
     let lateCounter = 0;
@@ -181,19 +229,102 @@ const AttendanceTable = () => {
     }
   };
 
+  // const formatAttendanceData = () => {
+  //   const formattedData = [];
+  //   const monthDays = dayjs(
+  //     `${selectedYear}-${selectedMonth}-01`
+  //   ).daysInMonth();
+  //   const today = dayjs().format("YYYY-MM-DD");
+
+  //   for (let day = 1; day <= monthDays; day++) {
+  //     const date = dayjs(`${selectedYear}-${selectedMonth}-${day}`).format(
+  //       "YYYY-MM-DD"
+  //     );
+  //     const isFutureDate = dayjs(date).isAfter(today);
+
+  //     const normalizedData = data.map((item) => ({
+  //       ...item,
+  //       shift: item.shift.includes("sáng") ? "Morning" : "Afternoon",
+  //       attendanceDate: dayjs(item.attendanceDate, [
+  //         "DD/MM/YYYY",
+  //         "YYYY-MM-DD",
+  //       ]).format("YYYY-MM-DD"),
+  //     }));
+
+  //     const attendances = normalizedData.filter(
+  //       (item) => item.attendanceDate === date
+  //     );
+  //     const morningShift = attendances.find((item) => item.shift === "Morning");
+  //     const afternoonShift = attendances.find(
+  //       (item) => item.shift === "Afternoon"
+  //     );
+
+  //     const getStatus = (shift) => {
+  //       if (!shift) return "-"; // Nếu không có ca làm thì hiển thị "-"
+  //       return shift.onTimeStatus === "Late" ? "Đi muộn" : "Đúng giờ";
+  //     };
+
+  //     formattedData.push({
+  //       key: date,
+  //       date: dayjs(date).format("DD/MM/YYYY"),
+
+  //       morningCheckIn: morningShift?.checkInTime
+  //         ? dayjs(morningShift.checkInTime, [
+  //           "DD/MM/YYYY HH:mm:ss",
+  //           "YYYY-MM-DDTHH:mm:ss",
+  //         ]).format("HH:mm:ss")
+  //         : "-",
+
+  //       morningCheckOut: morningShift?.checkOutTime
+  //         ? dayjs(morningShift.checkOutTime, [
+  //           "DD/MM/YYYY HH:mm:ss",
+  //           "YYYY-MM-DDTHH:mm:ss",
+  //         ]).format("HH:mm:ss")
+  //         : "-",
+
+  //       afternoonCheckIn: afternoonShift?.checkInTime
+  //         ? dayjs(afternoonShift.checkInTime, [
+  //           "DD/MM/YYYY HH:mm:ss",
+  //           "YYYY-MM-DDTHH:mm:ss",
+  //         ]).format("HH:mm:ss")
+  //         : "-",
+
+  //       afternoonCheckOut: afternoonShift?.checkOutTime
+  //         ? dayjs(afternoonShift.checkOutTime, [
+  //           "DD/MM/YYYY HH:mm:ss",
+  //           "YYYY-MM-DDTHH:mm:ss",
+  //         ]).format("HH:mm:ss")
+  //         : "-",
+
+  //       morningStatus: isFutureDate
+  //         ? "-"
+  //         : morningShift
+  //           ? getStatus(morningShift)
+  //           : "-",
+  //       afternoonStatus: isFutureDate
+  //         ? "-"
+  //         : afternoonShift
+  //           ? getStatus(afternoonShift)
+  //           : "-",
+  //     });
+  //   }
+
+  //   return formattedData;
+  // };
+
   const formatAttendanceData = () => {
     const formattedData = [];
     const monthDays = dayjs(
       `${selectedYear}-${selectedMonth}-01`
     ).daysInMonth();
     const today = dayjs().format("YYYY-MM-DD");
-
+  
     for (let day = 1; day <= monthDays; day++) {
       const date = dayjs(`${selectedYear}-${selectedMonth}-${day}`).format(
         "YYYY-MM-DD"
       );
       const isFutureDate = dayjs(date).isAfter(today);
-
+  
       const normalizedData = data.map((item) => ({
         ...item,
         shift: item.shift.includes("sáng") ? "Morning" : "Afternoon",
@@ -202,7 +333,7 @@ const AttendanceTable = () => {
           "YYYY-MM-DD",
         ]).format("YYYY-MM-DD"),
       }));
-
+  
       const attendances = normalizedData.filter(
         (item) => item.attendanceDate === date
       );
@@ -215,39 +346,35 @@ const AttendanceTable = () => {
         if (!shift) return "-"; // Nếu không có ca làm thì hiển thị "-"
         return shift.onTimeStatus === "Late" ? "Đi muộn" : "Đúng giờ";
       };
-
+  
       formattedData.push({
         key: date,
         date: dayjs(date).format("DD/MM/YYYY"),
-
         morningCheckIn: morningShift?.checkInTime
           ? dayjs(morningShift.checkInTime, [
             "DD/MM/YYYY HH:mm:ss",
             "YYYY-MM-DDTHH:mm:ss",
           ]).format("HH:mm:ss")
           : "-",
-
         morningCheckOut: morningShift?.checkOutTime
           ? dayjs(morningShift.checkOutTime, [
             "DD/MM/YYYY HH:mm:ss",
             "YYYY-MM-DDTHH:mm:ss",
           ]).format("HH:mm:ss")
           : "-",
-
         afternoonCheckIn: afternoonShift?.checkInTime
           ? dayjs(afternoonShift.checkInTime, [
             "DD/MM/YYYY HH:mm:ss",
             "YYYY-MM-DDTHH:mm:ss",
           ]).format("HH:mm:ss")
           : "-",
-
         afternoonCheckOut: afternoonShift?.checkOutTime
           ? dayjs(afternoonShift.checkOutTime, [
             "DD/MM/YYYY HH:mm:ss",
             "YYYY-MM-DDTHH:mm:ss",
           ]).format("HH:mm:ss")
           : "-",
-
+        totalOvertime: overtimeHoursForMonth[date] ? overtimeHoursForMonth[date].toFixed(2) : "0.00", // Lấy số giờ tăng ca từ state
         morningStatus: isFutureDate
           ? "-"
           : morningShift
@@ -260,7 +387,7 @@ const AttendanceTable = () => {
             : "-",
       });
     }
-
+  
     return formattedData;
   };
 
@@ -301,6 +428,7 @@ const AttendanceTable = () => {
           Tổng số ngày công: {totalWorkDays}
         </h3>
         <h3 className="text-lg font-bold mb-4">Số lần đi muộn: {lateCount}</h3>
+        <h3 className="text-lg font-bold mb-4">Tổng số giờ tăng ca: {totalOvertimeHours.toFixed(2)} giờ</h3>
         {isOwner && (
           <div className="flex justify-between w-full my-4">
             <button
@@ -357,6 +485,11 @@ const AttendanceTable = () => {
               dataIndex: "afternoonStatus",
               key: "afternoonStatus",
               render: (status) => getStatusTag(status),
+            },
+            {
+              title: "Số giờ tăng ca",
+              dataIndex: "totalOvertime",
+              key: "totalOvertime",
             },
           ]}
           dataSource={formatAttendanceData()}

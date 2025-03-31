@@ -3,14 +3,16 @@ import Header from "../../headerComponent/header";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ClipLoader } from "react-spinners";
+import { Tag } from "antd";
 
 const PendingOvertimeList = () => {
   const [overtimeList, setOvertimeList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
+  const [selectedTab, setSelectedTab] = useState("false"); // Trạng thái tab hiện tại
 
-  const api_url = process.env.REACT_APP_API_URL
+  const api_url = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const currentDate = new Date();
@@ -20,13 +22,13 @@ const PendingOvertimeList = () => {
     const fetchOvertimeList = async () => {
       try {
         const response = await fetch(
-          `${api_url}/Payroll/list-pending-overtime?month=${month}&year=${year}&search=${search}`
+          `${api_url}/Staff/ApprovedOvertimeList?month=${month}&year=${year}&isApproved=${selectedTab}`
         );
         if (!response.ok) {
           throw new Error("Lỗi khi lấy dữ liệu");
         }
         const result = await response.json();
-        setOvertimeList(result.data);
+        setOvertimeList(result.approvedOvertimeRecords); // Lấy danh sách từ approvedOvertimeRecords
       } catch (error) {
         setError(error.message);
       } finally {
@@ -35,7 +37,8 @@ const PendingOvertimeList = () => {
     };
 
     fetchOvertimeList();
-  }, [search]);
+  }, [search, selectedTab]); // Thêm selectedTab vào dependency array
+
   const approveOvertime = async (overtimeId) => {
     try {
       const response = await fetch(
@@ -64,6 +67,7 @@ const PendingOvertimeList = () => {
       toast.error(error.message, { position: "top-right" });
     }
   };
+
   if (loading)
     return (
       <div style={{ textAlign: "center", marginTop: "20px" }}>
@@ -77,8 +81,28 @@ const PendingOvertimeList = () => {
       <Header />
       <div className="p-10 h-screen bg-gray-100">
         <h2 className="my-5 uppercase">
-       Yeu Cau Tang Ca
+          yêu cầu tăng ca
         </h2>
+
+        <div className="flex gap-2 mb-4">
+        <button
+            className={`px-4 py-2 rounded uppercase ${
+              selectedTab === "false" ? "bg-blue-500 text-white" : "bg-gray-200"
+            }`}
+            onClick={() => setSelectedTab("false")}
+          >
+            Chưa duyệt
+          </button>
+          <button
+            className={`px-4 py-2 rounded uppercase ${
+              selectedTab === "true" ? "bg-blue-500 text-white" : "bg-gray-200"
+            }`}
+            onClick={() => setSelectedTab("true")}
+          >
+            Đã duyệt
+          </button>
+          
+        </div>
 
         <div className="flex flex-col lg:flex-row gap-2 w-full lg:w-1/3 mb-4">
           <input
@@ -94,13 +118,10 @@ const PendingOvertimeList = () => {
             <tr>
               <th className="p-2 text-center">ID</th>
               <th className="p-2 text-center">Họ tên</th>
-              <th className="p-2 text-center">Số điện thoại</th>
               <th className="p-2 text-center">Ngày</th>
               <th className="p-2 text-center">Số giờ tăng ca</th>
               <th className="p-2 text-center">Lý do</th>
-              <th className="p-2 text-center">Số CMND</th>
-              <th className="p-2 text-center">Quê quán</th>
-              <th className="p-2 text-center">Thao tác</th>
+              <th className="p-2 text-center">Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -109,27 +130,29 @@ const PendingOvertimeList = () => {
                 <tr key={item.overtimeId}>
                   <td className="p-2 text-center">{item.overtimeId}</td>
                   <td className="p-2 text-center">{item.employeeName}</td>
-                  <td className="p-2 text-center">{item.phone}</td>
                   <td className="p-2 text-center">
-                    {new Date(item.date).toLocaleDateString()}
+                    {item.date}
                   </td>
                   <td className="p-2 text-center">{item.totalHours}</td>
                   <td className="p-2 text-center">{item.reason}</td>
-                  <td className="p-2 text-center">{item.identityNumber}</td>
-                  <td className="p-2 text-center">{item.hometown}</td>
                   <td className="p-2 text-center">
-                    <button
+                  {item.isApproved === "Đã duyệt" ? (
+                      <Tag color="green">Đã duyệt</Tag>
+                    ) : (
+                      <button
                       className="bg-blue-500 text-white px-2 py-1 rounded"
                       onClick={() => approveOvertime(item.overtimeId)}
                     >
-                      Duyệt Đơn
+                      Duyệt Đơn
                     </button>
+                    )}
+                    
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td className="text-center p-2" colSpan="8">
+                <td className="text-center p-2" colSpan="6">
                   Không có dữ liệu
                 </td>
               </tr>

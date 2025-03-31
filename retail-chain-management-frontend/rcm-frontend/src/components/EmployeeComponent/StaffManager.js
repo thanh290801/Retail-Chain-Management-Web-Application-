@@ -11,6 +11,7 @@ const shifts = [
   { id: 1, name: "Ca sáng" },
   { id: 2, name: "Ca chiều" },
 ];
+const ITEMS_PER_PAGE = 10
 export default function StaffManager() {
 
   const [staffList, setStaffList] = useState([]);
@@ -21,6 +22,12 @@ export default function StaffManager() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [shiftAssignments, setShiftAssignments] = useState({});
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Modal xác nhận xóa
+  const [staffToDelete, setStaffToDelete] = useState(null); // ID nhân viên cần xóa
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImages, setProfileImages] = useState({});
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const api_url = process.env.REACT_APP_API_URL;
   const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
@@ -54,10 +61,47 @@ export default function StaffManager() {
       const response = await axios.get(
         `${api_url}/Staff/getStaff?name=${search}`
       );
-      setStaffList(response.data);
+      const sortedStaffList = response.data.sort((a, b) => {
+        return (b.activeStatus ? 1 : 0) - (a.activeStatus ? 1 : 0); // Sắp xếp theo isActive
+      });
+      setStaffList(sortedStaffList);
+      setTotalPages(Math.ceil(sortedStaffList.length / ITEMS_PER_PAGE));
+      const images = {};
+      for (const staff of sortedStaffList) {
+        const imageUrl = await fetchProfileImage(staff.id);
+        images[staff.id] = imageUrl;
+      }
+      setProfileImages(images);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách nhân viên:", error);
     }
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const getCurrentPageData = () => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return staffList.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  };
+
+  const handleDelete = async () => {
+    try {
+      await axios.put(`${api_url}/Staff/update-employee-Active/${staffToDelete}`, {
+        isActive: false,
+      });
+      toast.success("Xóa nhân viên thành công!", { position: "top-right" });
+      fetchStaff(); // Cập nhật lại danh sách nhân viên
+      closeModal();
+    } catch (error) {
+      toast.error("Lỗi khi xóa nhân viên!", { position: "top-right" });
+    }
+  };
+
+  const openDeleteModal = (staffId) => {
+    setStaffToDelete(staffId);
+    setIsDeleteModalOpen(true);
   };
   const openDetailModal = async (id) => {
     try {
@@ -104,9 +148,49 @@ export default function StaffManager() {
       });
     }
   };
+  const fetchProfileImage = async (employId) => {
+    try {
+      const response = await axios.get(`https://localhost:5000/api/Staff/staff/image/${employId}`, {
+        responseType: 'blob' // Chỉ định rằng bạn muốn nhận phản hồi dưới dạng blob
+      });
+  
+      // Tạo URL từ blob
+      const imageUrl = URL.createObjectURL(response.data);
+      return imageUrl; // Trả về URL của hình ảnh
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.error(`Không tìm thấy ảnh cho nhân viên ID: ${employId}`);
+        return "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png"; // Ảnh mặc định
+      } else {
+        console.error("Lỗi khi lấy ảnh hồ sơ:", error);
+        return null; // Trả về null nếu có lỗi khác
+      }
+    }
+  };
   const onSubmit = async (data) => {
+    const formData = new FormData();
+    formData.append("fullName", data.fullName);    
+    formData.append("username", data.username);
+    formData.append("passwordHash", data.passwordHash);
+    formData.append("role", "Staff");
+    formData.append("birthDate", new Date(data.birthDate).toISOString());
+    formData.append("gender", data.gender);
+    formData.append("phoneNumber", data.phoneNumber);
+    formData.append("identityNumber", data.identityNumber);
+    formData.append("hometown", data.hometown);
+    formData.append("currentAddress", data.currentAddress);
+    formData.append("branchId", data.branchId);
+    formData.append("fixedSalary", Number(data.fixedSalary));
+    formData.append("workShiftId", data.workShiftId);
+    
+    // Nếu có ảnh hồ sơ mới, thêm vào formData
+    if (profileImage) {
+      formData.append("avatar", profileImage);
+    }
+  
     try {
       if (selectedStaff) {
+        // Cập nhật nhân viên
         await axios.put(
           `${api_url}/Staff/update-employee/${selectedStaff.id}`,
           {
@@ -122,22 +206,17 @@ export default function StaffManager() {
           position: "top-right",
         });
       } else {
-        await axios.post(`${api_url}/Staff/add-employee`, {
-          ...data,
-          id: 0,
-          role: "Staff", // Luôn đặt role là Staff
-          workShiftId: Number(data.workShiftId),
-          branchId: Number(data.branchId),
-          fixedSalary: Number(data.fixedSalary),
-          birthDate: new Date(data.birthDate).toISOString(),
-          startDate: new Date().toISOString().split("T")[0],
-          note: "",
-          penaltyAmount: 0,
-          totalPenaltyAmount: "",
+        // Thêm nhân viên mới
+        await axios.post(`${api_url}/Staff/add-employee`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         });
-        toast.success("Thêm nhân viên thành công!", { position: "top-right" });
+        toast.success("Thêm nhân viên thành công!", {
+          position: "top-right",
+        });
       }
-
+  
       closeModal();
       fetchStaff();
     } catch (error) {
@@ -145,11 +224,19 @@ export default function StaffManager() {
       toast.error(errorMessage, { position: "top-right" });
     }
   };
+  const handleFileChangeImage = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setProfileImage(file); // Lưu trữ file ảnh
+    }
+  };
   const closeModal = () => {
     setIsModalOpen(false);
     setIsDetailModalOpen(false);
+    setIsDeleteModalOpen(false);
     setStep(1); // Reset về bước đầu tiên khi đóng modal
     setSelectedStaff(null);
+    setProfileImage(null); 
     reset();
   };
   const handleInputChange = (e) => {
@@ -307,24 +394,26 @@ export default function StaffManager() {
               <th className="p-2 text-center">Quê quán</th>
               <th className="p-2 text-center">Số điện thoại</th>
               <th className="p-2 text-center">Ngày vào làm</th>
-              {/* <th className="p-2 text-center">Ca làm việc</th> */}
+              <th className="p-2 text-center">Ca làm việc</th>
+              <th className="p-2 text-center">Trạng thái</th>
               <th className="p-2 text-center">Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {staffList.length > 0 ? (
-              staffList.map((staff) => (
+          {getCurrentPageData().length > 0 ? (
+              getCurrentPageData().map((staff) => (
                 <tr key={staff.id} onClick={() => openDetailModal(staff.id)}>
                   <td className="p-2 text-center">{staff.id}</td>
                   <td className="p-2 flex justify-center">
-                    <img
-                      src={
-                        staff.profileImage ||
-                        "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png"
-                      }
-                      alt="Ảnh hồ sơ"
+                  <img
+                      src={profileImages[staff.id] || "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png"}
+                      alt="Ảnh hồ sơ"
                       width="50"
                       height="50"
+                      onError={(e) => {
+                        e.target.onerror = null; // Để tránh vòng lặp vô hạn
+                        e.target.src = "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png"; // Ảnh mặc định nếu không có
+                      }}
                     />
                   </td>
                   <td className="p-2 text-center">{staff.fullName}</td>
@@ -364,8 +453,15 @@ export default function StaffManager() {
                     </select>
                   </td>
                   <td className="p-2 text-center">
+                    {staff.activeStatus ? (
+                      <span className="text-green-500">Đang làm việc</span>
+                    ) : (
+                      <span className="text-red-500">Đã nghỉ việc</span>
+                    )}
+                  </td>
+                  <td className="p-2 text-center">
                     <button
-                      className="bg-green-500 text-white px-2 py-1 rounded"
+                      className="bg-green-500 text-white px-2 py-1 rounded mx-2"
                       onClick={(e) => {
                         e.stopPropagation();
                         openUpdateModal(staff.id);
@@ -373,12 +469,15 @@ export default function StaffManager() {
                     >
                       Sửa
                     </button>
-                    {/* <button
-                      onClick={(e) => goToSalaryCal(staff.id)}
-                      className="bg-green-500 text-white px-2 py-1 rounded"
+                    <button
+                      className="bg-red-500 text-white px-2 py-1 rounded"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDeleteModal(staff.id);
+                      }}
                     >
-                      Tính lương cho nhân viên
-                    </button> */}
+                      Xóa
+                    </button>
                   </td>
                 </tr>
               ))
@@ -391,6 +490,27 @@ export default function StaffManager() {
             )}
           </tbody>
         </table>
+
+                {/* Phân trang */}
+                <div className="flex justify-between items-center mt-4">
+          <button
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded disabled:opacity-50"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Trước
+          </button>
+          <span>
+            Trang {currentPage} / {totalPages}
+          </span>
+          <button
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded disabled:opacity-50"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Sau
+          </button>
+        </div>
         {/* Modal thêm nhân viên */}
         {isModalOpen && (
           <div
@@ -456,26 +576,50 @@ export default function StaffManager() {
                  {/* Thêm trường nhập địa chỉ */}
                  <label className="block font-medium">Địa chỉ cụ thể</label>
                  <input
-                   {...register("address")}
+                   {...register("hometown")}
                    className="w-full p-2 border rounded"
                    placeholder="Nhập địa chỉ cụ thể"
                    required
                  />
+                 {!selectedStaff && (
+                  <>
+                  <label className="block font-medium">Ảnh hồ sơ</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChangeImage}
+                    className="w-full p-2 border rounded"
+                  />
+
+                  {profileImage && (
+                    <div className="mt-2">
+                      <img
+                        src={URL.createObjectURL(profileImage)}
+                        alt="Ảnh hồ sơ"
+                        className="w-32 h-32 object-cover"
+                      />
+                    </div>
+                  )}
+                  </>
+                )}
                </div>
                
                 )}
 
                 {step === 2 && (
                   <div className="space-y-2">
-                    {/* <label className="block font-medium">Ca làm việc</label>
-                    <select
-                      {...register("workShiftId")}
-                      className="w-full p-2 border rounded"
-                    >
-                      <option value="1">Ca sáng</option>
-                      <option value="2">Ca chiều</option>
-                    </select> */}
-
+                    {!selectedStaff && (
+                      <>
+                        <label className="block font-medium">Ca làm việc</label>
+                        <select
+                          {...register("workShiftId")}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="1">Ca sáng</option>
+                          <option value="2">Ca chiều</option>
+                        </select>
+                      </>
+                    )}
                     <label className="block font-medium">Chi nhánh</label>
                     <select
                       {...register("branchId")}
@@ -603,10 +747,10 @@ export default function StaffManager() {
                   {selectedStaff.hometown || "Chưa cập nhật"}
                 </p>
 
-                {/* <p className="font-semibold text-xl">Địa chỉ hiện tại:</p>
+                <p className="font-semibold text-xl">Trạng thái:</p>
                 <p className="text-xl">
-                  {selectedStaff.currentAddress || "Chưa cập nhật"}
-                </p> */}
+                  {selectedStaff.activeStatus ? "Đang làm việc" : " Nghỉ việc"}
+                </p>
 
                 <p className="font-semibold text-xl">Lương tháng:</p>
                 <p className="text-xl">
@@ -619,6 +763,36 @@ export default function StaffManager() {
                   onClick={closeModal}
                 >
                   Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Modal xác nhận xóa */}
+        {isDeleteModalOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+            onClick={closeModal}
+          >
+            <div
+              className="bg-white p-6 rounded-lg w-1/3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-lg font-bold mb-4">
+                Bạn có chắc chắn muốn xóa nhân viên này không?
+              </h2>
+              <div className="flex justify-between">
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  onClick={handleDelete}
+                >
+                  Xóa
+                </button>
+                <button
+                  className="bg-gray-400 text-white px-4 py-2 rounded"
+                  onClick={closeModal}
+                >
+                  Hủy
                 </button>
               </div>
             </div>
