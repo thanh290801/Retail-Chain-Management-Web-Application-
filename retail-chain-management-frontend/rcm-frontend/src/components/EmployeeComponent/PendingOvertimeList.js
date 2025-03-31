@@ -77,7 +77,7 @@ const PendingOvertimeList = () => {
       <Header />
       <div className="p-10 h-screen bg-gray-100">
         <h2 className="my-5 uppercase">
-          Danh sách yêu cầu tăng ca đang chờ duyệt
+       Yeu Cau Tang Ca
         </h2>
 
         <div className="flex flex-col lg:flex-row gap-2 w-full lg:w-1/3 mb-4">

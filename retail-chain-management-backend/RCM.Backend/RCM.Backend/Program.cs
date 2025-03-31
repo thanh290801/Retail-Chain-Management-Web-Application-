@@ -46,11 +46,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddControllers();
+builder.Services.AddHostedService<AutoPayrollService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAuthorization();
-
+builder.Services.AddHostedService<ShiftSchedulingService>();
 var app = builder.Build();
 
 

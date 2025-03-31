@@ -32,6 +32,10 @@ public class EmployeeDTO
         public int? FixedSalary { get; set; }
 
     }
+    public class UpdateWorkShiftDTO
+    {
+        public int? WorkShiftId { get; set; }
+    }
     public class StaffExportDTO
     {
         public int Id { get; set; }
