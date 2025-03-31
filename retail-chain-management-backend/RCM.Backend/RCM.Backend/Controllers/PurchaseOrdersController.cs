@@ -17,37 +17,42 @@ namespace RCM.Backend.Controllers.Supplier_Order
         }
 
         // 📌 Lấy danh sách tất cả đơn đặt hàng
-        [HttpGet]
-        [Produces("application/json")] // Đảm bảo trả về JSON
-        public async Task<IActionResult> GetPurchaseOrders()
-        {
-            try
+       [HttpGet]
+[Produces("application/json")]
+public async Task<IActionResult> GetPurchaseOrders()
+{
+    try
+    {
+        var orders = await _context.PurchaseOrders
+            .Select(o => new
             {
-                var orders = await _context.PurchaseOrders
-                    .Select(o => new
-                    {
-                        o.PurchaseOrdersId,
-                        o.OrderDate,
-                        o.Status,
-                        o.Notes,
-                        SupplierName = _context.Suppliers
-                            .Where(s => s.SuppliersId == o.SupplierId)
-                            .Select(s => s.Name)
-                            .FirstOrDefault(),
-                        TotalCost = _context.PurchaseCosts
-                            .Where(pc => pc.PurchaseOrderId == o.PurchaseOrdersId)
-                            .Select(pc => pc.TotalCost)
-                            .FirstOrDefault()
-                    })
-                    .ToListAsync();
+                o.PurchaseOrdersId,
+                o.OrderDate,
+                o.Status,
+                o.Notes,
+                SupplierName = _context.Suppliers
+                    .Where(s => s.SuppliersId == o.SupplierId)
+                    .Select(s => s.Name)
+                    .FirstOrDefault(),
+                WarehouseName = _context.Warehouses
+                    .Where(w => w.WarehousesId == o.WarehousesId)
+                    .Select(w => w.Name)
+                    .FirstOrDefault(),
+                TotalCost = _context.PurchaseCosts
+                    .Where(pc => pc.PurchaseOrderId == o.PurchaseOrdersId)
+                    .Select(pc => pc.TotalCost)
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
 
-                return Ok(orders); // Đảm bảo trả về JSON
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi máy chủ: " + ex.Message);
-            }
-        }
+        return Ok(orders); // Đảm bảo trả về JSON
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, "Lỗi máy chủ: " + ex.Message);
+    }
+}
+
 
 
 
@@ -113,7 +118,6 @@ namespace RCM.Backend.Controllers.Supplier_Order
             {
                 try
                 {
-                    // 🔄 Lấy thời gian theo múi giờ Việt Nam
                     var vietnamTime = TimeZoneInfo.ConvertTimeFromUtc(
                         DateTime.UtcNow,
                         TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
@@ -123,7 +127,8 @@ namespace RCM.Backend.Controllers.Supplier_Order
                     var order = new PurchaseOrder
                     {
                         SupplierId = orderDto.SupplierId,
-                        OrderDate = vietnamTime, // ✅ Dùng giờ Việt Nam
+                        WarehousesId = orderDto.BranchId,
+                        OrderDate = vietnamTime,
                         Status = "Chưa nhận hàng",
                         Notes = orderDto.Notes
                     };
@@ -150,7 +155,7 @@ namespace RCM.Backend.Controllers.Supplier_Order
                         PurchaseOrderId = order.PurchaseOrdersId,
                         TotalCost = totalCost,
                         BranchId = orderDto.BranchId,
-                        RecordedDate = vietnamTime // ✅ Đồng bộ luôn giờ tạo chi phí
+                        RecordedDate = vietnamTime
                     });
                     await _context.SaveChangesAsync();
 
@@ -164,7 +169,7 @@ namespace RCM.Backend.Controllers.Supplier_Order
                 }
             }
         }
-
+    
 
         [HttpGet("{orderId}/details")]
         public async Task<IActionResult> GetPurchaseOrderDetails(int orderId)

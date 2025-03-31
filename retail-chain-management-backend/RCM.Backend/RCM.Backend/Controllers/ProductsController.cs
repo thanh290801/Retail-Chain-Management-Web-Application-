@@ -91,9 +91,9 @@ public async Task<ActionResult<IEnumerable<object>>> GetAllProductsByEmployeeWar
 
     int warehouseId = employee.Value; // ID kho nhân viên làm việc
 
-    // Lấy danh sách sản phẩm trong kho đó (bao gồm cả Quantity = 0)
+    // Lấy danh sách sản phẩm đang enable trong kho đó
     var productsInStock = await _context.StockLevels
-        .Where(s => s.WarehouseId == warehouseId) // Không lọc Quantity > 0
+        .Where(s => s.WarehouseId == warehouseId && s.Status == true) // Chỉ lấy sản phẩm đang enable
         .Join(_context.Products,
             stock => stock.ProductId,
             product => product.ProductsId,
@@ -115,6 +115,7 @@ public async Task<ActionResult<IEnumerable<object>>> GetAllProductsByEmployeeWar
 
     return Ok(productsInStock);
 }
+
     
    [HttpPost("update-price")]
 public async Task<IActionResult> UpdateProductPrice([FromBody] List<UpdatePriceRequest> priceUpdates)

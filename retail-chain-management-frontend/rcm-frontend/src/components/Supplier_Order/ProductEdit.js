@@ -103,7 +103,18 @@ const ProductEdit = () => {
                         className="border rounded px-3 py-2 w-full"
                         value={product.unit || ""}
                         onChange={(e) => handleChange("unit", e.target.value)}
+                        disabled
                     />
+                    <select name="unit" value={product.unit} onChange={(e) => handleChange("unit", e.target.value)} className="w-full p-2 border rounded">
+                        <option value="">Chọn đơn vị</option>
+                        <option value="Thùng">Thùng</option>
+                        <option value="Lon">Lon</option>
+                        <option value="Chai">Chai</option>
+                        <option value="Túi">Túi</option>
+                        <option value="Hộp">Hộp</option>
+                        <option value="Gói">Gói</option>
+                        <option value="Dây">Dây</option>
+                    </select>
                 </div>
                 <div>
                     <label className="block mb-1 font-medium">Nhóm hàng (category)</label>

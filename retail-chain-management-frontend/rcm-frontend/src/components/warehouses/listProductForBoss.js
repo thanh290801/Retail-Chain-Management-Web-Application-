@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom"; // Import useNavigate nếu sử dụng React Router
 import Header from "../../headerComponent/header";
+import axios from "axios";
 
 
 const ProductStockForOwner = () => {
@@ -72,6 +73,23 @@ const ProductStockForOwner = () => {
         .catch(error => console.error("Error updating prices:", error));
     };
 
+    const handleToggleStatus = (productId, currentStatus) => {
+        const confirmMessage = currentStatus
+            ? "Bạn có chắc chắn muốn vô hiệu hóa sản phẩm này?"
+            : "Bạn có chắc chắn muốn bật lại sản phẩm này?";
+
+        if (!window.confirm(confirmMessage)) return;
+        axios.put(`https://localhost:5000/api/warehouse/${selectedWarehouse}/toggle-product-status/${productId}`, {
+            status: !currentStatus
+        })
+        .then(() => {
+            setProducts(products.map(product => 
+                product.productsId === productId ? { ...product, status: !currentStatus } : product
+            ));
+        })
+        .catch(error => console.error("Error toggling product status:", error));
+    };
+
     // Lọc sản phẩm theo tên
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -86,7 +104,7 @@ const ProductStockForOwner = () => {
     const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
     return (
         <div>
-             <Header/>
+        <Header/>
         <div className="p-6 bg-white rounded-lg shadow-md">
            
             <div className="mb-4 flex justify-between items-center">
@@ -122,16 +140,11 @@ const ProductStockForOwner = () => {
                 >
                     {isEditingPrice ? "Lưu giá" : "Chỉnh sửa giá"}
                 </button>
-
-                {/* Nút Tạo Phiếu Điều Chuyển Kho */}
-                <button
-                    className="bg-purple-500 text-white px-4 py-2 rounded"
-                    onClick={() => navigate("/warehousetransfer")} // Điều hướng đến /warehousetransfer
-                >
-                    Tạo phiếu điều chuyển kho
-                </button>
+                <button className="bg-green-500 text-white px-4 py-2 rounded" onClick={() => navigate('/addproducttowarehouse')}>
+            ➕ Thêm sản phẩm vào kho
+          </button>
             </div>
-
+            
             {/* Bảng Sản Phẩm */}
             <table className="w-full bg-white shadow-md rounded">
                 <thead className="bg-gray-100">
@@ -143,6 +156,8 @@ const ProductStockForOwner = () => {
                         <th>Giá nhập</th>
                         <th>Giá bán buôn</th>
                         <th>Giá bán lẻ</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -179,6 +194,15 @@ const ProductStockForOwner = () => {
                                     disabled={!isEditingPrice}
                                 />
                             </td>
+                            <td>{product.status ? "Hoạt động" : "Ngừng hoạt động"}</td>
+                            <td>
+                                    <button 
+                                        className={product.status ? "bg-red-500 text-white p-2 rounded" : "bg-green-500 text-white p-2 rounded"}
+                                        onClick={() => handleToggleStatus(product.productsId, product.status)}
+                                    >
+                                        {product.status ? "Disable" : "Enable"}
+                                    </button>
+                                </td>
                         </tr>
                     ))}
                 </tbody>

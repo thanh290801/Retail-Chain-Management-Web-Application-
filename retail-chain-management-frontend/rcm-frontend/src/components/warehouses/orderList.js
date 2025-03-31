@@ -4,7 +4,7 @@ import { Table, Button, Form, Pagination } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 const API_URL = "https://localhost:5000/api/orders";
-const SUPPLIER_API_URL = "https://localhost:5000/api/suppliers"; // ✅ API lấy danh sách nhà cung cấp
+const SUPPLIER_API_URL = "https://localhost:5000/api/supplier"; // ✅ API lấy danh sách nhà cung cấp
 
 // ✅ Hàm lấy token và decode lấy `branchId` và `accountId`
 const getAuthHeader = () => {
@@ -26,7 +26,7 @@ const decodeToken = () => {
     }
 };
 
-export function OrderList() {
+export function OrderLists() {
     const [orders, setOrders] = useState([]);
     const [filteredOrders, setFilteredOrders] = useState([]);
     const [suppliers, setSuppliers] = useState([]); // ✅ Danh sách nhà cung cấp đầy đủ
@@ -53,7 +53,7 @@ export function OrderList() {
             .catch(error => console.error("Error fetching orders:", error));
 
         // ✅ Lấy danh sách tất cả nhà cung cấp
-        axios.get(SUPPLIER_API_URL+ '/get-all', getAuthHeader())
+        axios.get(SUPPLIER_API_URL, getAuthHeader())
             .then(response => {
                 setSuppliers(response.data); // ✅ Cập nhật danh sách nhà cung cấp từ API
             })
@@ -171,4 +171,4 @@ export function OrderList() {
     );
 }
 
-export default OrderList;
+export default OrderLists;

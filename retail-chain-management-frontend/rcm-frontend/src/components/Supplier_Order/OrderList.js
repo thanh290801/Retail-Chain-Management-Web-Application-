@@ -8,6 +8,8 @@ const OwnerOrderList = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [dateFrom, setDateFrom] = useState("");
+    const [warehouseFilter, setWarehouseFilter] = useState("");
+    const [warehouses, setWarehouses] = useState([]);
     const [dateTo, setDateTo] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -18,20 +20,23 @@ const OwnerOrderList = () => {
         axios.get("https://localhost:5000/api/PurchaseOrders")
             .then(res => setOrders(res.data))
             .catch(err => console.error("Lỗi khi lấy danh sách đơn hàng:", err));
+        
+        axios.get("https://localhost:5000/api/Warehouses")
+            .then(res => setWarehouses(res.data))
+            .catch(err => console.error("Lỗi khi lấy danh sách kho nhận:", err));
     }, []);
 
     const filteredOrders = orders.filter(order => {
-        const matchesSearch = order.supplierName?.toLowerCase().includes(searchTerm.toLowerCase())
-            || order.purchaseOrdersId.toString().includes(searchTerm);
-
         const matchesStatus = !statusFilter || order.status === statusFilter;
+
+        const matchesWarehouse = !warehouseFilter || order.warehouseName === warehouseFilter;
 
         const orderDate = new Date(order.orderDate);
         const fromDate = dateFrom ? new Date(dateFrom) : null;
         const toDate = dateTo ? new Date(dateTo) : null;
         const matchesDate = (!fromDate || orderDate >= fromDate) && (!toDate || orderDate <= toDate);
 
-        return matchesSearch && matchesStatus && matchesDate;
+        return matchesStatus && matchesDate && matchesWarehouse;
     });
 
     const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -56,13 +61,17 @@ const OwnerOrderList = () => {
 
             {/* Bộ lọc */}
             <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-                <input
-                    type="text"
-                    placeholder="🔍 Tìm theo mã đơn hoặc nhà cung cấp..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border border-gray-300 rounded px-4 py-2 w-full shadow-sm"
-                />
+                
+                <select
+                        value={warehouseFilter}
+                        onChange={(e) => setWarehouseFilter(e.target.value)}
+                        className="border border-gray-300 rounded px-4 py-2 w-full shadow-sm"
+                    >
+                        <option value="">-- Lọc theo kho nhận --</option>
+                        {warehouses.map(warehouse => (
+                            <option key={warehouse.warehousesId} value={warehouse.name}>{warehouse.name}</option>
+                        ))}
+                    </select>
 
                 <select
                     value={statusFilter}
@@ -72,7 +81,7 @@ const OwnerOrderList = () => {
                     <option value="">-- Lọc theo trạng thái --</option>
                     <option value="Chưa nhận hàng">Chưa nhận hàng</option>
                     <option value="Đã nhận hàng">Đã nhận hàng</option>
-                    <option value="Nhận một phần">Nhận một phần</option>
+                    <option value="Đã nhận một phần">Đã nhận một phần</option>
                 </select>
 
                 <input
@@ -91,12 +100,13 @@ const OwnerOrderList = () => {
             </div>
 
             <div className="overflow-x-auto">
-                <table className="w-full border text-sm">
+            <table className="w-full border text-sm">
                     <thead className="bg-gray-100 text-left">
                         <tr>
                             <th className="p-2">Mã đơn</th>
                             <th className="p-2">Ngày đặt</th>
                             <th className="p-2">Nhà cung cấp</th>
+                            <th className="p-2">Kho nhận</th>
                             <th className="p-2">Ghi chú</th>
                             <th className="p-2">Tổng tiền</th>
                             <th className="p-2">Trạng thái</th>
@@ -110,6 +120,7 @@ const OwnerOrderList = () => {
                                     <td className="p-2">{order.purchaseOrdersId}</td>
                                     <td className="p-2">{new Date(order.orderDate).toLocaleString()}</td>
                                     <td className="p-2">{order.supplierName}</td>
+                                    <td className="p-2">{order.warehouseName || "Không có kho nhận"}</td>
                                     <td className="p-2">{order.notes || "-"}</td>
                                     <td className="p-2">{order.totalCost.toLocaleString()} VNĐ</td>
                                     <td className="p-2">{order.status}</td>
@@ -125,7 +136,7 @@ const OwnerOrderList = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="7" className="text-center py-4 text-gray-500">Không tìm thấy đơn hàng nào.</td>
+                                <td colSpan="8" className="text-center py-4 text-gray-500">Không tìm thấy đơn hàng nào.</td>
                             </tr>
                         )}
                     </tbody>

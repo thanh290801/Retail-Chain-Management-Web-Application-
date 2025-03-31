@@ -13,7 +13,7 @@ const CashBookOwner = () => {
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const api_url = process.env.REACT_APP_API_URL
+    const api_url = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
         fetchBranches(); // Lấy danh sách chi nhánh khi load trang
@@ -100,6 +100,21 @@ const CashBookOwner = () => {
         }
     };
 
+    const handleViewOrders = (method) => {
+        const params = new URLSearchParams();
+    
+        // Nếu không chọn chi nhánh hoặc chọn "all" thì không gửi branchId
+        if (selectedBranch && selectedBranch !== "all") {
+            params.append("branchId", selectedBranch);
+        }
+    
+        if (fromDate) params.append("fromDate", fromDate);
+        if (toDate) params.append("toDate", toDate);
+        if (method !== "all") params.append("paymentMethod", method); // "cash", "transfer"
+    
+        navigate(`/order-list?${params.toString()}`);
+    };
+
     return (
         <div className="bg-white p-2 rounded-lg shadow-md mt-6">
             <Header />
@@ -123,29 +138,37 @@ const CashBookOwner = () => {
 
             <h2 className="text-2xl font-bold text-gray-700 mt-6">Thông tin tài chính</h2>
             <div className="flex justify-around mt-4">
-                <div className="p-4 bg-blue-100 text-blue-700 rounded-lg shadow-md">
+                <div
+                    className="p-4 bg-blue-100 text-blue-700 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 transition"
+                    onClick={() => handleViewOrders("all")}
+                >
                     <h3 className="text-lg font-semibold">💰 Tổng doanh thu</h3>
                     <p className="text-2xl font-bold text-green-600">
                         {summary?.totalRevenue?.toLocaleString() || "0"} VNĐ
                     </p>
                 </div>
 
-                <div className="p-4 bg-green-100 text-green-700 rounded-lg shadow-md">
+                <div
+                    className="p-4 bg-green-100 text-green-700 rounded-lg shadow-md cursor-pointer hover:bg-green-200 transition"
+                    onClick={() => handleViewOrders("cash")}
+                >
                     <h3 className="text-lg font-semibold">📥 Doanh thu tiền mặt</h3>
                     <p className="text-2xl font-bold">
                         {summary?.totalCash?.toLocaleString() || "0"} VNĐ
                     </p>
                 </div>
 
-                <div className="p-4 bg-yellow-100 text-yellow-700 rounded-lg shadow-md">
+                <button
+                    className="p-4 bg-yellow-100 text-yellow-700 rounded-lg shadow-md cursor-pointer hover:bg-yellow-200 transition"
+                    onClick={() => handleViewOrders("transfer")}
+                >
                     <h3 className="text-lg font-semibold">📤 Doanh thu chuyển khoản</h3>
                     <p className="text-2xl font-bold">
                         {summary?.totalBank?.toLocaleString() || "0"} VNĐ
                     </p>
-                </div>
+                </button>
+
             </div>
-
-
         </div >
     );
 };

@@ -71,7 +71,7 @@ const SupplierList = () => {
             {/* Hiển thị dữ liệu */}
             <div className="table-responsive">
                 <table className="table table-bordered table-hover table-striped text-center align-middle">
-                    <thead className="table-dark sticky-top">
+                    <thead className="table-dark">
                         <tr>
                             <th>STT</th>
                             <th>Tên nhà cung cấp</th>

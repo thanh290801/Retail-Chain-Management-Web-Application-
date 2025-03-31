@@ -22,7 +22,6 @@ const Calculator = ({
     const [qrCode, setQrCode] = useState("");
 
     const token = localStorage.getItem("token");
-    const api_url = process.env.REACT_APP_API_URL
 
     useEffect(() => {
         let totalItems = cartData.reduce((total, item) =>
@@ -208,7 +207,7 @@ const Calculator = ({
             };
 
             const response = await axios.post(
-                `${api_url}/sale-invoice/order/create`,
+                "https://localhost:5000/api/sale-invoice/order/create",
                 requestData,
                 {
                     headers: {
@@ -239,7 +238,7 @@ const Calculator = ({
     const handleRefund = async () => {
         try {
             const response = await axios.post(
-                `${api_url}/sale-invoice/order/refund`,
+                "https://localhost:5000/api/sale-invoice/order/refund",
                 {
                     OrderId: orderId,
                     RefundProducts: cartData.map((item) => ({
