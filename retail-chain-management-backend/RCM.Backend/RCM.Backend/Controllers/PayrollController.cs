@@ -257,7 +257,7 @@ public class PayrollController : ControllerBase
 
             salaryRecords.Add(new
             {
-                salaryRecord.EmployeeId,
+                salaryRecord,
                 EmployeeName = employee.FullName,
                 Phone = employee.Phone,
                 FixedSalary = employee.FixedSalary ?? 0,

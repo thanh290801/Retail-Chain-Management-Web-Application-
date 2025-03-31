@@ -49,6 +49,7 @@ namespace RCM.Backend.Controllers
                     ActiveStatus = ea.Employee.IsActive,
                     StartDate = ea.Employee.StartDate,
                     BranchId = ea.Employee.BranchId,
+                    Hometown = ea.Employee.Hometown,
                     IsStaff = true,
                     Username = ea.Account.Username,
                     Role = ea.Account.Role
@@ -85,7 +86,8 @@ namespace RCM.Backend.Controllers
                 IsStaff = true,
                 Username = employeeData.Account != null ? employeeData.Account.Username : "",
                 Role = employeeData.Account != null ? employeeData.Account.Role : "",
-                //CurrentAddress = employeeData.CurrentAddress,
+                Hometown = employeeData.Hometown,
+                
                 IdentityNumber = employeeData.IdentityNumber,
                 FixedSalary = employeeData.FixedSalary
             };
@@ -139,15 +141,30 @@ namespace RCM.Backend.Controllers
                 foreach (var item in employee.Salaries)
                 {
                     item.FixedSalary = request.FixedSalary;
+                    _context.Salaries.Update(item);
+                    _context.SaveChanges();
                 }
             }
 
             _context.SaveChanges();
 
 
-            return Ok(new { message = "Employee updated successfully!" });
+            return Ok(new { message = "Cập nhật thông tin nhân viên thành công!" });
         }
+        [HttpPut("update-employee-workshift/{id}")]
+        public async Task<IActionResult> UpdateEmployeeWorkShift(int id, [FromBody] UpdateWorkShiftDTO request)
+        {
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.EmployeeId == id);
+            if (employee == null)
+            {
+                return NotFound(new { message = "Không tìm thấy nhân viên!" });
+            }
 
+            employee.WorkShiftId = request.WorkShiftId ?? employee.WorkShiftId;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Cập nhật ca làm việc thành công!" });
+        }
         [HttpPost("add-employee")]
         public IActionResult AddStaff([FromBody] EmployeeDTO request)
         {
@@ -246,7 +263,9 @@ namespace RCM.Backend.Controllers
             var employees = new List<Employee>();
             var accounts = new List<Account>();
             var existingPhoneNumbers = _context.Employees.Select(e => e.Phone).ToHashSet();
+            var existingIdentityNumbers = _context.Employees.Select(e => e.IdentityNumber).ToHashSet();
             var newPhoneNumbers = new HashSet<string>();
+            var newIdentityNumbers = new HashSet<string>();
 
             var extension = Path.GetExtension(file.FileName).ToLower();
 
@@ -259,29 +278,33 @@ namespace RCM.Backend.Controllers
                     {
                         ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
                         int rowCount = worksheet.Dimension.Rows;
-                        var duplicatePhoneNumbers = new List<string>();
+                        var duplicateEntries = new List<string>();
 
                         for (int row = 2; row <= rowCount; row++)
                         {
-                            string phoneNumber = worksheet.Cells[row, 4].Value?.ToString();
+                            string phoneNumber = worksheet.Cells[row, 7].Value?.ToString()?.Trim();
+                            string identityNumber = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
 
-                            if (string.IsNullOrWhiteSpace(phoneNumber)) continue;
-
-                            if (existingPhoneNumbers.Contains(phoneNumber) || newPhoneNumbers.Contains(phoneNumber))
+                            if (string.IsNullOrWhiteSpace(phoneNumber) || string.IsNullOrWhiteSpace(identityNumber))
                             {
-                                duplicatePhoneNumbers.Add(phoneNumber);
+                                duplicateEntries.Add($"Dòng {row}: Thiếu số điện thoại hoặc CCCD");
+                                continue;
+                            }
+
+                            if (existingPhoneNumbers.Contains(phoneNumber) || newPhoneNumbers.Contains(phoneNumber) ||
+                                existingIdentityNumbers.Contains(identityNumber) || newIdentityNumbers.Contains(identityNumber))
+                            {
+                                duplicateEntries.Add($"Dòng {row}: Số điện thoại {phoneNumber} hoặc CCCD {identityNumber} đã tồn tại");
                                 continue;
                             }
 
                             newPhoneNumbers.Add(phoneNumber);
-
-                            string roleValue = worksheet.Cells[row, 10].Value?.ToString();
-                            byte role = (roleValue == "Staff") ? (byte)2 : (byte)0;
+                            newIdentityNumbers.Add(identityNumber);
 
                             DateTime? birthDate = null;
-                            if (DateTime.TryParse(worksheet.Cells[row, 3].Value?.ToString(), out DateTime parsedDate))
+                            if (DateTime.TryParse(worksheet.Cells[row, 3].Value?.ToString(), out DateTime parsedBirthDate))
                             {
-                                birthDate = parsedDate;
+                                birthDate = parsedBirthDate;
                             }
 
                             int? workShiftId = null;
@@ -290,7 +313,7 @@ namespace RCM.Backend.Controllers
                                 workShiftId = shiftId;
                             }
 
-                            int fixedSalary = 0;
+                            int? fixedSalary = null;
                             if (int.TryParse(worksheet.Cells[row, 9].Value?.ToString(), out int salary))
                             {
                                 fixedSalary = salary;
@@ -304,12 +327,11 @@ namespace RCM.Backend.Controllers
 
                             var employee = new Employee
                             {
-                                FullName = worksheet.Cells[row, 1].Value?.ToString(),
-                                Gender = worksheet.Cells[row, 2].Value?.ToString(),
+                                FullName = worksheet.Cells[row, 1].Value?.ToString()?.Trim(),
+                                Gender = worksheet.Cells[row, 2].Value?.ToString()?.Trim(),
                                 BirthDate = birthDate ?? DateTime.MinValue,
-                                IdentityNumber = worksheet.Cells[row, 4].Value?.ToString(),
-                                Hometown = worksheet.Cells[row, 5].Value?.ToString(),
-                                //CurrentAddress = worksheet.Cells[row, 6].Value?.ToString(),
+                                IdentityNumber = identityNumber,
+                                Hometown = worksheet.Cells[row, 5].Value?.ToString()?.Trim(),
                                 Phone = phoneNumber,
                                 WorkShiftId = workShiftId,
                                 FixedSalary = fixedSalary,
@@ -321,12 +343,12 @@ namespace RCM.Backend.Controllers
                             employees.Add(employee);
                         }
 
-                        if (duplicatePhoneNumbers.Count > 0)
+                        if (duplicateEntries.Count > 0)
                         {
                             return BadRequest(new
                             {
-                                message = "Một số nhân viên đã tồn tại hoặc có số điện thoại trùng lặp. Vui lòng kiểm tra lại file!",
-                                duplicatePhoneNumbers
+                                message = "Có lỗi trong file import!",
+                                errors = duplicateEntries
                             });
                         }
                     }
@@ -334,7 +356,7 @@ namespace RCM.Backend.Controllers
             }
             else
             {
-                return BadRequest(new { message = "Chỉ hỗ trợ file Excel (.xlsx, .xls) hoặc CSV!" });
+                return BadRequest(new { message = "Chỉ hỗ trợ file Excel (.xlsx, .xls)!" });
             }
 
             _context.Employees.AddRange(employees);
@@ -345,9 +367,9 @@ namespace RCM.Backend.Controllers
                 accounts.Add(new Account
                 {
                     EmployeeId = emp.EmployeeId,
-                    Username = emp.FullName,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456789"),
-                    Role = "2"
+                    Username = emp.Phone, // Dùng số điện thoại làm username mặc định
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"), // Mật khẩu mặc định
+                    Role = "Staff"
                 });
             }
 
@@ -356,39 +378,56 @@ namespace RCM.Backend.Controllers
 
             return Ok(new { message = "Import thành công!", totalEmployees = employees.Count });
         }
-
         [HttpGet("export")]
-        public async Task<IActionResult> ExportStaff()
+        public async Task<IActionResult> ExportStaff([FromQuery] int month, [FromQuery] int year)
         {
+            // Lấy danh sách nhân viên với thông tin tài khoản
             var staffList = await _context.Employees
                 .Join(_context.Accounts,
-                      e => e.EmployeeId,
+                      e => e.AccountId,
                       a => a.AccountId,
                       (e, a) => new { Employee = e, Account = a })
-                .Where(ea => ea.Employee.WorkShiftId.HasValue && ea.Account.Role == "2")
-                .Select(ea => new
-                {
-                    ea.Employee.EmployeeId,
-                    ea.Employee.FullName,
-                    ea.Employee.Gender,
-                    BirthDate = ea.Employee.BirthDate.ToString("yyyy-MM-dd"),
-                    ea.Employee.Phone,
-                    ea.Employee.WorkShiftId,
-                    ea.Employee.IsActive,
-                    StartDate = ea.Employee.StartDate.ToString("yyyy-MM-dd"),
-                    ea.Employee.BranchId,
-                    ea.Account.Username,
-                    Role = ea.Account.Role == "2" ? "Staff" : "Unknown"
-                })
+                .Where(ea => ea.Account.Role == "Staff" && ea.Employee.IsActive == true)
                 .ToListAsync();
 
+            var employeeIds = staffList.Select(ea => ea.Employee.EmployeeId).ToList();
+
+            // Tính TotalWorkDays từ AttendanceCheckIns và AttendanceCheckOuts
+            var attendanceData = await _context.AttendanceCheckIns
+                .Where(ci => employeeIds.Contains(ci.EmployeeId) &&
+                             ci.AttendanceDate.Month == month &&
+                             ci.AttendanceDate.Year == year)
+                .Join(_context.AttendanceCheckOuts,
+                    ci => new { ci.EmployeeId, ci.AttendanceDate, ci.Shift },
+                    co => new { co.EmployeeId, co.AttendanceDate, co.Shift },
+                    (ci, co) => new { ci.EmployeeId, ci.AttendanceDate })
+                .ToListAsync();
+
+            var workDaysDict = attendanceData
+                .GroupBy(x => new { x.EmployeeId, x.AttendanceDate })
+                .Select(g => new { g.Key.EmployeeId, g.Key.AttendanceDate })
+                .GroupBy(x => x.EmployeeId)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            // Tính TotalOvertimeHours từ OvertimeRecords
+            var overtimeData = await _context.OvertimeRecords
+                .Where(o => employeeIds.Contains(o.EmployeeId) &&
+                            o.Date.Month == month &&
+                            o.Date.Year == year &&
+                            o.IsApproved == true)
+                .GroupBy(o => o.EmployeeId)
+                .Select(g => new { EmployeeId = g.Key, TotalOvertimeHours = g.Sum(o => o.TotalHours) })
+                .ToDictionaryAsync(g => g.EmployeeId, g => g.TotalOvertimeHours);
+
+            // Tạo file Excel
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Staff Data");
 
             var headers = new string[]
             {
-        "EmployeeID", "FullName", "Gender", "BirthDate", "PhoneNumber",
-        "WorkShiftID", "ActiveStatus", "StartDate", "BranchID", "Username", "Role"
+        "EmployeeID", "FullName", "Gender", "BirthDate", "PhoneNumber", "IdentityNumber", "Hometown",
+        "WorkShiftID", "FixedSalary", "ActiveStatus", "StartDate", "BranchID", "Username", "Role",
+        "TotalWorkDays", "TotalOvertimeHours"
             };
 
             for (int i = 0; i < headers.Length; i++)
@@ -399,17 +438,26 @@ namespace RCM.Backend.Controllers
             int row = 2;
             foreach (var staff in staffList)
             {
-                worksheet.Cell(row, 1).Value = staff.EmployeeId;
-                worksheet.Cell(row, 2).Value = staff.FullName;
-                worksheet.Cell(row, 3).Value = staff.Gender;
-                worksheet.Cell(row, 4).Value = staff.BirthDate;
-                worksheet.Cell(row, 5).Value = staff.Phone;
-                worksheet.Cell(row, 6).Value = staff.WorkShiftId;
-                worksheet.Cell(row, 7).Value = staff.IsActive.HasValue && staff.IsActive.Value ? "True" : "False";
-                worksheet.Cell(row, 8).Value = staff.StartDate;
-                worksheet.Cell(row, 9).Value = staff.BranchId;
-                worksheet.Cell(row, 10).Value = staff.Username;
-                worksheet.Cell(row, 11).Value = staff.Role;
+                var emp = staff.Employee;
+                var acc = staff.Account;
+
+                worksheet.Cell(row, 1).Value = emp.EmployeeId;
+                worksheet.Cell(row, 2).Value = emp.FullName;
+                worksheet.Cell(row, 3).Value = emp.Gender;
+                worksheet.Cell(row, 4).Value = emp.BirthDate.ToString("yyyy-MM-dd");
+                worksheet.Cell(row, 5).Value = emp.Phone;
+                worksheet.Cell(row, 6).Value = emp.IdentityNumber;
+                worksheet.Cell(row, 7).Value = emp.Hometown;
+                worksheet.Cell(row, 8).Value = emp.WorkShiftId.HasValue ? emp.WorkShiftId.Value.ToString() : "";
+                worksheet.Cell(row, 9).Value = emp.FixedSalary.HasValue ? emp.FixedSalary.Value.ToString() : "0";
+                worksheet.Cell(row, 10).Value = emp.IsActive.HasValue && emp.IsActive.Value ? "True" : "False";
+                worksheet.Cell(row, 11).Value = emp.StartDate.ToString("yyyy-MM-dd");
+                worksheet.Cell(row, 12).Value = emp.BranchId.HasValue ? emp.BranchId.Value.ToString() : "";
+                worksheet.Cell(row, 13).Value = acc.Username;
+                worksheet.Cell(row, 14).Value = acc.Role == "Staff" ? "Staff" : "Unknown";
+                worksheet.Cell(row, 15).Value = workDaysDict.ContainsKey(emp.EmployeeId) ? workDaysDict[emp.EmployeeId].ToString() : "0";
+                worksheet.Cell(row, 16).Value = overtimeData.ContainsKey(emp.EmployeeId) ? overtimeData[emp.EmployeeId].ToString("F2") : "0.00";
+
                 row++;
             }
 
@@ -417,7 +465,7 @@ namespace RCM.Backend.Controllers
             workbook.SaveAs(stream);
             var content = stream.ToArray();
 
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "StaffList.xlsx");
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"StaffList_{month}_{year}.xlsx");
         }
         [HttpPost("auto-schedule")]
         public IActionResult AutoScheduleStaff()

@@ -7,7 +7,12 @@ import Header from "../../headerComponent/header";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
+const shifts = [
+  { id: 1, name: "Ca sáng" },
+  { id: 2, name: "Ca chiều" },
+];
 export default function StaffManager() {
+
   const [staffList, setStaffList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [warehouses, setWarehouses] = useState([]);
@@ -15,6 +20,7 @@ export default function StaffManager() {
   const [selectedStaff, setSelectedStaff] = useState(null); // Nhân viên đang sửa
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [step, setStep] = useState(1);
+  const [shiftAssignments, setShiftAssignments] = useState({});
   const api_url = process.env.REACT_APP_API_URL;
   const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
@@ -88,7 +94,7 @@ export default function StaffManager() {
       setValue("currentAddress", staffData.currentAddress);
       setValue("branchId", staffData.branchId);
       setValue("fixedSalary", staffData.fixedSalary);
-      setValue("workShiftId", staffData.workShiftId);
+      setValue("workShiftId", null);
       setIsModalOpen(true);
       setStep(1);
     } catch (error) {
@@ -155,6 +161,29 @@ export default function StaffManager() {
     } else {
       setValue("fixedSalary", parseInt(rawValue, 10)); // Chuyển thành số
     }
+  };
+  const updateShift = async (staffId, workShiftId) => {
+    try {
+      const response = await axios.put(`${api_url}/Staff/update-employee-workshift/${staffId}`, {
+        workShiftId: workShiftId,
+      });
+
+      if (response.status === 200) {
+        toast.success(`Cập nhật ca làm việc thành công cho nhân viên`);
+      }
+    } catch (error) {
+      console.error("Lỗi cập nhật ca làm việc:", error);
+      toast.error("Cập nhật thất bại! Vui lòng thử lại.");
+    }
+  };
+
+  const handleShiftChange = (staffId, workShiftId) => {
+    setShiftAssignments((prev) => ({
+      ...prev,
+      [staffId]: workShiftId,
+    }));
+
+    updateShift(staffId, workShiftId); // Gọi API ngay khi thay đổi
   };
   // Xử lý chọn file
   const handleFileChange = (event) => {
@@ -275,9 +304,10 @@ export default function StaffManager() {
               <th className="p-2 text-center">Họ tên nhân viên</th>
               <th className="p-2 text-center">Ngày sinh</th>
               <th className="p-2 text-center">Giới tính</th>
-              <th className="p-2 text-center">Địa chỉ</th>
+              <th className="p-2 text-center">Quê quán</th>
               <th className="p-2 text-center">Số điện thoại</th>
               <th className="p-2 text-center">Ngày vào làm</th>
+              {/* <th className="p-2 text-center">Ca làm việc</th> */}
               <th className="p-2 text-center">Thao tác</th>
             </tr>
           </thead>
@@ -305,11 +335,33 @@ export default function StaffManager() {
                     {staff.gender === "Female" ? "Nữ" : "Nam"}
                   </td>
                   <td className="p-2 text-center">
-                    {staff.currentAddress || "Chưa cập nhật"}
+                    {staff.hometown || "Chưa cập nhật"}
                   </td>
                   <td className="p-2 text-center">{staff.phoneNumber}</td>
                   <td className="p-2 text-center">
                     {new Date(staff.startDate).toLocaleDateString("vi-VN")}
+                  </td>
+                  <td className="p-2 text-center">
+                    <select
+                      className="border rounded px-2 py-1"
+                      value={
+                        shiftAssignments[staff.id] || staff.workShiftId || ""
+                      }
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleShiftChange(staff.id, Number(e.target.value))
+                      }
+                        
+                      }
+                    >
+                      <option value="">Chọn ca</option>
+                      {shifts.map((shift) => (
+                        <option key={shift.id} value={shift.id}>
+                          {shift.name}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="p-2 text-center">
                     <button
@@ -321,12 +373,12 @@ export default function StaffManager() {
                     >
                       Sửa
                     </button>
-                    <button
+                    {/* <button
                       onClick={(e) => goToSalaryCal(staff.id)}
                       className="bg-green-500 text-white px-2 py-1 rounded"
                     >
                       Tính lương cho nhân viên
-                    </button>
+                    </button> */}
                   </td>
                 </tr>
               ))
@@ -354,65 +406,75 @@ export default function StaffManager() {
               </h2>
               <form onSubmit={handleSubmit(onSubmit)}>
                 {step === 1 && (
-                  <div className="space-y-2">
-                    <label className="block font-medium">Họ tên</label>
-                    <input
-                      {...register("fullName")}
-                      className="w-full p-2 border rounded"
-                      required
-                    />
-
-                    <label className="block font-medium">Tên đăng nhập</label>
-                    <input
-                      {...register("username")}
-                      className="w-full p-2 border rounded"
-                      required
-                    />
-
-                    <label className="block font-medium">Mật Khẩu</label>
-                    <input
-                      type="password"
-                      {...register("passwordHash")}
-                      className="w-full p-2 border rounded"
-                      required
-                    />
-
-                    <label className="block font-medium">Ngày sinh</label>
-                    <input
-                      type="date"
-                      {...register("birthDate")}
-                      className="w-full p-2 border rounded"
-                      required
-                    />
-
-                    <label className="block font-medium">Giới tính</label>
-                    <select
-                      {...register("gender")}
-                      className="w-full p-2 border rounded"
-                    >
-                      <option value="Male">Nam</option>
-                      <option value="Female">Nữ</option>
-                    </select>
-
-                    <label className="block font-medium">Số điện thoại</label>
-                    <input
-                      {...register("phoneNumber")}
-                      className="w-full p-2 border rounded"
-                      required
-                    />
-                  </div>
+                 <div className="space-y-2">
+                 <label className="block font-medium">Họ tên</label>
+                 <input
+                   {...register("fullName")}
+                   className="w-full p-2 border rounded"
+                   required
+                 />
+               
+                 <label className="block font-medium">Tên đăng nhập</label>
+                 <input
+                   {...register("username")}
+                   className="w-full p-2 border rounded"
+                   required
+                 />
+               
+                 <label className="block font-medium">Mật Khẩu</label>
+                 <input
+                   type="password"
+                   {...register("passwordHash")}
+                   className="w-full p-2 border rounded"
+                   required
+                 />
+               
+                 <label className="block font-medium">Ngày sinh</label>
+                 <input
+                   type="date"
+                   {...register("birthDate")}
+                   className="w-full p-2 border rounded"
+                   required
+                 />
+               
+                 <label className="block font-medium">Giới tính</label>
+                 <select
+                   {...register("gender")}
+                   className="w-full p-2 border rounded"
+                 >
+                   <option value="Male">Nam</option>
+                   <option value="Female">Nữ</option>
+                 </select>
+               
+                 <label className="block font-medium">Số điện thoại</label>
+                 <input
+                   {...register("phoneNumber")}
+                   className="w-full p-2 border rounded"
+                   required
+                 />
+               
+                 {/* Thêm trường nhập địa chỉ */}
+                 <label className="block font-medium">Địa chỉ cụ thể</label>
+                 <input
+                   {...register("address")}
+                   className="w-full p-2 border rounded"
+                   placeholder="Nhập địa chỉ cụ thể"
+                   required
+                 />
+               </div>
+               
                 )}
 
                 {step === 2 && (
                   <div className="space-y-2">
-                    <label className="block font-medium">Ca làm việc</label>
+                    {/* <label className="block font-medium">Ca làm việc</label>
                     <select
                       {...register("workShiftId")}
                       className="w-full p-2 border rounded"
                     >
                       <option value="1">Ca sáng</option>
                       <option value="2">Ca chiều</option>
-                    </select>
+                    </select> */}
 
                     <label className="block font-medium">Chi nhánh</label>
                     <select
@@ -541,10 +603,10 @@ export default function StaffManager() {
                   {selectedStaff.hometown || "Chưa cập nhật"}
                 </p>
 
-                <p className="font-semibold text-xl">Địa chỉ hiện tại:</p>
+                {/* <p className="font-semibold text-xl">Địa chỉ hiện tại:</p>
                 <p className="text-xl">
                   {selectedStaff.currentAddress || "Chưa cập nhật"}
-                </p>
+                </p> */}
 
                 <p className="font-semibold text-xl">Lương tháng:</p>
                 <p className="text-xl">
