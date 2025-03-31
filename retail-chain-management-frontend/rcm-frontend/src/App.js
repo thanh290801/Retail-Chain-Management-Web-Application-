@@ -5,7 +5,6 @@ import LoginPage from './components/login';
 import StaffHomeComponent from './components/staffHomeConponent/staffHome';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
 // import FundTransactionReport from './components/cashbookConponent/historyTrans';
-import Main from './components/pos/main';
 import ProductStockComponent from './components/warehouses/listProduct';
 import WarehouseManagementComponent from './components/warehouses/warehouseManagement';
 import ProductListComponent from './components/warehouses/listAllProduct';
@@ -15,7 +14,7 @@ import LowStockProducts from './components/warehouses/lowStockProduct';
 import PurchaseOrder from './components/warehouses/PurchaseOrder';
 import StockCheck from './components/warehouses/stockCheck';
 import StockAdjustment from './components/warehouses/stockAdjustment';
-import OrderList from './components/warehouses/orderList';
+import OrderLists from './components/warehouses/orderList';
 import OrderCheck from './components/warehouses/orderCheck';
 import CashBookStaff from './components/cashbookConponent/cashBook';
 import InventoryCheckHistory from './components/warehouses/InventoryCheckHistory';
@@ -56,6 +55,7 @@ import ProductsOfSupplier from './components/Supplier_Order/ProductsOfSupplier.j
 import PurchaseOrderDetail from './components/Supplier_Order/PurchaseOrderDetail.js';
 import SupplierList from './components/Supplier_Order/SupplierList.js';
 import WarehousesListDetail from './components/Supplier_Order/WarehousesListDetail.js';
+import AddProductsToWarehouse from './components/warehouses/addProductToWarehouse.js';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -83,6 +83,7 @@ function App() {
           {/* Các trang cần đăng nhập */}
           <Route path='/pos' element={<Main />} />
           <Route path="/staffHome" element={<ProtectedRoute><StaffHomeComponent /></ProtectedRoute>} />
+          {/* Quân */}
           <Route path='/addproduct' element= {<AddProductComponent/>} />
           <Route path='/productstock' element= {<ProtectedRoute><ProductStockComponent/></ProtectedRoute>} />
           <Route path='/warehousemanagement' element= {<WarehouseManagementComponent/>} />
@@ -97,10 +98,11 @@ function App() {
           <Route path="/warehouse-transfers-confirm" element={<WarehouseTransferConfirmation />} />
           <Route path="/warehouse-transfer/:id" element={<WarehouseTransferDetail />} />
           <Route path='/listallproduct' element= {<ProductListComponent/>} />
-          <Route path='/orderlist' element= {<OrderList/>} />
+          <Route path='/orderlist' element= {<OrderLists/>} />
           <Route path='/order/:orderId' element= {<OrderCheck/>} />
           <Route path='/stockcheck' element= {<StockCheck/>} />
           <Route path='/stockadjustment' element= {<CreateStockAdjustment/>} />
+          <Route path='/addproducttowarehouse' element= {<AddProductsToWarehouse/>} />
           {/* Đại */}
           <Route path='/addsupplier' element= {<CreateSupplierForm/>} />
           <Route path='/addproductsupplier/:supplierId' element= {<AddProductsToSupplier/>} />

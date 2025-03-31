@@ -82,12 +82,16 @@ public class FinancialReportController : ControllerBase
         var totalSalary = salaryList.Sum(s => s.totalSalary);
 
         // 4. Chi phí nhập hàng
-        var purchaseCosts = await _context.PurchaseCosts
-            .Where(p => p.RecordedDate >= startDate && p.RecordedDate < endDate
-                && (branchId == 0 || p.BranchId == branchId))
+       
+        var purchaseCosts = await _context.Transactions
+            .Where(t => t.TransactionDate >= startDate && t.TransactionDate < endDate
+                && (branchId == 0 || t.BranchId == branchId))
             .ToListAsync();
 
-        var totalPurchaseCost = purchaseCosts.Sum(p => p.TotalCost);
+        var totalPurchaseCost = transactions
+            .Where(t => t.TransactionType == "PURCHASEORDER")
+            .Sum(t => t.Amount);
+
 
         // 5. Lợi nhuận gộp
         var estimatedProfit = totalRevenue - totalRefundAmount - totalSalary - totalPurchaseCost;

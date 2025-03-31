@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Header from "../../headerComponent/header";
 
 const InventoryCheckHistory = () => {
     const [history, setHistory] = useState([]);
@@ -69,7 +70,9 @@ const InventoryCheckHistory = () => {
         : employees.filter(e => e.branchId === parseInt(selectedWarehouse));
 
     return (
-        <div className="p-6 bg-white rounded shadow">
+        <div>
+            <Header/>
+            <div className="p-6 bg-white rounded shadow">
             <h2 className="text-xl font-semibold mb-4">📜 Lịch sử kiểm kho</h2>
 
             <div className="mb-4 flex flex-wrap gap-4">
@@ -158,6 +161,7 @@ const InventoryCheckHistory = () => {
                     <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>▶</button>
                 </div>
             )}
+        </div>
         </div>
     );
 };

@@ -2,6 +2,7 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaTrash } from "react-icons/fa";
+import Header from "../../headerComponent/header";
 
 const CreatePurchaseOrder = () => {
     const [branches, setBranches] = useState([]);
@@ -144,7 +145,9 @@ const CreatePurchaseOrder = () => {
 
 
     return (
-        <div className="container mx-auto p-6">
+        <div>
+            <Header/>
+            <div className="container mx-auto p-6">
             <h2 className="text-2xl font-semibold mb-4">🛒 Tạo đơn đặt hàng</h2>
 
             <div className="grid grid-cols-3 gap-4">
@@ -252,10 +255,11 @@ const CreatePurchaseOrder = () => {
             >
                 🛒 Tạo đơn đặt hàng
             </button>
-            <button type="button" className="btn btn-secondary ms-2" onClick={() => navigate("/OrderList")}>
+            <button type="button" className="btn btn-secondary ms-2" onClick={() => navigate("/ownerorderlist")}>
                 ⬅️ Danh sách đơn hàng
             </button></td>
 
+        </div>
         </div>
     );
 };

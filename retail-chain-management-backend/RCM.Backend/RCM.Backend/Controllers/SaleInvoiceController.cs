@@ -403,7 +403,7 @@ namespace RCM.Backend.Controllers
                                 unit_price = reader["unit_price"] as decimal? ?? 0,
                                 total_price = reader["total_price"] as decimal? ?? 0,
                                 payment_method = reader["payment_method"]?.ToString() ?? "Unknown",
-                                refund_id = reader["id"] as int?,
+                                refund_id = reader["refund_id"] as int?,
                                 refund_date = reader["refund_date"] as DateTime?,
                                 refund_product_id = reader["refund_product_id"] as int?,
                                 refund_quantity = reader["refund_quantity"] as decimal?,

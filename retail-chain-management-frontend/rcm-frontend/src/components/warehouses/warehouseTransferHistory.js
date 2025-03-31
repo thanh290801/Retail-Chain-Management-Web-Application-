@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Header from '../../headerComponent/header';
 
 const WarehouseTransferHistory = () => {
   const [transfers, setTransfers] = useState([]);
@@ -67,7 +68,9 @@ const WarehouseTransferHistory = () => {
   const paginatedDetails = transferDetails.slice((detailPage - 1) * pageSize, detailPage * pageSize);
 
   return (
-    <div className="p-4">
+    <div>
+      <Header/>
+      <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4">Lịch sử Điều Chuyển Kho</h2>
 
       {/* Bộ lọc */}
@@ -184,6 +187,7 @@ const WarehouseTransferHistory = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

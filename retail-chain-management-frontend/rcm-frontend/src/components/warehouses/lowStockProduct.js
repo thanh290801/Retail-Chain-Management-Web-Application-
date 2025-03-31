@@ -171,17 +171,6 @@ const LowStockProducts = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
-
-                <button
-                    className={`px-4 py-2 rounded ${
-                        (branchId === "0" && selectedWarehouse === "all")
-                            ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                            : "bg-green-500 text-white"
-                    }`}
-                    onClick={handleCreateOrder}
-                >
-                    Tạo đơn đặt hàng
-                </button>
             </div>
 
             <table className="w-full bg-white shadow-md rounded">

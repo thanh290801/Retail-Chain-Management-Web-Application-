@@ -4,6 +4,7 @@ using RCM.Backend.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace RCM.Backend.Controllers
 {
@@ -245,7 +246,91 @@ public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderCre
         Total = totalCost
     });
 }
+
+[HttpGet("{orderId}/batches")]
+        public async Task<ActionResult<IEnumerable<BatchDto>>> GetBatchesByOrderId(int orderId)
+        {
+            var batches = await _context.Batches
+                .Where(b => b.PurchaseOrderId == orderId)
+                .Select(b => new BatchDto
+                {
+                    BatchId = b.BatchesId,
+                    ReceivedDate = b.ReceivedDate,
+                    TotalPrice = b.BatchPrices ?? 0m,
+                    Status = b.Status
+                })
+                .ToListAsync();
+
+            if (!batches.Any())
+            {
+                return NotFound(new { message = "Không tìm thấy batch nào cho đơn hàng này." });
+            }
+
+            return Ok(batches);
+        }
+
+         // ✅ API: Xác nhận thanh toán các batch đã chọn
+        [HttpPost("{id}/confirm-payments")]
+        public async Task<IActionResult> ConfirmPayments(int id, [FromBody] ConfirmPaymentRequest request)
+        {
+            if (request.BatchIds == null || !request.BatchIds.Any())
+            {
+                return BadRequest("Không có batch nào được chọn để thanh toán.");
+            }
+
+            // Lấy thông tin các batch
+            var batches = await _context.Batches
+                .Where(b => request.BatchIds.Contains(b.BatchesId) && b.Status == "Chưa thanh toán")
+                .ToListAsync();
+
+            if (!batches.Any())
+            {
+                return NotFound("Không có batch nào hợp lệ để thanh toán.");
+            }
+
+            // Lấy thông tin đơn hàng
+            var purchaseOrder = await _context.PurchaseOrders
+                .FirstOrDefaultAsync(po => po.PurchaseOrdersId == id);
+
+            if (purchaseOrder == null)
+            {
+                return NotFound("Không tìm thấy đơn hàng.");
+            }
+
+            // Tính tổng tiền thanh toán
+            decimal totalAmount = batches.Sum(b => b.BatchPrices ?? 0m);
+
+            // Tạo transaction_code
+            string transactionCode = $"PO-{DateTime.Now:yyyyMMddHHmmss}";
+
+            // Tạo transaction mới
+            var transaction = new Transaction
+            {
+                TransactionCode = transactionCode,
+                TransactionType = "PURCHASEORDER",
+                PaymentMethod = "Bank",
+                Amount = totalAmount,
+                TransactionDate = DateTime.Now,
+                EmployeeId = 1, // Tạm thời dùng SupplierId thay cho EmployeeId nếu cần
+                BranchId = purchaseOrder.WarehousesId ?? 0,
+                OrderId = null,
+                Description = "Thanh toán đơn nhập hàng"
+            };
+
+            _context.Transactions.Add(transaction);
+
+            // Cập nhật trạng thái các batch
+            foreach (var batch in batches)
+            {
+                batch.Status = "Đã thanh toán";
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Xác nhận thanh toán thành công.", TransactionCode = transactionCode });
+        }
     }
+    
     
 
    public class PurchaseOrderCreateRequest
@@ -328,6 +413,10 @@ public class BatchDetailDto
     public DateTime? ReceivedDate { get; set; }
     public decimal TotalPrice { get; set; }
     public string Status { get; set; }
+}
+public class ConfirmPaymentRequest
+{
+    public List<int> BatchIds { get; set; }
 }
 
 }

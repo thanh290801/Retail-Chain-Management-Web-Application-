@@ -121,7 +121,7 @@ public async Task<IActionResult> TransferStock([FromBody] WarehouseTransferReque
     return Ok(new { message = "Phiếu điều chuyển đã được tạo thành công." });
 }
 
-    [HttpGet("{warehouseId}/products")]
+  [HttpGet("{warehouseId}/products")]
 public async Task<ActionResult<IEnumerable<object>>> GetProductsByWarehouse(int warehouseId)
 {
     // Kiểm tra xem kho có tồn tại không
@@ -131,7 +131,7 @@ public async Task<ActionResult<IEnumerable<object>>> GetProductsByWarehouse(int 
         return NotFound(new { message = "Kho không tồn tại." });
     }
 
-    // Lấy danh sách sản phẩm có trong kho
+    // Lấy danh sách sản phẩm có trong kho và bao gồm trường status
     var productsInStock = await _context.StockLevels
         .Where(s => s.WarehouseId == warehouseId)
         .Join(_context.Products,
@@ -146,7 +146,8 @@ public async Task<ActionResult<IEnumerable<object>>> GetProductsByWarehouse(int 
                 stock.MinQuantity,
                 stock.PurchasePrice,
                 stock.WholesalePrice,
-                stock.RetailPrice
+                stock.RetailPrice,
+                stock.Status // Trả về thêm trường status
             })
         .OrderBy(p => p.Name)
         .ToListAsync();
@@ -160,6 +161,23 @@ public async Task<ActionResult<IEnumerable<object>>> GetProductsByWarehouse(int 
     return Ok(productsInStock);
 }
 
+[HttpPut("{warehouseId}/toggle-product-status/{productId}")]
+        public async Task<IActionResult> ToggleProductStatus(int warehouseId, int productId, [FromBody] ToggleStatusDto dto)
+        {
+            var stockLevel = await _context.StockLevels
+                .FirstOrDefaultAsync(sl => sl.WarehouseId == warehouseId && sl.ProductId == productId);
+
+            if (stockLevel == null)
+            {
+                return NotFound(new { message = "Không tìm thấy sản phẩm trong kho." });
+            }
+
+            stockLevel.Status = dto.Status;
+            await _context.SaveChangesAsync();
+
+            var statusMessage = dto.Status ? "Sản phẩm đã được bật lại." : "Sản phẩm đã được vô hiệu hóa.";
+            return Ok(new { message = statusMessage });
+        }
 }
 
 // 📌 4. Model Request (Không cần chỉnh Model gốc)
@@ -176,3 +194,7 @@ public class TransferItem
     public int ProductId { get; set; }
     public int Quantity { get; set; }
 }
+ public class ToggleStatusDto
+    {
+        public bool Status { get; set; }
+    }

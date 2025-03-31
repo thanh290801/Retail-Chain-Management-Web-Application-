@@ -163,7 +163,7 @@ const OrderCheck = () => {
 
             <Button variant="primary" onClick={handleReceiveSubmit}>Tạo đơn nhận hàng</Button>
 
-            <h4>Danh sách Batches:</h4>
+            <h4>Danh sách các lần nhập hàng:</h4>
             <Table striped bordered hover>
                 <thead>
                     <tr>

@@ -95,9 +95,9 @@ const StaffHomeComponent = () => {
 
                     {/* Menu Dropdown */}
                     {[
-                        { label: "Kho hàng", menuKey: "warehouse", links: [{ label: "Kho hàng", path: "/kho" }, { label: "Phiếu kiểm kho", path: "/kiem-kho" }] },
-                        { label: "Nhập hàng", menuKey: "inventory", links: [{ label: "Danh sách đơn nhập", path: "/listOrder" }, { label: "Tạo phiếu nhập kho", path: "/them-phieu-nhapkho" }] },
-                        { label: "Menu", menuKey: "reports", links: [{ label: "Thông tin người dùng", path: "/profile" }, { label: "Đăng suất", path: "/note" }] },
+                        { label: "Kho hàng", menuKey: "warehouse", links: [{ label: "Kho hàng", path: "/productstock" }, { label: "Phiếu kiểm kho", path: "/stockcheck" }, { label: "Phiếu điều chỉnh kho", path: "/stockadjustment"}] },
+                        { label: "Nhập hàng", menuKey: "inventory", links: [{ label: "Danh sách đơn nhập", path: "/orderlist" }, { label: "Xác nhận đơn điều chuyển", path: "/warehouse-transfers-confirm" }] },
+                        { label: "Menu", menuKey: "reports", links: [{ label: "Thông tin người dùng", path: "/profile" }, { label: "Đăng xuất", path: "/note" }] },
                     ].map((menu) => (
                         <div key={menu.menuKey} className="relative">
                             <button onClick={() => toggleMenu(menu.menuKey)} className="px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold shadow-md">
