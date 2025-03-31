@@ -42,6 +42,7 @@ import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
 import RevenueSummaryOwner from './sale-dashboadConponent/RevenueOwner';
 import PendingOvertimeList from "./components/EmployeeComponent/PendingOvertimeList";
 import OrderList from './sale-dashboadConponent/orderList.js';
+import PromotionMain from './components/promotion/promotion_main.js';
 
 import FinancialReport from './components/FinancialReportConponent/financialReport';
 import CreateSupplierForm from './components/Supplier_Order/AddSupplier.js';
@@ -103,6 +104,7 @@ function App() {
           <Route path='/stockcheck' element= {<StockCheck/>} />
           <Route path='/stockadjustment' element= {<CreateStockAdjustment/>} />
           <Route path='/addproducttowarehouse' element= {<AddProductsToWarehouse/>} />
+          <Route path='/promotion' element= {<PromotionMain/>} />
           {/* Đại */}
           <Route path='/addsupplier' element= {<CreateSupplierForm/>} />
           <Route path='/addproductsupplier/:supplierId' element= {<AddProductsToSupplier/>} />
