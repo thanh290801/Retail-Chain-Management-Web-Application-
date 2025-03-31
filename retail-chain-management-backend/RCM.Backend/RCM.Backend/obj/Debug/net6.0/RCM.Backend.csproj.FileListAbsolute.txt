@@ -302,3 +302,7 @@ D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-ba
 D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\RCM.Back.D43B2E84.Up2Date
 D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\RCM.Backend.genruntimeconfig.cache
 D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\ref\RCM.Backend.dll
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\bin\Debug\net6.0\RCM.Backend.staticwebassets.runtime.json
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\bin\Debug\net6.0\Microsoft.AspNetCore.JsonPatch.dll
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\bin\Debug\net6.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\bin\Debug\net6.0\Newtonsoft.Json.Bson.dll

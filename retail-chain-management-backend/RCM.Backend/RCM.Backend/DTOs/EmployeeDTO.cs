@@ -26,6 +26,28 @@ public class EmployeeDTO
     public string? Hometown { get; set; }
     public string? CurrentAddress { get; set; }
     public int? FixedSalary { get; set; }
+    public class AddEmployeeDTO
+    {
+        public int Id { get; set; }
+        public string? Image { get; set; }
+        public string FullName { get; set; } = null!;
+        public string Username { get; set; }
+        public string Role { get; set; }
+        public string? Gender { get; set; }
+        public DateTime BirthDate { get; set; }
+        public string PhoneNumber { get; set; } = null!;
+        public int? WorkShiftId { get; set; }
+        public bool? ActiveStatus { get; set; }
+        public DateTime StartDate { get; set; }
+        public int? BranchId { get; set; }
+        public bool IsStaff { get; set; }
+        public string PasswordHash { get; set; } = null!;
+
+        // Các thuộc tính đang thiếu
+        public string IdentityNumber { get; set; } = null!;
+        public string? Hometown { get; set; }
+        public int? FixedSalary { get; set; }
+    }
     public class UpdateEmployee
     {
         public int Id { get; set; }
@@ -35,6 +57,10 @@ public class EmployeeDTO
     public class UpdateWorkShiftDTO
     {
         public int? WorkShiftId { get; set; }
+    }
+    public class UpdateActive
+    {
+        public bool? IsActive { get; set; }
     }
     public class StaffExportDTO
     {

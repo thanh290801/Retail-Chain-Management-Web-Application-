@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
 
         var user = _context.Accounts
             .Include(a => a.Employee) // Lấy thông tin nhân viên
-            .FirstOrDefault(a => a.Username == request.Username);
+            .FirstOrDefault(a => a.Username == request.Username );
 
         if (user == null)
         {
@@ -48,7 +48,7 @@ public class AuthController : ControllerBase
         }
 
         var employee = user.Employee;
-        if (employee == null)
+        if (employee == null || employee.IsActive ==false)
         {
             return Unauthorized(new { message = "Không tìm thấy thông tin nhân viên." });
         }

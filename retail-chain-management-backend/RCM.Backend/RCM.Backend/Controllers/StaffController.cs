@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using RCM.Backend.DTO;
 using RCM.Backend.Models;
+using System.Drawing;
 using System.Globalization;
 using static EmployeeDTO;
 
@@ -40,7 +41,7 @@ namespace RCM.Backend.Controllers
                 .Select(ea => new EmployeeDTO
                 {
                     Id = ea.Employee.EmployeeId,
-                    Image = ea.Employee.ProfileImage,
+                    //Image = ea.Employee.ProfileImage != null ? $"/access/{ea.Employee.ProfileImage}" : null, // Trả về URL
                     FullName = ea.Employee.FullName,
                     Gender = ea.Employee.Gender,
                     BirthDate = ea.Employee.BirthDate,
@@ -59,6 +60,21 @@ namespace RCM.Backend.Controllers
             return Ok(staffList);
         }
 
+        [HttpGet("staff/image/{employeeId}")]
+        public IActionResult GetStaffImage(int employeeId)
+        {
+            var employee = _context.Employees.FirstOrDefault(e => e.EmployeeId == employeeId);
+            if (employee == null || string.IsNullOrEmpty(employee.ProfileImage))
+                return NotFound();
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", employee.ProfileImage.TrimStart('/'));
+            if (!System.IO.File.Exists(filePath))
+                return NotFound();
+
+            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            var contentType = "image/jpeg"; // Có thể điều chỉnh dựa trên phần mở rộng file
+            return File(fileBytes, contentType);
+        }
 
         [HttpGet("{id}")]
         public IActionResult GetStaffById(int id)
@@ -81,13 +97,14 @@ namespace RCM.Backend.Controllers
                 PhoneNumber = employeeData.Phone ?? "",
                 WorkShiftId = employeeData.WorkShiftId,
                 ActiveStatus = employeeData.IsActive,
+                
                 StartDate = employeeData.StartDate,
                 BranchId = employeeData.BranchId,
                 IsStaff = true,
                 Username = employeeData.Account != null ? employeeData.Account.Username : "",
                 Role = employeeData.Account != null ? employeeData.Account.Role : "",
                 Hometown = employeeData.Hometown,
-                
+
                 IdentityNumber = employeeData.IdentityNumber,
                 FixedSalary = employeeData.FixedSalary
             };
@@ -152,6 +169,7 @@ namespace RCM.Backend.Controllers
             return Ok(new { message = "Cập nhật thông tin nhân viên thành công!" });
         }
         [HttpPut("update-employee-workshift/{id}")]
+
         public async Task<IActionResult> UpdateEmployeeWorkShift(int id, [FromBody] UpdateWorkShiftDTO request)
         {
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.EmployeeId == id);
@@ -165,8 +183,23 @@ namespace RCM.Backend.Controllers
 
             return Ok(new { message = "Cập nhật ca làm việc thành công!" });
         }
+        [HttpPut("update-employee-Active/{id}")]
+
+        public async Task<IActionResult> UpdateEmployeeActi(int id, [FromBody] UpdateActive request)
+        {
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.EmployeeId == id);
+            if (employee == null)
+            {
+                return NotFound(new { message = "Không tìm thấy nhân viên!" });
+            }
+
+            employee.IsActive = request.IsActive ?? employee.IsActive;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Cập nhật ca làm việc thành công!" });
+        }
         [HttpPost("add-employee")]
-        public IActionResult AddStaff([FromBody] EmployeeDTO request)
+        public async Task<IActionResult> AddStaff([FromForm] AddEmployeeDTO? request,IFormFile avatar)
         {
             if (request == null)
             {
@@ -179,41 +212,94 @@ namespace RCM.Backend.Controllers
                 return BadRequest(new { message = "Identity number or phone number already exists!" });
             }
 
+            // Xử lý file ảnh nếu có
+            string imagePath = null;
+            string imageFormat = null; // Lưu định dạng ảnh (từ Image.RawFormat)
+            try
+            {
+                if (avatar != null && avatar.Length > 0)
+                {
+                    // Đọc dữ liệu ảnh từ stream
+                    using (var stream = new MemoryStream())
+                    {
+                        await avatar.CopyToAsync(stream);
+                        stream.Position = 0;
+
+                        // Sử dụng System.Drawing để kiểm tra và xử lý ảnh
+                        using (var img = Image.FromStream(stream))
+                        {
+                            imageFormat = img.RawFormat.ToString(); // Lấy định dạng ảnh (JPEG, PNG, etc.)
+
+                            // Tạo thư mục 'access' nếu chưa có
+                            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "access");
+                            if (!Directory.Exists(folderPath))
+                            {
+                                Directory.CreateDirectory(folderPath);
+                            }
+
+                            // Lấy phần mở rộng từ tên file gốc
+                            var fileExtension = Path.GetExtension(avatar.FileName)?.ToLower();
+                            var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+                            var filePath = Path.Combine(folderPath, uniqueFileName);
+
+                            // Lưu ảnh vào thư mục
+                            stream.Position = 0; // Reset vị trí stream để lưu file
+                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await stream.CopyToAsync(fileStream);
+                            }
+
+                            // Lưu đường dẫn ảnh
+                            imagePath = $"/access/{uniqueFileName}";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Error processing image: {ex.Message}" });
+            }
+
+            // Tạo tài khoản mới cho nhân viên
             var newAccount = new Account
             {
                 Username = request.Username,
-                PasswordHash = /*BCrypt.Net.BCrypt.HashPassword(request.PasswordHash)*/(request.PasswordHash),
-                Role = request.Role,
+                PasswordHash = request.PasswordHash, // Bạn có thể sử dụng BCrypt để hash mật khẩu nếu cần
+                Role = "Staff",
                 EmployeeId = request.Id
             };
 
             _context.Accounts.Add(newAccount);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
+            // Tạo nhân viên mới
             var newEmployee = new Employee
             {
-                ProfileImage = request.Image,
+                ProfileImage = imagePath, // Lưu đường dẫn file ảnh
                 FullName = request.FullName,
                 Gender = request.Gender,
                 BirthDate = request.BirthDate,
                 IdentityNumber = request.IdentityNumber,
                 Hometown = request.Hometown,
-                //CurrentAddress = request.CurrentAddress,
                 Phone = request.PhoneNumber,
+                
                 WorkShiftId = request.WorkShiftId,
                 FixedSalary = request.FixedSalary,
-                IsActive = request.ActiveStatus ?? true,
+                IsActive =  true,
                 StartDate = DateTime.Now,
                 BranchId = request.BranchId,
                 AccountId = newAccount.AccountId,
-
             };
 
             _context.Employees.Add(newEmployee);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-
-            return Ok(new { message = "Staff added successfully!", EmployeeId = newEmployee.EmployeeId });
+            return Ok(new
+            {
+                message = "Staff added successfully!",
+                EmployeeId = newEmployee.EmployeeId,
+                ImageFormat = imageFormat // Trả về định dạng ảnh nếu có
+            });
         }
 
         //[HttpPost("add-employee")]
@@ -530,6 +616,102 @@ namespace RCM.Backend.Controllers
                 return BadRequest(new { message = "Đã xảy ra lỗi khi xếp lịch: " + ex.Message });
             }
         }
+        [HttpGet("ApprovedOvertimeList")]
+        public async Task<IActionResult> GetApprovedOvertimeList(
+    [FromQuery] int? employeeId,
+    [FromQuery] int month,
+    [FromQuery] int year,
+    [FromQuery] bool? isApproved) // Thêm tham số isApproved để lọc trạng thái
+        {
+            // Kiểm tra tính hợp lệ của tháng và năm
+            if (month < 1 || month > 12)
+            {
+                return BadRequest("Month must be between 1 and 12.");
+            }
+
+            if (year < 1900 || year > DateTime.Now.Year)
+            {
+                return BadRequest($"Year must be between 1900 and {DateTime.Now.Year}.");
+            }
+
+            // Nếu có employeeId, kiểm tra nhân viên tồn tại
+            if (employeeId.HasValue && employeeId <= 0)
+            {
+                return BadRequest("Invalid Employee ID.");
+            }
+            else if (employeeId.HasValue)
+            {
+                var employee = await _context.Employees.FindAsync(employeeId.Value);
+                if (employee == null)
+                {
+                    return NotFound("Không tìm thấy nhân viên.");
+                }
+            }
+
+            var query = _context.OvertimeRecords
+                .Where(o => o.Date.Month == month && o.Date.Year == year);
+
+            // Nếu có employeeId, lọc theo nhân viên
+            if (employeeId.HasValue)
+            {
+                query = query.Where(o => o.EmployeeId == employeeId.Value);
+            }
+
+            // Nếu có tham số isApproved, lọc theo trạng thái IsApproved
+            if (isApproved.HasValue)
+            {
+                query = query.Where(o => o.IsApproved == isApproved.Value);
+            }
+
+            var approvedOvertimeRecords = await query
+                .Join(_context.Employees,
+                    o => o.EmployeeId,
+                    e => e.EmployeeId,
+                    (o, e) => new { Overtime = o, Employee = e })
+                .OrderByDescending(o => o.Overtime.Date)
+                .Select(o => new
+                {
+                    OvertimeId = o.Overtime.Id,
+                    EmployeeId = o.Employee.EmployeeId,
+                    EmployeeName = o.Employee.FullName,
+                    Date = o.Overtime.Date.ToString("dd/MM/yyyy"),
+                    StartTime = o.Overtime.StartTime != TimeSpan.Zero ? o.Overtime.StartTime.ToString(@"hh\:mm") : null,
+                    EndTime = o.Overtime.EndTime != TimeSpan.Zero ? o.Overtime.EndTime.ToString(@"hh\:mm") : null,
+                    TotalHours = o.Overtime.TotalHours > 0 ? o.Overtime.TotalHours.ToString("F2") : null,
+                    Reason = o.Overtime.Reason,
+                    IsApproved = o.Overtime.IsApproved ? "Đã duyệt" : "Bị từ chối",
+                    CheckInTime = o.Overtime.IsApproved
+                        ? _context.AttendanceCheckIns
+                            .Where(ci => ci.EmployeeId == o.Employee.EmployeeId && ci.AttendanceDate == o.Overtime.Date && ci.Shift == "Tăng ca")
+                            .Select(ci => ci.CheckInTime.ToString("dd/MM/yyyy HH:mm:ss"))
+                            .FirstOrDefault()
+                        : null,
+                    CheckOutTime = o.Overtime.IsApproved
+                        ? _context.AttendanceCheckOuts
+                            .Where(co => co.EmployeeId == o.Employee.EmployeeId && co.AttendanceDate == o.Overtime.Date && co.Shift == "Tăng ca")
+                            .Select(co => co.CheckOutTime.ToString("dd/MM/yyyy HH:mm:ss"))
+                            .FirstOrDefault()
+                        : null
+                })
+                .ToListAsync();
+
+            if (approvedOvertimeRecords == null || approvedOvertimeRecords.Count == 0)
+            {
+                return NotFound($"Không tìm thấy danh sách tăng ca đã xét duyệt cho tháng {month}/{year}.");
+            }
+
+            return Ok(new
+            {
+                Month = month,
+                Year = year,
+                EmployeeId = employeeId.HasValue ? employeeId.Value : (int?)null,
+                EmployeeName = employeeId.HasValue
+                    ? _context.Employees.Find(employeeId.Value)?.FullName
+                    : "Tất cả nhân viên",
+                ApprovedOvertimeRecords = approvedOvertimeRecords
+            });
+        }
+
         [HttpGet("download-template")]
         public IActionResult DownloadTemplate()
         {

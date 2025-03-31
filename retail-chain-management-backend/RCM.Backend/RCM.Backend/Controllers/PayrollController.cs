@@ -93,17 +93,21 @@ public class PayrollController : ControllerBase
     {
         var startDate = new DateTime(year, month, 1);
         var endDate = startDate.AddMonths(1).AddDays(-1);
+        decimal overtimeRate = 50000; // Đồng bộ với GetPayrollDetails
 
+        // Kiểm tra xem lương đã được tính chưa
         bool payrollCalculated = await _context.Salaries
             .AnyAsync(s => s.StartDate.HasValue &&
-                          s.StartDate.Value.Month == month &&
-                          s.StartDate.Value.Year == year &&
-                          s.IsCalculated == true);
+                           s.StartDate.Value.Month == month &&
+                           s.StartDate.Value.Year == year &&
+                           s.IsCalculated == true);
 
+        // Lấy số ca làm việc mặc định trong tháng
         var shiftSetting = await _context.ShiftSettings
             .FirstOrDefaultAsync(s => s.Month == month && s.Year == year);
         int totalShiftsInMonth = shiftSetting?.TotalShifts ?? 26;
 
+        // Lọc danh sách nhân viên
         var employeesQuery = _context.Employees.AsNoTracking();
         if (!string.IsNullOrEmpty(search))
         {
@@ -113,33 +117,32 @@ public class PayrollController : ControllerBase
         {
             employeesQuery = employeesQuery.Where(e => e.EmployeeId.ToString() == staffId);
         }
-
         var employees = await employeesQuery.ToListAsync();
         var employeeIds = employees.Select(e => e.EmployeeId).ToList();
 
+        // Khai báo danh sách trả về và biến existingSalaries một lần
         var salaryRecords = new List<object>();
-        decimal overtimeRate = 50000;
-
-        // Declare existingSalaries once at a higher scope
         List<Salary> existingSalaries = null;
 
+        // Tính toán hoặc cập nhật lương nếu cần
         if (!payrollCalculated || forceRecalculate)
         {
             if (forceRecalculate)
             {
                 existingSalaries = await _context.Salaries
                     .Where(s => s.StartDate.HasValue &&
-                               s.StartDate.Value.Month == month &&
-                               s.StartDate.Value.Year == year)
+                                s.StartDate.Value.Month == month &&
+                                s.StartDate.Value.Year == year)
                     .ToListAsync();
                 _context.Salaries.RemoveRange(existingSalaries);
                 await _context.SaveChangesAsync();
             }
 
+            // Lấy dữ liệu chấm công
             var attendanceData = await _context.AttendanceCheckIns
                 .Where(ci => employeeIds.Contains(ci.EmployeeId) &&
-                            ci.AttendanceDate.Month == month &&
-                            ci.AttendanceDate.Year == year)
+                             ci.AttendanceDate.Month == month &&
+                             ci.AttendanceDate.Year == year)
                 .Join(_context.AttendanceCheckOuts,
                     ci => new { ci.EmployeeId, ci.AttendanceDate, ci.Shift },
                     co => new { co.EmployeeId, co.AttendanceDate, co.Shift },
@@ -172,21 +175,19 @@ public class PayrollController : ControllerBase
                     }).ToList()
                 );
 
-            var overtimeRecords = await _context.OvertimeRecords
-                .Where(o => employeeIds.Contains(o.EmployeeId) &&
-                            o.Date.Month == month &&
-                            o.Date.Year == year &&
-                            o.IsApproved == true)
-                .ToListAsync();
-
-            var overtimeData = overtimeRecords
-                .GroupBy(o => o.EmployeeId)
-                .ToDictionary(g => g.Key, g => g.Sum(o => o.TotalHours));
-
+            // Tính lương cho từng nhân viên
             foreach (var employee in employees)
             {
                 int totalWorkDays = workDaysDict.ContainsKey(employee.EmployeeId) ? workDaysDict[employee.EmployeeId] : 0;
-                decimal totalOvertimeHours = overtimeData.ContainsKey(employee.EmployeeId) ? overtimeData[employee.EmployeeId] : 0;
+
+                // Tính totalOvertimeHours giống GetPayrollDetails
+                decimal totalOvertimeHours = await _context.OvertimeRecords
+                    .Where(o => o.EmployeeId == employee.EmployeeId &&
+                                o.Date.Month == month &&
+                                o.Date.Year == year &&
+                                o.IsApproved == true)
+                    .SumAsync(o => o.TotalHours);
+
                 decimal overtimePay = totalOvertimeHours * overtimeRate;
                 decimal salaryPerShift = (employee.FixedSalary ?? 0) / totalShiftsInMonth;
                 decimal baseSalary = salaryPerShift * totalWorkDays;
@@ -210,7 +211,7 @@ public class PayrollController : ControllerBase
             await _context.SaveChangesAsync();
         }
 
-        // Retrieve existing salary records (only if not already fetched)
+        // Gán giá trị cho existingSalaries nếu chưa có
         existingSalaries ??= await _context.Salaries
             .Where(s => employeeIds.Contains(s.EmployeeId) &&
                         s.StartDate.HasValue &&
@@ -223,16 +224,18 @@ public class PayrollController : ControllerBase
             var salaryRecord = existingSalaries.FirstOrDefault(s => s.EmployeeId == employee.EmployeeId);
             if (salaryRecord == null) continue;
 
+            // Kiểm tra trạng thái thanh toán
             bool hasReceivedSalary = await _context.SalaryPaymentHistories
                 .AnyAsync(p => p.EmployeeId == employee.EmployeeId &&
-                              p.PaymentDate.HasValue &&
-                              p.PaymentDate.Value.Month == month &&
-                              p.PaymentDate.Value.Year == year);
+                               p.PaymentDate.HasValue &&
+                               p.PaymentDate.Value.Month == month &&
+                               p.PaymentDate.Value.Year == year);
 
+            // Lấy chi tiết ca làm việc
             var attendanceData = await _context.AttendanceCheckIns
                 .Where(ci => ci.EmployeeId == employee.EmployeeId &&
-                            ci.AttendanceDate.Month == month &&
-                            ci.AttendanceDate.Year == year)
+                             ci.AttendanceDate.Month == month &&
+                             ci.AttendanceDate.Year == year)
                 .Join(_context.AttendanceCheckOuts,
                     ci => new { ci.EmployeeId, ci.AttendanceDate, ci.Shift },
                     co => new { co.EmployeeId, co.AttendanceDate, co.Shift },
@@ -245,6 +248,7 @@ public class PayrollController : ControllerBase
                     })
                 .ToListAsync();
 
+            // Tính totalOvertimeHours giống GetPayrollDetails
             decimal totalOvertimeHours = await _context.OvertimeRecords
                 .Where(o => o.EmployeeId == employee.EmployeeId &&
                             o.Date.Month == month &&
@@ -254,10 +258,19 @@ public class PayrollController : ControllerBase
 
             decimal overtimePay = totalOvertimeHours * overtimeRate;
             decimal salaryPerShift = (employee.FixedSalary ?? 0) / totalShiftsInMonth;
-
+            if (forceRecalculate && salaryRecord.BonusHours != (int)totalOvertimeHours)
+            {
+                salaryRecord.BonusHours = (int)totalOvertimeHours;
+                salaryRecord.BonusSalary = (int)overtimePay;
+                salaryRecord.FinalSalary = (int)(salaryPerShift * (salaryRecord.WorkingDays ?? 0) + overtimePay);
+                salaryRecord.UpdateAt = DateTime.Now;
+                _context.Salaries.Update(salaryRecord);
+                _context.SaveChanges();
+            }
             salaryRecords.Add(new
             {
-                salaryRecord,
+                SalaryRecord = salaryRecord,
+
                 EmployeeName = employee.FullName,
                 Phone = employee.Phone,
                 FixedSalary = employee.FixedSalary ?? 0,
@@ -266,7 +279,7 @@ public class PayrollController : ControllerBase
                 TotalShiftInMonth = totalShiftsInMonth,
                 FinalSalary = salaryRecord.FinalSalary ?? 0,
                 Shifts = attendanceData,
-                TotalOvertimeHours = salaryRecord.BonusHours ?? (int)totalOvertimeHours,
+                TotalOvertimeHours = (int)totalOvertimeHours,
                 OvertimePay = salaryRecord.BonusSalary ?? (int)overtimePay,
                 TotalSalary = salaryRecord.FinalSalary ?? 0,
                 IdentityNumber = employee.IdentityNumber,
@@ -786,6 +799,30 @@ public class PayrollController : ControllerBase
 
         return Ok(new { Message = "Yêu cầu làm thêm giờ đã được phê duyệt." });
     }
+    [HttpPut("reject-overtime/{id}")]
+    public async Task<IActionResult> RejectOvertime(int id)
+    {
+        var overtimeRecord = await _context.OvertimeRecords.FindAsync(id);
+        if (overtimeRecord == null)
+        {
+            return NotFound("Không tìm thấy yêu cầu làm thêm giờ.");
+        }
+
+        // Nếu yêu cầu đã được phê duyệt thì không thể từ chối
+        if (overtimeRecord.IsApproved)
+        {
+            return BadRequest("Yêu cầu này đã được phê duyệt trước đó.");
+        }
+
+        // Đánh dấu yêu cầu là không được phê duyệt (từ chối)
+        overtimeRecord.IsApproved = false;
+
+        // Lưu thay đổi vào cơ sở dữ liệu
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = "Yêu cầu làm thêm giờ đã bị từ chối." });
+    }
+
 
     // API mới: Thanh toán lương
     [HttpPost("pay-salary")]
