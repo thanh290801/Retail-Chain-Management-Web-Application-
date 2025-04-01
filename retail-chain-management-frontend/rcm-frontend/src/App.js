@@ -38,8 +38,10 @@ import EmployeeCheckInDetail from "./components/EmployeeComponent/Checkin";
 import StaffManager from "./components/EmployeeComponent/StaffManager";
 import { ToastContainer } from "react-toastify";
 import SalaryHistory from "./components/EmployeeComponent/SalaryHistory";
+import StaffSalaryHistory from "./components/EmployeeComponent/StaffSalaryHistory";
+
 import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
-import RevenueSummaryOwner from './sale-dashboadConponent/RevenueOwner';
+import RevenueSummaryOwner from "./sale-dashboadConponent/RevenueOwner";
 import PendingOvertimeList from "./components/EmployeeComponent/PendingOvertimeList";
 import OrderList from './sale-dashboadConponent/orderList.js';
 
@@ -68,7 +70,6 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
-
           {/* Định tuyến trang mặc định về Login nếu chưa có token */}
           <Route path="/" element={<Navigate to="/login" replace />} />
 
@@ -81,50 +82,95 @@ function App() {
 
 
           {/* Các trang cần đăng nhập */}
-          <Route path='/pos' element={<Main />} />
-          <Route path="/staffHome" element={<ProtectedRoute><StaffHomeComponent /></ProtectedRoute>} />
-          {/* Quân */}
-          <Route path='/addproduct' element= {<AddProductComponent/>} />
-          <Route path='/productstock' element= {<ProtectedRoute><ProductStockComponent/></ProtectedRoute>} />
-          <Route path='/warehousemanagement' element= {<WarehouseManagementComponent/>} />
-          <Route path='/stock-adjustment/:stockadjustmentId' element= {<StockAdjustment/>} />
-          <Route path='/ownerproductstock' element= {<ProductStockForOwner/>} />
-          <Route path='/lowstockproduct' element= {<LowStockProducts/>} />
-          <Route path='/create-order' element= {<PurchaseOrder/>} />
-          <Route path='/inventoryhistory' element= {<InventoryCheckHistory/>} />
-          <Route path='/inventoryhistory/:auditId' element= {<InventoryCheckDetail/>} />
-          <Route path='/warehousetransfer' element= {<WarehouseTransfer/>} />
-          <Route path="/warehouse-transfers-history" element={<WarehouseTransferHistory />} />
-          <Route path="/warehouse-transfers-confirm" element={<WarehouseTransferConfirmation />} />
-          <Route path="/warehouse-transfer/:id" element={<WarehouseTransferDetail />} />
-          <Route path='/listallproduct' element= {<ProductListComponent/>} />
-          <Route path='/orderlist' element= {<OrderLists/>} />
-          <Route path='/order/:orderId' element= {<OrderCheck/>} />
-          <Route path='/stockcheck' element= {<StockCheck/>} />
-          <Route path='/stockadjustment' element= {<CreateStockAdjustment/>} />
-          <Route path='/addproducttowarehouse' element= {<AddProductsToWarehouse/>} />
-          {/* Đại */}
-          <Route path='/addsupplier' element= {<CreateSupplierForm/>} />
-          <Route path='/addproductsupplier/:supplierId' element= {<AddProductsToSupplier/>} />
-          <Route path='/createpurchaseorder' element= {<CreatePurchaseOrder/>} />
-          <Route path='/editsupplier/:id' element= {<EditSupplier/>} />
-          <Route path='/ownerorderlist' element= {<OwnerOrderList/>} />
-          <Route path='/listallproduct/:productId' element= {<ProductDetail/>} />
-          <Route path='/productedit/:id' element= {<ProductEdit/>} />
-          <Route path='/supplierproducts/:supplierId' element= {<ProductsOfSupplier/>} />
-          <Route path='/purchaseorderdetail/:id' element= {<PurchaseOrderDetail/>} />
-          <Route path='/supplierlist' element= {<SupplierList/>} />
-          <Route path='/warehouselistdetail' element= {<WarehousesListDetail/>} />
-
-          <Route path="/header" element={<ProtectedRoute><Header /></ProtectedRoute>} />
-          <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
-          <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />
-          <Route path="/cashBookOwner" element={<ProtectedRoute><CashBookOwner /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-          <Route path="/revenue-summary-owner" element={<ProtectedRoute><RevenueSummaryOwner /></ProtectedRoute>} />
-          <Route path="/financial-report" element={<ProtectedRoute><FinancialReport /></ProtectedRoute>} />
-          <Route path="/order-list" element={<OrderList />} />
-
+          <Route path="/pos" element={<Main />} />
+          <Route
+            path="/staffHome"
+            element={
+              <ProtectedRoute>
+                <StaffHomeComponent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/addproduct"
+            element={
+              <ProtectedRoute>
+                <AddProductComponent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/productmanage"
+            element={
+              <ProtectedRoute>
+                <ProductManagementComponent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/header"
+            element={
+              <ProtectedRoute>
+                <Header />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactionForm"
+            element={
+              <ProtectedRoute>
+                <TransactionForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cashBook"
+            element={
+              <ProtectedRoute>
+                <CashBookComponent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cashBookOwner"
+            element={
+              <ProtectedRoute>
+                <CashBookOwner />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/revenue-summary-owner"
+            element={
+              <ProtectedRoute>
+                <RevenueSummaryOwner />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/financial-report"
+            element={
+              <ProtectedRoute>
+                <FinancialReport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/salary/:staffId"
+            element={
+              <ProtectedRoute>
+                <StaffSalaryHistory />
+              </ProtectedRoute>
+            }
+          />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
 
@@ -159,7 +205,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-                    <Route
+          <Route
             path="/staffmanage"
             element={
               <ProtectedRoute>

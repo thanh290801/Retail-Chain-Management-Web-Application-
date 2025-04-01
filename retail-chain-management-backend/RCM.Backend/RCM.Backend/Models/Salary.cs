@@ -18,8 +18,12 @@ namespace RCM.Backend.Models
         public int? BonusSalary { get; set; }
         public int? Penalty { get; set; }
         public int? FinalSalary { get; set; }
-
+        public int? WorkingDays { get; set; }
+        public int? BonusHours { get; set; }
+        public int? SalaryPerShift { get; set; }
+        public bool IsCalculated { get; set; } = false;
+        public DateTime? UpdateAt { get; set; }
         public virtual Employee Employee { get; set; } = null!;
-        public virtual ICollection<SalaryPaymentHistory> SalaryPaymentHistories { get; set; }
+        public virtual ICollection<SalaryPaymentHistory>? SalaryPaymentHistories { get; set; }
     }
 }

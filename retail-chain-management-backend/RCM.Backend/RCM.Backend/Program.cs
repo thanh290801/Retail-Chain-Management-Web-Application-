@@ -5,6 +5,9 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using RCM.Backend.Services;
 using RCM.Backend.Models;
+using Newtonsoft.Json;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc; // Đảm bảo namespace này được thêm nếu cần
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,14 +46,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"])),
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.Name
         };
     });
 
-builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+// Thêm controllers và cấu hình Newtonsoft.Json
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; // Xử lý vòng lặp tham chiếu
+    });
 
-// 🔹 Thêm Swagger vào services
+builder.Services.AddHostedService<AutoPayrollService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -104,6 +113,8 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 
 
 app.UseCors("AllowReactApp");
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

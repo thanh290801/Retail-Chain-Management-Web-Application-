@@ -62,22 +62,21 @@ public class FinancialReportController : ControllerBase
             .Count(t => t.TransactionType == "CASH_REFUND");
 
         // 3. Chi phí nhân sự
-        var salaries = await _context.Salaries
-            .Include(s => s.Employee)
-            .Where(s =>
-                s.StartDate <= endDate && s.EndDate >= startDate &&  // Lương còn hiệu lực trong tháng
-                (branchId == 0 || s.Employee.BranchId == branchId))
+        var salaryPayments = await _context.SalaryPaymentHistories
+            .Include(p => p.Employee)
+            .Where(p => p.PaymentDate >= startDate && p.PaymentDate < endDate
+                && !p.IsDeleted
+                && (branchId == 0 || p.Employee.BranchId == branchId))
             .ToListAsync();
 
-        var salaryList = salaries
-         .GroupBy(s => s.EmployeeId)
-         .Select(g => g.OrderByDescending(s => s.SalaryId).First()) // Tránh trùng nhân viên
-         .Select(s => new
-         {
-             name = s.Employee.FullName,
-             position = "Chức vụ", // Có thể lấy từ bảng khác
-             totalSalary = (s.FixedSalary ?? 0) + (s.BonusSalary ?? 0) - (s.Penalty ?? 0)
-         }).ToList();
+        var salaryList = salaryPayments
+            .GroupBy(p => p.EmployeeId)
+            .Select(g => new
+            {
+                name = g.First().Employee.FullName,
+                position = "Chức vụ", // bạn có thể lấy từ bảng khác nếu có
+                totalSalary = g.Sum(p => p.PaidAmount)
+            }).ToList();
 
         var totalSalary = salaryList.Sum(s => s.totalSalary);
 

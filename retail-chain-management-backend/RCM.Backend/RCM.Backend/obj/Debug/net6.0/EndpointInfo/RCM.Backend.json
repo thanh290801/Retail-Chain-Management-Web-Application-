@@ -521,6 +521,13 @@
         ],
         "parameters": [
           {
+            "name": "staffId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "search",
             "in": "query",
             "schema": {
@@ -544,6 +551,74 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Payroll/getSalaryList": {
+      "post": {
+        "tags": [
+          "Payroll"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Payroll/add-to-salary-record": {
+      "post": {
+        "tags": [
+          "Payroll"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSalaryRequestDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSalaryRequestDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSalaryRequestDTO"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success"
@@ -1332,6 +1407,36 @@
         },
         "additionalProperties": false
       },
+      "AddSalaryRequestDTO": {
+        "type": "object",
+        "properties": {
+          "staffId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fixedSalary": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bonusSalary": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "penaltyAmount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "AttendanceCheckIn": {
         "type": "object",
         "properties": {
@@ -2075,6 +2180,10 @@
             "nullable": true
           },
           "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
             "type": "string",
             "nullable": true
           }
@@ -2934,6 +3043,26 @@
             "format": "int32",
             "nullable": true
           },
+          "workingDays": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "bonusHours": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "salaryPerShift": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "updateAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "employee": {
             "$ref": "#/components/schemas/Employee"
           },
@@ -3049,8 +3178,7 @@
             "nullable": true
           },
           "isDeleted": {
-            "type": "boolean",
-            "nullable": true
+            "type": "boolean"
           },
           "employee": {
             "$ref": "#/components/schemas/Employee"

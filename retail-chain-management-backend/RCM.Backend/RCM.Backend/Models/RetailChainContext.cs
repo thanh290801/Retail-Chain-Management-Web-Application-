@@ -928,7 +928,7 @@ namespace RCM.Backend.Models
                 entity.Property(e => e.EndDate).HasColumnType("date");
 
                 entity.Property(e => e.StartDate).HasColumnType("date");
-
+                
                 entity.HasOne(d => d.Employee)
                     .WithMany(p => p.Salaries)
                     .HasForeignKey(d => d.EmployeeId)
