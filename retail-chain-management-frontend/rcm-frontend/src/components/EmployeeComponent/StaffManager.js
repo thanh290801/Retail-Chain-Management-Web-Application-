@@ -476,7 +476,7 @@ export default function StaffManager() {
                         openDeleteModal(staff.id);
                       }}
                     >
-                      Xóa
+                      Ngưng làm việc
                     </button>
                   </td>
                 </tr>
