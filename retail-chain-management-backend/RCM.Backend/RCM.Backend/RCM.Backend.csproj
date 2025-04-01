@@ -26,12 +26,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.1" />
-<<<<<<< HEAD
     <PackageReference Include="Packable.newtonjson" Version="2.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
-=======
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
->>>>>>> 03b2a45c8b3657235e0bbc4d7ec3f2846459d193
+
   </ItemGroup>
 
   <ItemGroup>

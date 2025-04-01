@@ -187,6 +187,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/order-list" element={<OrderList />} />
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
 
