@@ -91,22 +91,38 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/addproduct"
-            element={
-              <ProtectedRoute>
-                <AddProductComponent />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/productmanage"
-            element={
-              <ProtectedRoute>
-                <ProductManagementComponent />
-              </ProtectedRoute>
-            }
-          />
+           {/* Quân */}
+           <Route path='/addproduct' element= {<AddProductComponent/>} />
+          <Route path='/productstock' element= {<ProtectedRoute><ProductStockComponent/></ProtectedRoute>} />
+          <Route path='/warehousemanagement' element= {<WarehouseManagementComponent/>} />
+          <Route path='/stock-adjustment/:stockadjustmentId' element= {<StockAdjustment/>} />
+          <Route path='/ownerproductstock' element= {<ProductStockForOwner/>} />
+          <Route path='/lowstockproduct' element= {<LowStockProducts/>} />
+          <Route path='/create-order' element= {<PurchaseOrder/>} />
+          <Route path='/inventoryhistory' element= {<InventoryCheckHistory/>} />
+          <Route path='/inventoryhistory/:auditId' element= {<InventoryCheckDetail/>} />
+          <Route path='/warehousetransfer' element= {<WarehouseTransfer/>} />
+          <Route path="/warehouse-transfers-history" element={<WarehouseTransferHistory />} />
+          <Route path="/warehouse-transfers-confirm" element={<WarehouseTransferConfirmation />} />
+          <Route path="/warehouse-transfer/:id" element={<WarehouseTransferDetail />} />
+          <Route path='/listallproduct' element= {<ProductListComponent/>} />
+          <Route path='/orderlist' element= {<OrderLists/>} />
+          <Route path='/order/:orderId' element= {<OrderCheck/>} />
+          <Route path='/stockcheck' element= {<StockCheck/>} />
+          <Route path='/stockadjustment' element= {<CreateStockAdjustment/>} />
+          <Route path='/addproducttowarehouse' element= {<AddProductsToWarehouse/>} />
+          {/* Đại */}
+          <Route path='/addsupplier' element= {<CreateSupplierForm/>} />
+          <Route path='/addproductsupplier/:supplierId' element= {<AddProductsToSupplier/>} />
+          <Route path='/createpurchaseorder' element= {<CreatePurchaseOrder/>} />
+          <Route path='/editsupplier/:id' element= {<EditSupplier/>} />
+          <Route path='/ownerorderlist' element= {<OwnerOrderList/>} />
+          <Route path='/listallproduct/:productId' element= {<ProductDetail/>} />
+          <Route path='/productedit/:id' element= {<ProductEdit/>} />
+          <Route path='/supplierproducts/:supplierId' element= {<ProductsOfSupplier/>} />
+          <Route path='/purchaseorderdetail/:id' element= {<PurchaseOrderDetail/>} />
+          <Route path='/supplierlist' element= {<SupplierList/>} />
+          <Route path='/warehouselistdetail' element= {<WarehousesListDetail/>} />
           <Route
             path="/header"
             element={
