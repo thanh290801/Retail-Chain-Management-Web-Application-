@@ -97,7 +97,7 @@ namespace RCM.Backend.Controllers
                 PhoneNumber = employeeData.Phone ?? "",
                 WorkShiftId = employeeData.WorkShiftId,
                 ActiveStatus = employeeData.IsActive,
-                
+                PasswordHash = employeeData.Account.PasswordHash,
                 StartDate = employeeData.StartDate,
                 BranchId = employeeData.BranchId,
                 IsStaff = true,
@@ -199,7 +199,7 @@ namespace RCM.Backend.Controllers
             return Ok(new { message = "Cập nhật ca làm việc thành công!" });
         }
         [HttpPost("add-employee")]
-        public async Task<IActionResult> AddStaff([FromForm] AddEmployeeDTO? request,IFormFile avatar)
+        public async Task<IActionResult> AddStaff([FromForm] AddEmployeeDTO? request, IFormFile avatar)
         {
             if (request == null)
             {
@@ -282,10 +282,10 @@ namespace RCM.Backend.Controllers
                 IdentityNumber = request.IdentityNumber,
                 Hometown = request.Hometown,
                 Phone = request.PhoneNumber,
-                
+
                 WorkShiftId = request.WorkShiftId,
                 FixedSalary = request.FixedSalary,
-                IsActive =  true,
+                IsActive = true,
                 StartDate = DateTime.Now,
                 BranchId = request.BranchId,
                 AccountId = newAccount.AccountId,
@@ -618,97 +618,72 @@ namespace RCM.Backend.Controllers
         }
         [HttpGet("ApprovedOvertimeList")]
         public async Task<IActionResult> GetApprovedOvertimeList(
-    [FromQuery] int? employeeId,
-    [FromQuery] int month,
-    [FromQuery] int year,
-    [FromQuery] bool? isApproved) // Thêm tham số isApproved để lọc trạng thái
+     [FromQuery] int? employeeId,
+     [FromQuery] int month,
+     [FromQuery] int year,
+     [FromQuery] bool? isApproved)
         {
-            // Kiểm tra tính hợp lệ của tháng và năm
             if (month < 1 || month > 12)
-            {
                 return BadRequest("Month must be between 1 and 12.");
-            }
-
             if (year < 1900 || year > DateTime.Now.Year)
-            {
                 return BadRequest($"Year must be between 1900 and {DateTime.Now.Year}.");
-            }
-
-            // Nếu có employeeId, kiểm tra nhân viên tồn tại
             if (employeeId.HasValue && employeeId <= 0)
-            {
                 return BadRequest("Invalid Employee ID.");
-            }
-            else if (employeeId.HasValue)
-            {
-                var employee = await _context.Employees.FindAsync(employeeId.Value);
-                if (employee == null)
-                {
-                    return NotFound("Không tìm thấy nhân viên.");
-                }
-            }
 
             var query = _context.OvertimeRecords
                 .Where(o => o.Date.Month == month && o.Date.Year == year);
 
-            // Nếu có employeeId, lọc theo nhân viên
             if (employeeId.HasValue)
-            {
                 query = query.Where(o => o.EmployeeId == employeeId.Value);
-            }
 
-            // Nếu có tham số isApproved, lọc theo trạng thái IsApproved
             if (isApproved.HasValue)
-            {
                 query = query.Where(o => o.IsApproved == isApproved.Value);
-            }
 
-            var approvedOvertimeRecords = await query
+            var overtimeRecords = await query
                 .Join(_context.Employees,
                     o => o.EmployeeId,
                     e => e.EmployeeId,
                     (o, e) => new { Overtime = o, Employee = e })
                 .OrderByDescending(o => o.Overtime.Date)
-                .Select(o => new
-                {
-                    OvertimeId = o.Overtime.Id,
-                    EmployeeId = o.Employee.EmployeeId,
-                    EmployeeName = o.Employee.FullName,
-                    Date = o.Overtime.Date.ToString("dd/MM/yyyy"),
-                    StartTime = o.Overtime.StartTime != TimeSpan.Zero ? o.Overtime.StartTime.ToString(@"hh\:mm") : null,
-                    EndTime = o.Overtime.EndTime != TimeSpan.Zero ? o.Overtime.EndTime.ToString(@"hh\:mm") : null,
-                    TotalHours = o.Overtime.TotalHours > 0 ? o.Overtime.TotalHours.ToString("F2") : null,
-                    Reason = o.Overtime.Reason,
-                    IsApproved = o.Overtime.IsApproved ? "Đã duyệt" : "Bị từ chối",
-                    CheckInTime = o.Overtime.IsApproved
-                        ? _context.AttendanceCheckIns
-                            .Where(ci => ci.EmployeeId == o.Employee.EmployeeId && ci.AttendanceDate == o.Overtime.Date && ci.Shift == "Tăng ca")
-                            .Select(ci => ci.CheckInTime.ToString("dd/MM/yyyy HH:mm:ss"))
-                            .FirstOrDefault()
-                        : null,
-                    CheckOutTime = o.Overtime.IsApproved
-                        ? _context.AttendanceCheckOuts
-                            .Where(co => co.EmployeeId == o.Employee.EmployeeId && co.AttendanceDate == o.Overtime.Date && co.Shift == "Tăng ca")
-                            .Select(co => co.CheckOutTime.ToString("dd/MM/yyyy HH:mm:ss"))
-                            .FirstOrDefault()
-                        : null
-                })
+                .AsNoTracking()
                 .ToListAsync();
 
-            if (approvedOvertimeRecords == null || approvedOvertimeRecords.Count == 0)
+            var result = overtimeRecords.Select(o => new
             {
-                return NotFound($"Không tìm thấy danh sách tăng ca đã xét duyệt cho tháng {month}/{year}.");
-            }
+                OvertimeId = o.Overtime.Id,
+                EmployeeId = o.Employee.EmployeeId,
+                EmployeeName = o.Employee.FullName,
+                Date = o.Overtime.Date.ToString("dd/MM/yyyy"), // Chuyển thành string sau khi lấy dữ liệu
+                StartTime = o.Overtime.StartTime != TimeSpan.Zero ? o.Overtime.StartTime.ToString(@"hh\:mm") : null,
+                EndTime = o.Overtime.EndTime != TimeSpan.Zero ? o.Overtime.EndTime.ToString(@"hh\:mm") : null,
+                TotalHours = o.Overtime.TotalHours > 0 ? o.Overtime.TotalHours.ToString("F2") : null,
+                Reason = o.Overtime.Reason,
+                IsApproved = o.Overtime.IsApproved ? "Đã duyệt" : "Bị từ chối",
+                CheckInTime = o.Overtime.IsApproved
+    ? _context.AttendanceCheckIns
+        .Where(ci => ci.EmployeeId == o.Employee.EmployeeId && ci.AttendanceDate == o.Overtime.Date && ci.Shift == "Tăng ca")
+        .Select(ci => (DateTime?)ci.CheckInTime) // Chuyển về kiểu nullable DateTime
+        .FirstOrDefault()
+        ?.ToString("dd/MM/yyyy HH:mm:ss") // Áp dụng định dạng chuỗi nếu không null
+    : null,
+
+                CheckOutTime = o.Overtime.IsApproved
+    ? _context.AttendanceCheckOuts
+        .Where(co => co.EmployeeId == o.Employee.EmployeeId && co.AttendanceDate == o.Overtime.Date && co.Shift == "Tăng ca")
+        .Select(co => (DateTime?)co.CheckOutTime)
+        .FirstOrDefault()
+        ?.ToString("dd/MM/yyyy HH:mm:ss")
+    : null,
+
+            }).ToList();
 
             return Ok(new
             {
                 Month = month,
                 Year = year,
-                EmployeeId = employeeId.HasValue ? employeeId.Value : (int?)null,
-                EmployeeName = employeeId.HasValue
-                    ? _context.Employees.Find(employeeId.Value)?.FullName
-                    : "Tất cả nhân viên",
-                ApprovedOvertimeRecords = approvedOvertimeRecords
+                EmployeeId = employeeId,
+                EmployeeName = employeeId.HasValue ? _context.Employees.Find(employeeId.Value)?.FullName : "Tất cả nhân viên",
+                ApprovedOvertimeRecords = result
             });
         }
 
