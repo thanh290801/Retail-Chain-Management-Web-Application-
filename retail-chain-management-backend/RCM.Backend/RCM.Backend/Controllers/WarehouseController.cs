@@ -178,6 +178,49 @@ public async Task<ActionResult<IEnumerable<object>>> GetProductsByWarehouse(int 
             var statusMessage = dto.Status ? "Sản phẩm đã được bật lại." : "Sản phẩm đã được vô hiệu hóa.";
             return Ok(new { message = statusMessage });
         }
+
+        // POST: api/Warehouses
+[HttpPost]
+public async Task<IActionResult> CreateWarehouse([FromBody] WarehouseCreateDto dto)
+{
+    if (string.IsNullOrWhiteSpace(dto.Name) || string.IsNullOrWhiteSpace(dto.Address) || dto.Capacity <= 0)
+        return BadRequest("Thông tin không hợp lệ.");
+
+    var existing = await _context.Warehouses.AnyAsync(w => w.Name == dto.Name.Trim());
+    if (existing)
+        return Conflict(new { message = "Tên kho đã tồn tại." });
+
+    var warehouse = new Warehouse
+    {
+        Name = dto.Name.Trim(),
+        Address = dto.Address.Trim(),
+        Capacity = dto.Capacity
+    };
+
+    _context.Warehouses.Add(warehouse);
+    await _context.SaveChangesAsync();
+
+    return Ok(new { message = "Tạo kho hàng thành công." });
+}
+
+// GET: api/Warehouses/check-name?name=Chi%20Nhanh%201
+[HttpGet("check-name")]
+public async Task<IActionResult> CheckWarehouseName([FromQuery] string name)
+{
+    if (string.IsNullOrWhiteSpace(name))
+        return BadRequest("Thiếu tên kho.");
+
+    var exists = await _context.Warehouses.AnyAsync(w => w.Name == name.Trim());
+    return Ok(new { exists });
+}
+
+public class WarehouseCreateDto
+{
+    public string Name { get; set; }
+    public string Address { get; set; }
+    public int Capacity { get; set; } // tính theo m3
+}
+
 }
 
 // 📌 4. Model Request (Không cần chỉnh Model gốc)

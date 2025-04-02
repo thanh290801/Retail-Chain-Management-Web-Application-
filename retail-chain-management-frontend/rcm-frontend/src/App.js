@@ -6,7 +6,7 @@ import StaffHomeComponent from './components/staffHomeConponent/staffHome';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
 // import FundTransactionReport from './components/cashbookConponent/historyTrans';
 import ProductStockComponent from './components/warehouses/listProduct';
-import WarehouseManagementComponent from './components/warehouses/warehouseManagement';
+import WarehouseManagementComponent from './components/warehouses/addWarehouse.js';
 import ProductListComponent from './components/warehouses/listAllProduct';
 import AddProductComponent from './components/warehouses/addProduct';
 import ProductStockForOwner from './components/warehouses/listProductForBoss';
@@ -38,10 +38,13 @@ import EmployeeCheckInDetail from "./components/EmployeeComponent/Checkin";
 import StaffManager from "./components/EmployeeComponent/StaffManager";
 import { ToastContainer } from "react-toastify";
 import SalaryHistory from "./components/EmployeeComponent/SalaryHistory";
+import StaffSalaryHistory from "./components/EmployeeComponent/StaffSalaryHistory";
+
 import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
-import RevenueSummaryOwner from './sale-dashboadConponent/RevenueOwner';
+import RevenueSummaryOwner from "./sale-dashboadConponent/RevenueOwner";
 import PendingOvertimeList from "./components/EmployeeComponent/PendingOvertimeList";
 import OrderList from './sale-dashboadConponent/orderList.js';
+import PromotionMain from './components/promotion/promotion_main.js';
 
 import FinancialReport from './components/FinancialReportConponent/financialReport';
 import CreateSupplierForm from './components/Supplier_Order/AddSupplier.js';
@@ -56,6 +59,7 @@ import PurchaseOrderDetail from './components/Supplier_Order/PurchaseOrderDetail
 import SupplierList from './components/Supplier_Order/SupplierList.js';
 import WarehousesListDetail from './components/Supplier_Order/WarehousesListDetail.js';
 import AddProductsToWarehouse from './components/warehouses/addProductToWarehouse.js';
+import AddWarehouseComponent from './components/warehouses/addWarehouse.js';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -68,7 +72,6 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
-
           {/* Định tuyến trang mặc định về Login nếu chưa có token */}
           <Route path="/" element={<Navigate to="/login" replace />} />
 
@@ -81,12 +84,19 @@ function App() {
 
 
           {/* Các trang cần đăng nhập */}
-          <Route path='/pos' element={<Main />} />
-          <Route path="/staffHome" element={<ProtectedRoute><StaffHomeComponent /></ProtectedRoute>} />
-          {/* Quân */}
-          <Route path='/addproduct' element= {<AddProductComponent/>} />
+          <Route path="/pos" element={<Main />} />
+          <Route
+            path="/staffHome"
+            element={
+              <ProtectedRoute>
+                <StaffHomeComponent />
+              </ProtectedRoute>
+            }
+          />
+           {/* Quân */}
+           <Route path='/addproduct' element= {<AddProductComponent/>} />
           <Route path='/productstock' element= {<ProtectedRoute><ProductStockComponent/></ProtectedRoute>} />
-          <Route path='/warehousemanagement' element= {<WarehouseManagementComponent/>} />
+          <Route path='/addwarehouse' element= {<AddWarehouseComponent/>} />
           <Route path='/stock-adjustment/:stockadjustmentId' element= {<StockAdjustment/>} />
           <Route path='/ownerproductstock' element= {<ProductStockForOwner/>} />
           <Route path='/lowstockproduct' element= {<LowStockProducts/>} />
@@ -103,6 +113,7 @@ function App() {
           <Route path='/stockcheck' element= {<StockCheck/>} />
           <Route path='/stockadjustment' element= {<CreateStockAdjustment/>} />
           <Route path='/addproducttowarehouse' element= {<AddProductsToWarehouse/>} />
+          <Route path='/promotion' element= {<PromotionMain/>} />
           {/* Đại */}
           <Route path='/addsupplier' element= {<CreateSupplierForm/>} />
           <Route path='/addproductsupplier/:supplierId' element= {<AddProductsToSupplier/>} />
@@ -115,16 +126,71 @@ function App() {
           <Route path='/purchaseorderdetail/:id' element= {<PurchaseOrderDetail/>} />
           <Route path='/supplierlist' element= {<SupplierList/>} />
           <Route path='/warehouselistdetail' element= {<WarehousesListDetail/>} />
-
-          <Route path="/header" element={<ProtectedRoute><Header /></ProtectedRoute>} />
-          <Route path="/transactionForm" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
-          <Route path="/cashBook" element={<ProtectedRoute><CashBookComponent /></ProtectedRoute>} />
-          <Route path="/cashBookOwner" element={<ProtectedRoute><CashBookOwner /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-          <Route path="/revenue-summary-owner" element={<ProtectedRoute><RevenueSummaryOwner /></ProtectedRoute>} />
-          <Route path="/financial-report" element={<ProtectedRoute><FinancialReport /></ProtectedRoute>} />
+          <Route
+            path="/header"
+            element={
+              <ProtectedRoute>
+                <Header />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactionForm"
+            element={
+              <ProtectedRoute>
+                <TransactionForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cashBook"
+            element={
+              <ProtectedRoute>
+                <CashBookComponent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cashBookOwner"
+            element={
+              <ProtectedRoute>
+                <CashBookOwner />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/revenue-summary-owner"
+            element={
+              <ProtectedRoute>
+                <RevenueSummaryOwner />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/financial-report"
+            element={
+              <ProtectedRoute>
+                <FinancialReport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/salary/:staffId"
+            element={
+              <ProtectedRoute>
+                <StaffSalaryHistory />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/order-list" element={<OrderList />} />
-
           {/* Redirect tất cả các đường dẫn không hợp lệ về /login */}
           <Route path="*" element={<Navigate to="/login" />} />
 
@@ -159,7 +225,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-                    <Route
+          <Route
             path="/staffmanage"
             element={
               <ProtectedRoute>

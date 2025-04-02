@@ -1,0 +1,12 @@
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\bin\Debug\net8.0\Responsitory.deps.json
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\bin\Debug\net8.0\Responsitory.dll
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\bin\Debug\net8.0\Responsitory.pdb
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\obj\Debug\net8.0\Responsitory.GeneratedMSBuildEditorConfig.editorconfig
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\obj\Debug\net8.0\Responsitory.AssemblyInfoInputs.cache
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\obj\Debug\net8.0\Responsitory.AssemblyInfo.cs
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\obj\Debug\net8.0\Responsitory.csproj.CoreCompileInputs.cache
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\obj\Debug\net8.0\Responsitory.sourcelink.json
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\obj\Debug\net8.0\Responsitory.dll
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\obj\Debug\net8.0\refint\Responsitory.dll
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\obj\Debug\net8.0\Responsitory.pdb
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\Responsitory\obj\Debug\net8.0\ref\Responsitory.dll

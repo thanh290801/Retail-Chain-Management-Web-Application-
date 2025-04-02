@@ -270,68 +270,102 @@ public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderCre
         }
 
          // ✅ API: Xác nhận thanh toán các batch đã chọn
-        [HttpPost("{id}/confirm-payments")]
-        public async Task<IActionResult> ConfirmPayments(int id, [FromBody] ConfirmPaymentRequest request)
-        {
-            if (request.BatchIds == null || !request.BatchIds.Any())
-            {
-                return BadRequest("Không có batch nào được chọn để thanh toán.");
-            }
-
-            // Lấy thông tin các batch
-            var batches = await _context.Batches
-                .Where(b => request.BatchIds.Contains(b.BatchesId) && b.Status == "Chưa thanh toán")
-                .ToListAsync();
-
-            if (!batches.Any())
-            {
-                return NotFound("Không có batch nào hợp lệ để thanh toán.");
-            }
-
-            // Lấy thông tin đơn hàng
-            var purchaseOrder = await _context.PurchaseOrders
-                .FirstOrDefaultAsync(po => po.PurchaseOrdersId == id);
-
-            if (purchaseOrder == null)
-            {
-                return NotFound("Không tìm thấy đơn hàng.");
-            }
-
-            // Tính tổng tiền thanh toán
-            decimal totalAmount = batches.Sum(b => b.BatchPrices ?? 0m);
-
-            // Tạo transaction_code
-            string transactionCode = $"PO-{DateTime.Now:yyyyMMddHHmmss}";
-
-            // Tạo transaction mới
-            var transaction = new Transaction
-            {
-                TransactionCode = transactionCode,
-                TransactionType = "PURCHASEORDER",
-                PaymentMethod = "Bank",
-                Amount = totalAmount,
-                TransactionDate = DateTime.Now,
-                EmployeeId = 1, // Tạm thời dùng SupplierId thay cho EmployeeId nếu cần
-                BranchId = purchaseOrder.WarehousesId ?? 0,
-                OrderId = null,
-                Description = "Thanh toán đơn nhập hàng"
-            };
-
-            _context.Transactions.Add(transaction);
-
-            // Cập nhật trạng thái các batch
-            foreach (var batch in batches)
-            {
-                batch.Status = "Đã thanh toán";
-            }
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new { Message = "Xác nhận thanh toán thành công.", TransactionCode = transactionCode });
-        }
+      [HttpPost("{id}/confirm-payments")]
+public async Task<IActionResult> ConfirmPayments(int id, [FromBody] ConfirmPaymentRequest request)
+{
+    if (request.BatchIds == null || !request.BatchIds.Any())
+    {
+        return BadRequest("Không có batch nào được chọn để thanh toán.");
     }
-    
-    
+
+    // Lấy đơn hàng
+    var purchaseOrder = await _context.PurchaseOrders
+        .FirstOrDefaultAsync(po => po.PurchaseOrdersId == id);
+
+    if (purchaseOrder == null)
+    {
+        return NotFound("Không tìm thấy đơn hàng.");
+    }
+
+    var originalOrderStatus = purchaseOrder.Status;
+
+    // Lấy các batch được chọn
+    var selectedBatches = await _context.Batches
+        .Where(b => request.BatchIds.Contains(b.BatchesId) && b.PurchaseOrderId == id)
+        .ToListAsync();
+
+    if (!selectedBatches.Any())
+    {
+        return NotFound("Không có batch hợp lệ.");
+    }
+
+    // Tính tổng tiền thanh toán cho các batch đã chọn
+    decimal totalAmount = selectedBatches.Sum(b => b.BatchPrices ?? 0m);
+
+    // Tạo mã giao dịch
+    string transactionCode = $"PO-{DateTime.Now:yyyyMMddHHmmss}";
+
+    // Tạo bản ghi giao dịch
+    var transaction = new Transaction
+    {
+        TransactionCode = transactionCode,
+        TransactionType = "PURCHASEORDER",
+        PaymentMethod = "Bank",
+        Amount = totalAmount,
+        TransactionDate = DateTime.Now,
+        EmployeeId = 1, // Có thể lấy từ JWT sau này
+        BranchId = purchaseOrder.WarehousesId ?? 0,
+        OrderId = null,
+        Description = "Thanh toán đơn nhập hàng"
+    };
+
+    _context.Transactions.Add(transaction);
+
+    // Cập nhật trạng thái các batch đã chọn thành "Đã thanh toán"
+    foreach (var batch in selectedBatches)
+    {
+        batch.Status = "Đã thanh toán";
+    }
+
+    await _context.SaveChangesAsync();
+
+    // Kiểm tra nếu trạng thái trước khi thanh toán là "Đã nhận đủ hàng" và tất cả batch của đơn hàng đều "Đã thanh toán"
+    bool allBatchesPaid = await _context.Batches
+        .Where(b => b.PurchaseOrderId == id)
+        .AllAsync(b => b.Status == "Đã thanh toán");
+
+    if (originalOrderStatus == "Đã nhận đủ hàng" && allBatchesPaid)
+    {
+        purchaseOrder.Status = "Đã thanh toán";
+        await _context.SaveChangesAsync();
+    }
+
+    return Ok(new { Message = "Xác nhận thanh toán thành công.", TransactionCode = transactionCode });
+}
+    // ✅ API: Lấy danh sách sản phẩm trong một batch
+[HttpGet("batches/{batchId}/products")]
+public async Task<IActionResult> GetProductsByBatchId(int batchId)
+{
+    var batchDetails = await _context.BatchDetails
+        .Where(bd => bd.BatchId == batchId)
+        .Include(bd => bd.Product)
+        .Select(bd => new
+        {
+            bd.ProductId,
+            ProductName = bd.Product.Name,
+            bd.Quantity
+        })
+        .ToListAsync();
+
+    if (!batchDetails.Any())
+    {
+        return NotFound(new { message = "Batch không chứa sản phẩm nào." });
+    }
+
+    return Ok(batchDetails);
+}
+
+    }
 
    public class PurchaseOrderCreateRequest
 {

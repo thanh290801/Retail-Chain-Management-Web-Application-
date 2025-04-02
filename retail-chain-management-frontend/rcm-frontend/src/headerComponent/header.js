@@ -90,7 +90,6 @@ const Header = () => {
                                     </button>
                                     {activeDropdown === 'warehouse' && (
                                         <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                            <Link to="/warehouselistdetail" className="block px-4 py-2 hover:bg-gray-200">Danh sách kho</Link>
                                             <Link to="/warehousetransfer" className="block px-4 py-2 hover:bg-gray-200">Điều chuyển kho</Link>
                                             <Link to="/inventoryhistory" className="block px-4 py-2 hover:bg-gray-200">Lịch sử kiểm kho</Link>
                                             <Link to="/warehouse-transfers-history" className="block px-4 py-2 hover:bg-gray-200">Lịch sử điều chuyển</Link>
@@ -135,12 +134,11 @@ const Header = () => {
                                 </button>
                                 {activeDropdown === 'employees' && (
                                     <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                        <Link to="/staffmanage" className="block px-4 py-2 hover:bg-gray-200">Danh sách nhân viên</Link>
-                                        <Link to="/salary" className="block px-4 py-2 hover:bg-gray-200">Lương</Link>
-                                        <Link to="/attendance" className="block px-4 py-2 hover:bg-gray-200">Bảng chấm công</Link>
-                                        <Link to="/button12" className="block px-4 py-2 hover:bg-gray-200">Thiết lập lương</Link>
-                                        <Link to="/requests" className="block px-4 py-2 hover:bg-gray-200">Danh sách tăng ca</Link>
-                                    </div>
+                                    <Link to="/staffmanage" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách nhân viên</Link>
+                                    <Link to="/salary" className="block px-4 py-2 hover:bg-gray-200 no-underline">Lương</Link>
+                                    <Link to="/attendance" className="block px-4 py-2 hover:bg-gray-200 no-underline">Bảng chấm công</Link>
+                                    <Link to="/requests" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách tăng ca</Link>
+                                </div>
                                 )}
                             </div>
 
@@ -150,8 +148,7 @@ const Header = () => {
                         </nav>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <button onClick={() => navigate("/pos")} className="bg-white text-blue-600 px-4 py-2 rounded flex items-center">Bán hàng</button>
-
+                    <Link to="/warehouselistdetail" className="block px-4 py-2 hover:bg-gray-200 bg-gray-200 ">Danh sách kho</Link>
                         <div
                             className="relative"
                             onMouseLeave={closeDropdown}

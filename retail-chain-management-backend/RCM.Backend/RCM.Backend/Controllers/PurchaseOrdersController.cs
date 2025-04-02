@@ -172,72 +172,74 @@ public async Task<IActionResult> GetPurchaseOrders()
     
 
         [HttpGet("{orderId}/details")]
-        public async Task<IActionResult> GetPurchaseOrderDetails(int orderId)
+public async Task<IActionResult> GetPurchaseOrderDetails(int orderId)
+{
+    var order = await _context.PurchaseOrders.FindAsync(orderId);
+    if (order == null)
+        return NotFound("Không tìm thấy đơn hàng.");
+
+    var cost = await _context.PurchaseCosts
+        .FirstOrDefaultAsync(c => c.PurchaseOrderId == orderId);
+    if (cost == null)
+        return BadRequest("Không tìm thấy thông tin chi phí đơn hàng.");
+
+    var supplier = await _context.Suppliers
+        .FirstOrDefaultAsync(s => s.SuppliersId == order.SupplierId);
+
+    var branch = await _context.Warehouses
+        .FirstOrDefaultAsync(w => w.WarehousesId == cost.BranchId);
+
+    // Lấy danh sách item
+    var itemEntities = await _context.PurchaseOrderItems
+        .Where(i => i.PurchaseOrderId == orderId)
+        .ToListAsync();
+
+    var productIds = itemEntities.Select(i => i.ProductId).ToList();
+
+    var productDict = await _context.Products
+        .Where(p => productIds.Contains(p.ProductsId))
+        .ToDictionaryAsync(p => p.ProductsId);
+
+    var stockDict = await _context.StockLevels
+        .Where(s => productIds.Contains(s.ProductId) && s.WarehouseId == cost.BranchId)
+        .ToDictionaryAsync(s => s.ProductId);
+
+    // ✅ Thêm QuantityOrdered vào kết quả trả về
+    var items = itemEntities.Select(i => new ProductItemDto
+    {
+        ProductId = i.ProductId,
+        ProductName = productDict.ContainsKey(i.ProductId) ? productDict[i.ProductId].Name : null,
+        QuantityOrdered = i.QuantityOrdered,
+        QuantityReceived = i.QuantityReceived ?? 0, // ✅ Thêm dòng này
+        PurchasePrice = stockDict.ContainsKey(i.ProductId) && stockDict[i.ProductId].PurchasePrice.HasValue
+                        ? (decimal)stockDict[i.ProductId].PurchasePrice
+                        : 0
+    }).ToList();
+
+    var result = new PurchaseOrderDetailDto
+    {
+        PurchaseOrdersId = order.PurchaseOrdersId,
+        OrderDate = order.OrderDate ?? DateTime.MinValue,
+        Status = order.Status,
+        Notes = order.Notes,
+        TotalCost = cost.TotalCost,
+        Supplier = supplier == null ? null : new SupplierDto
         {
-            var order = await _context.PurchaseOrders.FindAsync(orderId);
-            if (order == null)
-                return NotFound("Không tìm thấy đơn hàng.");
+            Name = supplier.Name,
+            ContactPerson = supplier.ContactPerson,
+            Phone = supplier.Phone,
+            Email = supplier.Email
+        },
+        Branch = branch == null ? null : new BranchDto
+        {
+            BranchId = branch.WarehousesId,
+            Name = branch.Name
+        },
+        Items = items
+    };
 
-            var cost = await _context.PurchaseCosts
-                .FirstOrDefaultAsync(c => c.PurchaseOrderId == orderId);
-            if (cost == null)
-                return BadRequest("Không tìm thấy thông tin chi phí đơn hàng.");
-
-            var supplier = await _context.Suppliers
-                .FirstOrDefaultAsync(s => s.SuppliersId == order.SupplierId);
-
-            var branch = await _context.Warehouses
-                .FirstOrDefaultAsync(w => w.WarehousesId == cost.BranchId);
-
-            var itemEntities = await _context.PurchaseOrderItems
-    .Where(i => i.PurchaseOrderId == orderId)
-    .ToListAsync();
-
-            var productIds = itemEntities.Select(i => i.ProductId).ToList();
-
-            var productDict = await _context.Products
-                .Where(p => productIds.Contains(p.ProductsId))
-                .ToDictionaryAsync(p => p.ProductsId);
-
-            var stockDict = await _context.StockLevels
-                .Where(s => productIds.Contains(s.ProductId) && s.WarehouseId == cost.BranchId)
-                .ToDictionaryAsync(s => s.ProductId);
-
-            var items = itemEntities.Select(i => new ProductItemDto
-            {
-                ProductId = i.ProductId,
-                ProductName = productDict.ContainsKey(i.ProductId) ? productDict[i.ProductId].Name : null,
-                QuantityOrdered = i.QuantityOrdered,
-                PurchasePrice = stockDict.ContainsKey(i.ProductId) && stockDict[i.ProductId].PurchasePrice.HasValue
-                                ? (decimal)stockDict[i.ProductId].PurchasePrice
-                                : 0
-            }).ToList();
-
-
-            var result = new PurchaseOrderDetailDto
-            {
-                PurchaseOrdersId = order.PurchaseOrdersId,
-                OrderDate = order.OrderDate ?? DateTime.MinValue,
-                Status = order.Status,
-                Notes = order.Notes,
-                TotalCost = cost.TotalCost,
-                Supplier = supplier == null ? null : new SupplierDto
-                {
-                    Name = supplier.Name,
-                    ContactPerson = supplier.ContactPerson,
-                    Phone = supplier.Phone,
-                    Email = supplier.Email
-                },
-                Branch = branch == null ? null : new BranchDto
-                {
-                    BranchId = branch.WarehousesId,
-                    Name = branch.Name
-                },
-                Items = items
-            };
-
-            return Ok(result);
-        }
+    return Ok(result);
+}
 
 
         // Controller: PurchaseOrdersController.cs

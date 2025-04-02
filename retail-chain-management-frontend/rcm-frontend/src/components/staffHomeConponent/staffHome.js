@@ -95,7 +95,7 @@ const StaffHomeComponent = () => {
 
                     {/* Menu Dropdown */}
                     {[
-                        { label: "Kho hàng", menuKey: "warehouse", links: [{ label: "Kho hàng", path: "/productstock" }, { label: "Phiếu kiểm kho", path: "/stockcheck" }, { label: "Phiếu điều chỉnh kho", path: "/stockadjustment"}] },
+                        { label: "Kho hàng", menuKey: "warehouse", links: [{ label: "Kho hàng", path: "/productstock" }, { label: "Phiếu kiểm kho", path: "/stockcheck" }] },
                         { label: "Nhập hàng", menuKey: "inventory", links: [{ label: "Danh sách đơn nhập", path: "/orderlist" }, { label: "Xác nhận đơn điều chuyển", path: "/warehouse-transfers-confirm" }] },
                         { label: "Menu", menuKey: "reports", links: [{ label: "Thông tin người dùng", path: "/profile" }, { label: "Đăng xuất", path: "/note" }] },
                     ].map((menu) => (

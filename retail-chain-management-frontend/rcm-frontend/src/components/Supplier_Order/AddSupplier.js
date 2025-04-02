@@ -4,6 +4,25 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const CreateSupplierForm = () => {
+
+    const handleCheckTaxCode = async () => {
+        if (!formData.TaxCode) return;
+    
+        try {
+            const response = await axios.get(`https://localhost:5000/api/Supplier/check-taxcode`, {
+                params: { taxCode: formData.TaxCode }
+            });
+            if (response.data.exists) {
+                setError("Mã số thuế đã tồn tại. Vui lòng kiểm tra lại!");
+                return true;
+            }
+        } catch (err) {
+            console.error("Lỗi khi kiểm tra mã số thuế:", err);
+        }
+        setError("");
+        return false;
+    };
+    
     const [formData, setFormData] = useState({
         Name: "",
         TaxCode: "",
@@ -27,6 +46,12 @@ const CreateSupplierForm = () => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+    
+        const isDuplicate = await handleCheckTaxCode();
+        if (isDuplicate) {
+            setLoading(false);
+            return;
+        }
 
         console.log("🔹 Dữ liệu gửi lên API:", formData); // 🟢 Kiểm tra dữ liệu trước khi gửi
 
@@ -69,7 +94,15 @@ const CreateSupplierForm = () => {
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Mã số thuế</Form.Label>
-                            <Form.Control type="text" placeholder="Nhập mã số thuế" name="TaxCode" value={formData.TaxCode} onChange={handleChange} />
+                            <Form.Control
+    type="text"
+    placeholder="Nhập mã số thuế"
+    name="TaxCode"
+    value={formData.TaxCode}
+    onChange={handleChange}
+    onBlur={handleCheckTaxCode}
+/>
+
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Website</Form.Label>

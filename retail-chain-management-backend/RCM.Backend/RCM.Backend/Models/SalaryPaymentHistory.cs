@@ -12,7 +12,7 @@ namespace RCM.Backend.Models
         public int PaidAmount { get; set; }
         public int PaymentMethod { get; set; }
         public string? Note { get; set; }
-        public bool? IsDeleted { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
         public virtual Employee Employee { get; set; } = null!;
         public virtual Salary Salary { get; set; } = null!;
