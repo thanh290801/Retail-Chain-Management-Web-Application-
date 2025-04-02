@@ -254,7 +254,7 @@ const PurchaseOrderDetail = () => {
                 {expandedBatchId === batch.batchId && batchProducts[batch.batchId] && (
                   <tr className="border-b bg-white">
                     <td colSpan="5" className="p-4">
-                      <h4 className="font-semibold mb-2">🧾 Sản phẩm trong batch:</h4>
+                      <h4 className="font-semibold mb-2">🧾 Sản phẩm trong đơn nhậpnhập:</h4>
                       <ul className="list-disc list-inside text-sm space-y-1">
                         {currentProducts?.map(p => (
                           <li key={p.productId}>
@@ -284,7 +284,7 @@ const PurchaseOrderDetail = () => {
 
         {selectedBatches.length > 0 && (
           <button className="bg-blue-500 text-white p-2 rounded mt-4" onClick={handleConfirmPayments}>
-            Xác nhận thanh toán các batch đã chọn
+            Xác nhận thanh toán các đơn nhập hàng đã chọn
           </button>
         )}
       </div>

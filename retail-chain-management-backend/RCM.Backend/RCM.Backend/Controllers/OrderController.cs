@@ -270,7 +270,7 @@ public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderCre
         }
 
          // ✅ API: Xác nhận thanh toán các batch đã chọn
-       [HttpPost("{id}/confirm-payments")]
+      [HttpPost("{id}/confirm-payments")]
 public async Task<IActionResult> ConfirmPayments(int id, [FromBody] ConfirmPaymentRequest request)
 {
     if (request.BatchIds == null || !request.BatchIds.Any())
@@ -286,6 +286,8 @@ public async Task<IActionResult> ConfirmPayments(int id, [FromBody] ConfirmPayme
     {
         return NotFound("Không tìm thấy đơn hàng.");
     }
+
+    var originalOrderStatus = purchaseOrder.Status;
 
     // Lấy các batch được chọn
     var selectedBatches = await _context.Batches
@@ -325,17 +327,18 @@ public async Task<IActionResult> ConfirmPayments(int id, [FromBody] ConfirmPayme
         batch.Status = "Đã thanh toán";
     }
 
-    // Kiểm tra: nếu tất cả batch của đơn hàng đã ở trạng thái "Đã thanh toán"
+    await _context.SaveChangesAsync();
+
+    // Kiểm tra nếu trạng thái trước khi thanh toán là "Đã nhận đủ hàng" và tất cả batch của đơn hàng đều "Đã thanh toán"
     bool allBatchesPaid = await _context.Batches
         .Where(b => b.PurchaseOrderId == id)
         .AllAsync(b => b.Status == "Đã thanh toán");
 
-    if (allBatchesPaid)
+    if (originalOrderStatus == "Đã nhận đủ hàng" && allBatchesPaid)
     {
         purchaseOrder.Status = "Đã thanh toán";
+        await _context.SaveChangesAsync();
     }
-
-    await _context.SaveChangesAsync();
 
     return Ok(new { Message = "Xác nhận thanh toán thành công.", TransactionCode = transactionCode });
 }

@@ -56,11 +56,21 @@ const OrderCheck = () => {
         .catch(error => console.error("Error fetching order details:", error));
     }, [orderId, branchId, accountId]);
 
-    const handleReceiveChange = (index, value) => {
+    const handleReceiveChange = (index, value, orderedQuantity, receivedQuantity) => {
+        const maxAllowed = orderedQuantity - receivedQuantity;
+        let inputValue = parseInt(value) || 0;
+    
+        if (inputValue > maxAllowed) {
+            inputValue = maxAllowed;
+        } else if (inputValue < 0) {
+            inputValue = 0;
+        }
+    
         const newReceiveData = [...receiveData];
-        newReceiveData[index].receivedQuantity = parseInt(value) || 0;
+        newReceiveData[index].receivedQuantity = inputValue;
         setReceiveData(newReceiveData);
     };
+    
 
     const totalReceiveCost = receiveData.reduce((sum, p) => sum + (p.receivedQuantity * p.purchasePrice), 0);
 
@@ -125,26 +135,31 @@ const OrderCheck = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {currentProducts.map((p, index) => (
-                        <tr key={p.productId}>
-                            <td>{p.productId}</td>
-                            <td>{p.productName}</td>
-                            <td>{p.unit}</td>
-                            <td>{p.purchasePrice ? p.purchasePrice.toLocaleString() : "0"} VNĐ</td>
-                            <td>{p.orderedQuantity}</td>
-                            <td>{p.receivedQuantity}</td>
-                            <td>
-                                <Form.Control
-                                    type="number"
-                                    min="0"
-                                    value={receiveData[index]?.receivedQuantity || 0}
-                                    onChange={e => handleReceiveChange(index, e.target.value)}
-                                />
-                            </td>
-                            <td>{(receiveData[index]?.receivedQuantity * p.purchasePrice).toLocaleString()} VNĐ</td>
-                        </tr>
-                    ))}
-                </tbody>
+    {currentProducts.map((p, index) => (
+        <tr key={p.productId}>
+            <td>{p.productId}</td>
+            <td>{p.productName}</td>
+            <td>{p.unit}</td>
+            <td>{p.purchasePrice ? p.purchasePrice.toLocaleString() : "0"} VNĐ</td>
+            <td>{p.orderedQuantity}</td>
+            <td>{p.receivedQuantity}</td>
+            <td>
+                <Form.Control
+                    type="number"
+                    min="0"
+                    max={p.orderedQuantity - p.receivedQuantity}
+                    value={receiveData[index]?.receivedQuantity || 0}
+                    disabled={p.receivedQuantity >= p.orderedQuantity}
+                    onChange={e => handleReceiveChange(index, e.target.value, p.orderedQuantity, p.receivedQuantity)}
+                />
+            </td>
+            <td>
+                {(receiveData[index]?.receivedQuantity * p.purchasePrice).toLocaleString()} VNĐ
+            </td>
+        </tr>
+    ))}
+</tbody>
+
             </Table>
 
             {/* ✅ Thanh phân trang */}
