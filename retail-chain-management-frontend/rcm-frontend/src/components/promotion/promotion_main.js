@@ -30,7 +30,7 @@ const PromotionMain = () => {
       const response = await axios.post(`${api_url}/Promotion/list`);
       setPromotions(response.data);
     } catch (error) {
-      console.error('Error fetching promotions:', error);
+      toast.error('Kiểm tra lại kết nối server:', error);
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ const PromotionMain = () => {
       });
       setStores(response.data);
     } catch (error) {
-      console.error('Error fetching stores:', error);
+      toast.error('Kiểm tra lại kết nối server:', error);
     }
   };
 

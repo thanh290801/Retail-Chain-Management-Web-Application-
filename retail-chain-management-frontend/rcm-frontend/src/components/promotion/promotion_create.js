@@ -27,8 +27,6 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
     const api_url = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
-        console.log('Selected Products:', selectedProducts);
-        console.log('Warehouse ID:', warehouseId);
     }, [selectedProducts, warehouseId]);
 
     const handleChange = (e) => {
@@ -94,15 +92,13 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
             products: productDiscounts,
         };
 
-        console.log('Submitting Data:', dataToSend);
-
         try {
             const response = await axios.post(`${api_url}/promotion/create`, dataToSend);
             toast.success(response.data.message || 'Khuyến mãi đã được tạo thành công!');
             onPromotionCreated();
             onClose();
         } catch (error) {
-            console.error('Lỗi khi tạo khuyến mãi:', error);
+            toast.error('Lỗi khi tạo khuyến mãi:', error);
             toast.error(error.response?.data?.message || 'Tạo khuyến mãi thất bại!');
         }
     };
