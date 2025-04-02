@@ -279,6 +279,23 @@ public class ProductsController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
+    // API GET: /api/products/check-barcode?barcode=123456
+[HttpGet("check-barcode")]
+public async Task<IActionResult> CheckBarcodeExists([FromQuery] string barcode)
+{
+    if (string.IsNullOrWhiteSpace(barcode))
+    {
+        return BadRequest(new { message = "Vui lòng cung cấp mã barcode." });
+    }
+
+    var exists = await _context.Products.AnyAsync(p => p.Barcode == barcode);
+
+    return Ok(new
+    {
+        barcode,
+        exists
+    });
+}
 
     public class ProductsDTO
     {

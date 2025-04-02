@@ -6,7 +6,7 @@ import StaffHomeComponent from './components/staffHomeConponent/staffHome';
 import TransactionForm from './components/transactionFormConponent/transactionForm';
 // import FundTransactionReport from './components/cashbookConponent/historyTrans';
 import ProductStockComponent from './components/warehouses/listProduct';
-import WarehouseManagementComponent from './components/warehouses/warehouseManagement';
+import WarehouseManagementComponent from './components/warehouses/addWarehouse.js';
 import ProductListComponent from './components/warehouses/listAllProduct';
 import AddProductComponent from './components/warehouses/addProduct';
 import ProductStockForOwner from './components/warehouses/listProductForBoss';
@@ -58,6 +58,7 @@ import PurchaseOrderDetail from './components/Supplier_Order/PurchaseOrderDetail
 import SupplierList from './components/Supplier_Order/SupplierList.js';
 import WarehousesListDetail from './components/Supplier_Order/WarehousesListDetail.js';
 import AddProductsToWarehouse from './components/warehouses/addProductToWarehouse.js';
+import AddWarehouseComponent from './components/warehouses/addWarehouse.js';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -94,7 +95,7 @@ function App() {
            {/* Quân */}
            <Route path='/addproduct' element= {<AddProductComponent/>} />
           <Route path='/productstock' element= {<ProtectedRoute><ProductStockComponent/></ProtectedRoute>} />
-          <Route path='/warehousemanagement' element= {<WarehouseManagementComponent/>} />
+          <Route path='/addwarehouse' element= {<AddWarehouseComponent/>} />
           <Route path='/stock-adjustment/:stockadjustmentId' element= {<StockAdjustment/>} />
           <Route path='/ownerproductstock' element= {<ProductStockForOwner/>} />
           <Route path='/lowstockproduct' element= {<LowStockProducts/>} />

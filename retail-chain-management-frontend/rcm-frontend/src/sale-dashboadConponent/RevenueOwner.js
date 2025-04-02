@@ -116,8 +116,9 @@ const CashBookOwner = () => {
     };
 
     return (
-        <div className="bg-white p-2 rounded-lg shadow-md mt-6">
-            <Header />
+        <div>
+            <Header/>
+            <div className="bg-white p-2 rounded-lg shadow-md mt-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                 <select
                     className="p-2 border rounded"
@@ -170,6 +171,7 @@ const CashBookOwner = () => {
 
             </div>
         </div >
+        </div>
     );
 };
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Table, Button, Form, Pagination } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const API_URL = "https://localhost:5000/api/orders";
 
@@ -23,6 +23,7 @@ const getUserInfoFromToken = () => {
 };
 
 const OrderCheck = () => {
+    const navigate = useNavigate();
     const { orderId } = useParams();
     const [order, setOrder] = useState(null);
     const [receiveData, setReceiveData] = useState([]);
@@ -77,7 +78,7 @@ const OrderCheck = () => {
         })
         .then(response => {
             alert(`Đơn nhận hàng thành công!`);
-            window.location.reload();
+            navigate('/orderlist')
         })
         .catch(error => console.error("Error submitting receive order:", error));
     };
