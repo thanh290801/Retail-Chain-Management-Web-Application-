@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from 'react-bootstrap';
-
-
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const PromotionMain = () => {
   const [promotions, setPromotions] = useState([]);
@@ -27,7 +27,7 @@ const PromotionMain = () => {
 
   const fetchPromotions = async () => {
     try {
-      const response = await axios.post('https://localhost:5000/api/Promotion/list');
+      const response = await axios.post(`${api_url}/Promotion/list`);
       setPromotions(response.data);
     } catch (error) {
       console.error('Error fetching promotions:', error);
@@ -52,27 +52,41 @@ const PromotionMain = () => {
     const now = new Date().getTime();
     const start = new Date(startDate).getTime();
     const end = new Date(endDate).getTime();
-
     return start <= now && now <= end;
   };
 
   const isPromotionNotYetActive = (startDate) => {
     const now = new Date().getTime();
     const start = new Date(startDate).getTime();
-
     return now < start;
   };
+
+  const handleUpdateStatus = async (promotionId, action) => {
+    try {
+      await axios.post(`${api_url}/promotion/update-status`, {
+        promotionId,
+        action,
+      });
+      toast.success(action === 'cancel' ? 'Huỷ khuyến mãi thành công' : 'Đã kết thúc sớm khuyến mãi');
+      fetchPromotions();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Thao tác thất bại');
+    }
+  };
+
+  const removeAccents = (str) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  };  
 
   const filteredPromotions = promotions.filter((promo) => {
     const store = stores.find((store) => store.warehousesId === promo.warehousesId);
     const isStoreInactive = store ? !store.isActive : false;
-
     const promoIsActive = isPromotionActive(promo?.startDate, promo?.endDate);
     const promoIsNotYetActive = isPromotionNotYetActive(promo?.startDate);
-
+  
     return (
-      (promo?.promotionName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) &&
-      (promo?.productName?.toLowerCase() || '').includes(productSearch.toLowerCase()) &&
+      removeAccents(promo?.promotionName || '').includes(removeAccents(searchTerm)) &&
+      removeAccents(promo?.productName || '').includes(removeAccents(productSearch)) &&
       (storeSearch === '' || promo?.warehousesId?.toString() === storeSearch) &&
       (!startDate || new Date(promo?.startDate) >= new Date(startDate)) &&
       (!endDate || new Date(promo?.endDate) <= new Date(endDate)) &&
@@ -85,12 +99,10 @@ const PromotionMain = () => {
       (!inactiveStores || isStoreInactive)
     );
   });
-
-  //phân trang
+  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentPromotions = filteredPromotions.slice(indexOfFirstItem, indexOfLastItem);
-
   const totalPages = Math.ceil(filteredPromotions.length / itemsPerPage);
 
   const handlePageChange = (page) => {
@@ -101,23 +113,19 @@ const PromotionMain = () => {
 
   const handleViewDetails = (promo) => {
     setSelectedPromo(promo);
-    console.log(promo);
   };
 
   const closeModal = () => {
     setSelectedPromo(null);
   };
 
-  if (loading) {
-    return <p>Loading promotions...</p>;
-  }
+  if (loading) return <p>Loading promotions...</p>;
 
   return (
     <div className="p-6">
+      <ToastContainer />
       <h1 className="text-2xl font-bold mb-4">Danh Sách Khuyến Mãi</h1>
-      {/* <button onClick={openCreateModal} className="bg-blue-500 text-white px-4 py-2 rounded mb-4">Thêm Promotion</button> */}
 
-      {/* Bộ lọc */}
       <div className="mb-4 flex gap-4">
         <input type="text" placeholder="Tìm kiếm theo tên" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="border p-2" />
         <input type="text" placeholder="Tìm kiếm theo sản phẩm" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} className="border p-2" />
@@ -137,76 +145,47 @@ const PromotionMain = () => {
         </select>
       </div>
 
-      {currentPromotions.length === 0 ? (
-        <p>Không có khuyến mãi nào.</p>
-      ) : (
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr>
-              <th className="border border-gray-300 p-2">Tên Khuyến Mãi</th>
-              <th className="border border-gray-300 p-2">Sản phẩm</th>
-              <th className="border border-gray-300 p-2">Cửa hàng</th>
-              <th className="border border-gray-300 p-2">Bắt Đầu</th>
-              <th className="border border-gray-300 p-2">Ngày Kết Thúc</th>
-              <th className="border border-gray-300 p-2">Giảm Giá (%)</th>
-              <th className="border border-gray-300 p-2">Trạng Thái</th>
-              <th className="border border-gray-300 p-2">Chi tiết</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentPromotions.map((promo) => (
+      <table className="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr>
+            <th className="border p-2">Tên Khuyến Mãi</th>
+            <th className="border p-2">Sản phẩm</th>
+            <th className="border p-2">Cửa hàng</th>
+            <th className="border p-2">Bắt Đầu</th>
+            <th className="border p-2">Ngày Kết Thúc</th>
+            <th className="border p-2">Giảm Giá (%)</th>
+            <th className="border p-2">Trạng Thái</th>
+            <th className="border p-2">Thao Tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentPromotions.map((promo) => {
+            const isActive = isPromotionActive(promo.startDate, promo.endDate);
+            const isNotYet = isPromotionNotYetActive(promo.startDate);
+            const statusColor = isNotYet ? 'text-yellow-500 font-semibold' : isActive ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold';
+            const statusText = isNotYet ? 'Chưa hiệu lực' : isActive ? 'Đang hiệu lực' : 'Hết hiệu lực';
+            return (
               <tr key={promo.promotionsId}>
-                <td className="border border-gray-300 p-2">{promo.promotionName}</td>
-                <td className="border border-gray-300 p-2">{promo.productName}</td>
-                <td className="border border-gray-300 p-2">{promo.warehouseName}</td>
-                <td className="border border-gray-300 p-2">
-                  {new Date(promo.startDate).toLocaleString('vi-VN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour12: false
-                  })}
-                </td>
-                <td className="border border-gray-300 p-2">
-                  {new Date(promo.endDate).toLocaleString('vi-VN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour12: false
-                  })}
-                </td>
-                <td className="border border-gray-300 p-2">{promo.discountPercent}%</td>
-                <td className="border border-gray-300 p-2">
-                  {isPromotionNotYetActive(promo.startDate)
-                    ? <span className="text-yellow-500">Chưa hiệu lực</span>
-                    : isPromotionActive(promo.startDate, promo.endDate)
-                      ? <span className="text-green-500">Đang hiệu lực</span>
-                      : <span className="text-red-500">Hết hiệu lực</span>
-                  }
-                </td>
-                <td className="border border-gray-300 p-2">
-                  <Button variant='primary' onClick={() => handleViewDetails(promo)}>Xem Chi Tiết</Button>
+                <td className="border p-2">{promo.promotionName}</td>
+                <td className="border p-2">{promo.productName}</td>
+                <td className="border p-2">{promo.warehouseName}</td>
+                <td className="border p-2">{new Date(promo.startDate).toLocaleString('vi-VN')}</td>
+                <td className="border p-2">{new Date(promo.endDate).toLocaleString('vi-VN')}</td>
+                <td className="border p-2">{promo.discountPercent}%</td>
+                <td className={`border p-2 ${statusColor}`}>{statusText}</td>
+                <td className="border p-2 space-x-2">
+                  <Button variant="info" size="sm" onClick={() => handleViewDetails(promo)}>Xem</Button>
+                  {isActive && <Button variant="warning" size="sm" onClick={() => handleUpdateStatus(promo.promotionsId, 'end_now')}>Kết thúc sớm</Button>}
+                  {isNotYet && <Button variant="danger" size="sm" onClick={() => handleUpdateStatus(promo.promotionsId, 'cancel')}>Huỷ</Button>}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            );
+          })}
+        </tbody>
+      </table>
 
       {totalPages > 1 && (
         <div className="flex justify-center mt-4">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-4 py-2 mx-1 bg-gray-300 rounded disabled:opacity-50"
-          >
-            &lt; Trước
-          </button>
-
           {[...Array(totalPages)].map((_, index) => (
             <button
               key={index + 1}
@@ -216,17 +195,8 @@ const PromotionMain = () => {
               {index + 1}
             </button>
           ))}
-
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 mx-1 bg-gray-300 rounded disabled:opacity-50"
-          >
-            Sau &gt;
-          </button>
         </div>
       )}
-
 
       {selectedPromo && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">

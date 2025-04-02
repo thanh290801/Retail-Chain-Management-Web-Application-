@@ -5,6 +5,7 @@ using System.Data;
 using RCM.Backend.DTO;
 using RCM.Backend.DTOs;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace RCM.Backend.Controllers
 {
@@ -129,6 +130,29 @@ namespace RCM.Backend.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Status = "Error", Message = ex.Message });
+            }
+        }
+        [HttpPost("update-status")]
+        public async Task<IActionResult> UpdatePromotionStatus([FromBody] UpdatePromotionStatusDto request)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand("promo_UpdatePromotionStatus", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@PromotionId", request.PromotionId);
+                    cmd.Parameters.AddWithValue("@Action", request.Action); // 'end_now' hoặc 'cancel'
+
+                    await conn.OpenAsync();
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                return Ok(new { message = "Cập nhật trạng thái khuyến mãi thành công." });
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
     }
