@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Row, Col, Form, Button, ButtonGroup, Modal } from 'react-bootstrap';
 import Cart from './cart';
 import Calculator from './calculator';
-import ReturnInvoiceModal from './ReturnInvoiceModal'; // Không dùng dấu ngoặc nhọn {}
+import ReturnInvoiceModal from './returnInvoiceModal'; // Không dùng dấu ngoặc nhọn {}
 import { BsX, BsPlus } from 'react-icons/bs';
 import './main.css';
 import { data, useNavigate } from "react-router-dom";
@@ -349,12 +349,12 @@ const Main = () => {
                     </div>
                 </Col>
 
-                <Col md={8}>
+                <Col md={7}>
                     <ButtonGroup className="invoice-tabs">
                         {Object.keys(invoices).map((invoiceId) => (
                             <Button
                                 key={invoiceId}
-                                variant={invoiceId === currentInvoice ? 'light' : 'primary'}
+                                variant={invoiceId === currentInvoice ? 'light' : 'dark'}
                                 onClick={() => handleSwitchInvoice(invoiceId)}
                                 className={`invoice-tab d-flex align-items-center ${invoiceId === currentInvoice ? 'active' : ''}`}
                             >
@@ -376,13 +376,14 @@ const Main = () => {
                     </ButtonGroup>
                 </Col>
 
-                <Col md={1}>
-                    <Button variant='success' onClick={() => setShowReturnModal(true)}>Trả hàng</Button>
+                <Col md={2}>
+                    <Button className='m-2' variant='danger' onClick={() => setShowReturnModal(true)}>Trả hàng</Button>
                     <ReturnInvoiceModal
                         show={showReturnModal}
                         onHide={() => setShowReturnModal(false)}
                         handleCreateReturnInvoice={handleCreateReturnInvoice} // ✅ Truyền callback xử lý orderId
                     />
+                    <Button variant='light'>Trang chủ</Button>
                 </Col>
             </Row>
 
