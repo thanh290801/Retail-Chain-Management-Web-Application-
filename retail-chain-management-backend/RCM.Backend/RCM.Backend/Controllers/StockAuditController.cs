@@ -33,20 +33,38 @@ public async Task<IActionResult> GetStockAuditHistory()
     return Ok(records);
 }
 [HttpGet("details/{auditId}")]
-public async Task<IActionResult> GetAuditDetails(int auditId)
+public IActionResult GetStockAuditDetails(int auditId)
 {
-    var details = await _context.StockAuditDetails
-        .Where(d => d.AuditId == auditId)
-        .Select(d => new
-        {
-            d.StockAuditDetailsId,
-            d.AuditId,
-            d.ProductId,
-            d.RecordedQuantity
-        })
-        .ToListAsync();
+    var auditRecord = _context.StockAuditRecords.FirstOrDefault(a => a.StockAuditRecordsId == auditId);
+    if (auditRecord == null)
+        return NotFound();
 
-    return Ok(details);
+    // Lấy tất cả điều chỉnh để xử lý logic so sánh ngày trên client
+    var adjustmentRecords = _context.StockAdjustments
+        .Where(sa => sa.WarehouseId == auditRecord.WarehouseId)
+        .ToList();
+
+    var adjustmentRecord = adjustmentRecords.FirstOrDefault(sa =>
+        sa.AdjustmentDate.HasValue &&
+        sa.AdjustmentDate.Value.Date == auditRecord.AuditDate.GetValueOrDefault().Date);
+
+    var auditDetails = from sad in _context.StockAuditDetails
+                       where sad.AuditId == auditId
+                       join adjDetail in _context.StockAdjustmentDetails
+                           .Where(ad => adjustmentRecord != null && ad.AdjustmentId == adjustmentRecord.StockAdjustmentsId)
+                           on sad.ProductId equals adjDetail.ProductId into adjGroup
+                       from adjDetail in adjGroup.DefaultIfEmpty()
+                       select new
+                       {
+                           sad.StockAuditDetailsId,
+                           sad.ProductId,
+                           sad.RecordedQuantity,
+                           PreviousQuantity = adjDetail != null ? adjDetail.PreviousQuantity : sad.RecordedQuantity,
+                           AdjustedQuantity = adjDetail != null ? adjDetail.AdjustedQuantity : sad.RecordedQuantity,
+                           Reason = adjDetail != null ? adjDetail.Reason : "Không có ghi chú"
+                       };
+
+    return Ok(auditDetails.ToList());
 }
 
     }

@@ -1,10 +1,9 @@
-// ✅ FILE 1: LowStockProducts.jsx
 import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 
 const LowStockProducts = () => {
     const [products, setProducts] = useState([]);
-    const [branchId, setBranchId] = useState("0");
+    const [branchId, setBranchId] = useState(null);
     const [warehouses, setWarehouses] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
     const [selectedWarehouse, setSelectedWarehouse] = useState("all");
@@ -17,8 +16,9 @@ const LowStockProducts = () => {
         const token = localStorage.getItem("token");
         if (token) {
             try {
-                const decodedToken = jwtDecode(token);
-                setBranchId(decodedToken.BranchID ?? "0");
+                const decoded = jwtDecode(token);
+                console.log("✅ JWT decoded:", decoded); // ✅ LOG TOKEN
+                setBranchId(decoded.BranchId ?? "0");
             } catch (error) {
                 console.error("Lỗi khi decode token:", error);
             }
@@ -27,41 +27,45 @@ const LowStockProducts = () => {
 
     useEffect(() => {
         fetch("https://localhost:5000/api/warehouse")
-            .then((response) => response.json())
-            .then((data) => setWarehouses(data))
-            .catch((error) => console.error("Error fetching warehouses:", error));
+            .then((res) => res.json())
+            .then(setWarehouses)
+            .catch((err) => console.error("Lỗi load kho:", err));
 
-        fetch("https://localhost:5000/api/suppliers/get-all")
-            .then((response) => response.json())
-            .then((data) => setSuppliers(data))
-            .catch((error) => console.error("Error fetching suppliers:", error));
+        fetch("https://localhost:5000/api/supplier")
+            .then((res) => res.json())
+            .then(setSuppliers)
+            .catch((err) => console.error("Lỗi load NCC:", err));
     }, []);
 
     useEffect(() => {
+        if (!branchId) return;
+
         let apiUrl = `https://localhost:5000/api/products/low-stock`;
 
-        if (branchId > 0) {
+        if (branchId === "0") {
+            if (selectedWarehouse !== "all") {
+                apiUrl += `?warehouseId=${selectedWarehouse}`;
+            }
+        } else {
             apiUrl += `?warehouseId=${branchId}`;
-        } else if (selectedWarehouse !== "all") {
-            apiUrl += `?warehouseId=${selectedWarehouse}`;
         }
 
         if (selectedSupplier !== "all") {
             apiUrl += apiUrl.includes("?") ? `&supplierId=${selectedSupplier}` : `?supplierId=${selectedSupplier}`;
         }
 
+        setProducts([]); // ✅ Xoá danh sách cũ để tránh bị trùng
+
         fetch(apiUrl)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`https error! Status: ${response.status}`);
-                }
-                return response.json();
+            .then((res) => {
+                if (!res.ok) throw new Error("Lỗi load sản phẩm");
+                return res.json();
             })
             .then((data) => {
                 setProducts(data);
                 setCurrentPage(1);
             })
-            .catch((error) => console.error("Error fetching low stock products:", error));
+            .catch((err) => console.error("Fetch error:", err));
     }, [branchId, selectedWarehouse, selectedSupplier]);
 
     const filteredProducts = products.filter(product =>
@@ -69,67 +73,13 @@ const LowStockProducts = () => {
         product.productsId.toString().includes(searchTerm)
     );
 
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
-    const getWarehouseName = (warehouseId) => {
-        const warehouse = warehouses.find(w => w.warehousesId === warehouseId);
-        return warehouse ? warehouse.name : "N/A";
+    const getWarehouseName = (id) => {
+        const found = warehouses.find(w => w.warehousesId === id);
+        return found ? found.name : "N/A";
     };
-
-    const handleCreateOrder = () => {
-        if (branchId === "0" && selectedWarehouse === "all") return;
-    
-        const productsToOrder = [];
-        const unresolvedProducts = [];
-    
-        filteredProducts.forEach((p) => {
-            const quantity = p.minQuantity - p.quantity;
-            const productInfo = {
-                productId: p.productsId,
-                productName: p.name,
-                unit: p.unit,
-                quantity,
-                price: p.purchasePrice
-            };
-    
-            if (selectedSupplier !== "all") {
-                productsToOrder.push({
-                    ...productInfo,
-                    supplierId: selectedSupplier
-                });
-            } else {
-                if (p.supplierIds?.length === 1) {
-                    productsToOrder.push({
-                        ...productInfo,
-                        supplierId: p.supplierIds[0]
-                    });
-                } else {
-                    unresolvedProducts.push({
-                        ...productInfo,
-                        supplierOptions: p.supplierIds
-                    });
-                }
-            }
-        });
-    
-        const draft = {
-            resolved: productsToOrder,
-            unresolved: unresolvedProducts
-        };
-    
-        localStorage.setItem("orderDraft", JSON.stringify(draft));
-    
-        // ✅ Nếu người dùng là chủ thì lưu thêm warehouse được chọn
-        if (branchId === "0" && selectedWarehouse !== "all") {
-            localStorage.setItem("selectedWarehouseId", selectedWarehouse);
-        }
-    
-        window.location.href = "/create-order";
-    };
-    
 
     return (
         <div className="p-6 bg-white rounded-lg shadow-md">
@@ -143,9 +93,9 @@ const LowStockProducts = () => {
                         onChange={(e) => setSelectedWarehouse(e.target.value)}
                     >
                         <option value="all">Tất cả kho</option>
-                        {warehouses.map((warehouse) => (
-                            <option key={warehouse.warehousesId} value={warehouse.warehousesId}>
-                                {warehouse.name}
+                        {warehouses.map(w => (
+                            <option key={w.warehousesId} value={w.warehousesId}>
+                                {w.name}
                             </option>
                         ))}
                     </select>
@@ -157,9 +107,9 @@ const LowStockProducts = () => {
                     onChange={(e) => setSelectedSupplier(e.target.value)}
                 >
                     <option value="all">Tất cả nhà cung cấp</option>
-                    {suppliers.map((supplier) => (
-                        <option key={supplier.suppliersId} value={supplier.suppliersId}>
-                            {supplier.name}
+                    {suppliers.map(s => (
+                        <option key={s.suppliersId} value={s.suppliersId}>
+                            {s.name}
                         </option>
                     ))}
                 </select>
@@ -186,14 +136,14 @@ const LowStockProducts = () => {
                 </thead>
                 <tbody>
                     {currentItems.length > 0 ? (
-                        currentItems.map((product) => (
-                            <tr key={product.productsId} className="bg-red-100">
-                                <td className="p-2">{product.productsId}</td>
-                                <td className="p-2">{product.name}</td>
-                                <td className="p-2">{getWarehouseName(product.warehouseId)}</td>
-                                <td className="p-2 text-red-600 font-semibold">{product.quantity}</td>
-                                <td className="p-2">{product.minQuantity}</td>
-                                <td className="p-2">{product.unit}</td>
+                        currentItems.map((p) => (
+                            <tr key={p.productsId} className="bg-red-100">
+                                <td className="p-2">{p.productsId}</td>
+                                <td className="p-2">{p.name}</td>
+                                <td className="p-2">{getWarehouseName(p.warehouseId)}</td>
+                                <td className="p-2 text-red-600 font-semibold">{p.quantity}</td>
+                                <td className="p-2">{p.minQuantity}</td>
+                                <td className="p-2">{p.unit}</td>
                             </tr>
                         ))
                     ) : (
@@ -207,7 +157,7 @@ const LowStockProducts = () => {
             </table>
 
             {totalPages > 1 && (
-                <div className="mt-4 flex justify-center items-center space-x-2">
+                <div className="mt-4 flex justify-center gap-2">
                     <button
                         className="px-3 py-1 border rounded"
                         disabled={currentPage === 1}
@@ -218,9 +168,7 @@ const LowStockProducts = () => {
                     {[...Array(totalPages)].map((_, idx) => (
                         <button
                             key={idx}
-                            className={`px-3 py-1 border rounded ${
-                                currentPage === idx + 1 ? "bg-blue-500 text-white" : ""
-                            }`}
+                            className={`px-3 py-1 border rounded ${currentPage === idx + 1 ? "bg-blue-500 text-white" : ""}`}
                             onClick={() => setCurrentPage(idx + 1)}
                         >
                             {idx + 1}

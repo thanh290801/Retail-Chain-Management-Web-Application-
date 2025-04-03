@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import LowStockProducts from "../warehouses/lowStockProduct";
 
 const StaffHomeComponent = () => {
     const navigate = useNavigate();
@@ -148,7 +149,7 @@ const StaffHomeComponent = () => {
 
                 </div>
             </div>
-
+                    <LowStockProducts/>
 
         </div >
     );
