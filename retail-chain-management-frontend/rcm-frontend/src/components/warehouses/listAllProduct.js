@@ -4,6 +4,9 @@ import Header from '../../headerComponent/header';
 
 const ProductListComponent = () => {
     const [products, setProducts] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 10;
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -44,67 +47,90 @@ const ProductListComponent = () => {
         navigate(`/listallproduct/${productsId}`);
     };
 
+    // Phân trang
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(products.length / productsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     return (
         <div>
             <Header/>
             <div className="p-6 bg-white rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">📦 Danh Sách Sản Phẩm</h2>
-                <button
-                    className="bg-green-500 text-white px-4 py-2 rounded"
-                    onClick={() => navigate('/addproduct')}
-                >
-                    + Thêm sản phẩm
-                </button>
-            </div>
-            <table className="w-full bg-white shadow-md rounded">
-                <thead className="bg-gray-100">
-                    <tr>
-                        <th className="p-2">ID</th>
-                        <th className="p-2">Tên sản phẩm</th>
-                        <th className="p-2">Mã vạch</th>
-                        <th className="p-2">Đơn vị</th>
-                        <th className="p-2">Trọng lượng (kg)</th>
-                        <th className="p-2">Thể tích (ml)</th>
-                        <th className="p-2">Hình ảnh</th>
-                        <th className="p-2">Danh mục</th>
-                        <th className="p-2">Trạng thái</th>
-                        <th className="p-2">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {products.map((product) => (
-                        <tr
-                            key={product.productsId}
-                            onClick={() => handleProductClick(product.productsId)}
-                            className="cursor-pointer hover:bg-gray-100"
-                        >
-                            <td className="p-2">{product.productsId}</td>
-                            <td className="p-2">{product.name}</td>
-                            <td className="p-2">{product.barcode}</td>
-                            <td className="p-2">{product.unit}</td>
-                            <td className="p-2">{product.weight !== null ? product.weight : 'N/A'}</td>
-                            <td className="p-2">{product.volume !== null ? product.volume : 'N/A'}</td>
-                            <td className="p-2">
-                                {product.imageUrl ? (
-                                    <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover" />
-                                ) : ('Không có ảnh')}
-                            </td>
-                            <td className="p-2">{product.category}</td>
-                            <td className="p-2">{product.isEnabled ? 'Hiển thị' : 'Ẩn'}</td>
-                            <td className="p-2 space-x-2" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                    className={`px-3 py-1 rounded ${product.isEnabled ? 'bg-red-500' : 'bg-blue-500'} text-white`}
-                                    onClick={() => toggleProductStatus(product)}
-                                >
-                                    {product.isEnabled ? 'Ẩn' : 'Hiển thị'}
-                                </button>
-                            </td>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">📦 Danh Sách Sản Phẩm</h2>
+                    <button
+                        className="bg-green-500 text-white px-4 py-2 rounded"
+                        onClick={() => navigate('/addproduct')}
+                    >
+                        + Thêm sản phẩm
+                    </button>
+                </div>
+                <table className="w-full bg-white shadow-md rounded">
+                    <thead className="bg-gray-100">
+                        <tr>
+                            <th className="p-2">ID</th>
+                            <th className="p-2">Tên sản phẩm</th>
+                            <th className="p-2">Mã vạch</th>
+                            <th className="p-2">Đơn vị</th>
+                            <th className="p-2">Trọng lượng (kg)</th>
+                            <th className="p-2">Thể tích (ml)</th>
+                            <th className="p-2">Hình ảnh</th>
+                            <th className="p-2">Danh mục</th>
+                            <th className="p-2">Trạng thái</th>
+                            <th className="p-2">Hành động</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        {currentProducts.map((product) => (
+                            <tr
+                                key={product.productsId}
+                                onClick={() => handleProductClick(product.productsId)}
+                                className="cursor-pointer hover:bg-gray-100"
+                            >
+                                <td className="p-2">{product.productsId}</td>
+                                <td className="p-2">{product.name}</td>
+                                <td className="p-2">{product.barcode}</td>
+                                <td className="p-2">{product.unit}</td>
+                                <td className="p-2">{product.weight !== null ? product.weight : 'N/A'}</td>
+                                <td className="p-2">{product.volume !== null ? product.volume : 'N/A'}</td>
+                                <td className="p-2">
+                                    {product.imageUrl ? (
+                                        <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover" />
+                                    ) : ('Không có ảnh')}
+                                </td>
+                                <td className="p-2">{product.category}</td>
+                                <td className="p-2">{product.isEnabled ? 'Hiển thị' : 'Ẩn'}</td>
+                                <td className="p-2 space-x-2" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        className={`px-3 py-1 rounded ${product.isEnabled ? 'bg-red-500' : 'bg-blue-500'} text-white`}
+                                        onClick={() => toggleProductStatus(product)}
+                                    >
+                                        {product.isEnabled ? 'Ẩn' : 'Hiển thị'}
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                {/* Nút phân trang */}
+                <div className="mt-4 flex justify-center space-x-2">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                            key={index + 1}
+                            onClick={() => handlePageChange(index + 1)}
+                            className={`px-4 py-2 rounded ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                        >
+                            {index + 1}
+                        </button>
                     ))}
-                </tbody>
-            </table>
-        </div>
+                </div>
+            </div>
         </div>
     );
 };

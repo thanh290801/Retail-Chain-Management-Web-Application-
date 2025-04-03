@@ -4,24 +4,48 @@ import { useNavigate } from 'react-router-dom';
 const AddProductComponent = () => {
     const [product, setProduct] = useState({
         name: '',
-        barcode: null,
-        unit: null,
-        weight: null,
-        volume: null,
-        category: null
+        barcode: '',
+        unit: '',
+        weight: '',
+        volume: '',
+        category: '',
+        imageUrl: ''
     });
+    const [barcodeExists, setBarcodeExists] = useState(false);
     const navigate = useNavigate();
 
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
         const { name, value } = e.target;
         setProduct(prevState => ({
             ...prevState,
-            [name]: value || null
+            [name]: value || ''
         }));
+
+        // Kiểm tra barcode tồn tại
+        if (name === "barcode") {
+            const trimmed = value?.trim();
+            if (trimmed) {
+                try {
+                    const res = await fetch(`https://localhost:5000/api/products/check-barcode?barcode=${trimmed}`);
+                    const data = await res.json();
+                    setBarcodeExists(data.exists);
+                } catch (err) {
+                    console.error("Lỗi kiểm tra mã vạch:", err);
+                    setBarcodeExists(false);
+                }
+            } else {
+                setBarcodeExists(false);
+            }
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (barcodeExists) {
+            alert("Mã vạch đã tồn tại, vui lòng chọn mã khác.");
+            return;
+        }
+
         if (window.confirm('Bạn có chắc chắn muốn lưu sản phẩm này không?')) {
             try {
                 const response = await fetch('https://localhost:5000/api/products', {
@@ -53,7 +77,6 @@ const AddProductComponent = () => {
         <div className="p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">➕ Thêm Sản Phẩm</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-                
                 <div>
                     <label className="block font-medium">Tên sản phẩm:</label>
                     <input type="text" name="name" value={product.name} onChange={handleChange} className="w-full p-2 border rounded" required />
@@ -61,11 +84,10 @@ const AddProductComponent = () => {
                 <div>
                     <label className="block font-medium">Mã vạch:</label>
                     <input type="text" name="barcode" value={product.barcode} onChange={handleChange} className="w-full p-2 border rounded" />
-                    {product.barcode && (
-                        <p className="text-red-500 mt-1">Mã vạch đã tồn tại trong hệ thống!</p>
+                    {barcodeExists && (
+                        <p className="text-red-500 mt-1">⚠️ Mã vạch đã tồn tại trong hệ thống!</p>
                     )}
                 </div>
-
                 <div>
                     <label className="block font-medium">Đơn vị:</label>
                     <select name="unit" value={product.unit} onChange={handleChange} className="w-full p-2 border rounded">
@@ -100,11 +122,8 @@ const AddProductComponent = () => {
                         onChange={(e) => {
                             const file = e.target.files[0];
                             if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                    setProduct(prevState => ({ ...prevState, imageUrl: reader.result }));
-                                };
-                                reader.readAsDataURL(file);
+                                const previewUrl = URL.createObjectURL(file); // ✅ Sử dụng blob URL
+                                setProduct(prevState => ({ ...prevState, imageUrl: previewUrl }));
                             }
                         }}
                     />
@@ -126,7 +145,13 @@ const AddProductComponent = () => {
                 </div>
                 <div className="flex justify-end space-x-4">
                     <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-500 text-white rounded">Hủy</button>
-                    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Lưu</button>
+                    <button 
+                        type="submit" 
+                        className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50" 
+                        disabled={barcodeExists}
+                    >
+                        Lưu
+                    </button>
                 </div>
             </form>
         </div>

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode'; // Giải mã token
+import { useNavigate } from 'react-router-dom';
 
 const ProductStockComponent = () => {
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [showLowStock, setShowLowStock] = useState(false);
@@ -81,6 +83,7 @@ const ProductStockComponent = () => {
 
     return (
         <div className="p-6 bg-white rounded-lg shadow-md">
+            <button type="button" onClick={navigate('/staffHome')} className="px-4 py-2 bg-gray-500 text-white rounded">Quay lại</button>
             <div className="mb-4 flex justify-between items-center">
                 <input 
                     type="text" 

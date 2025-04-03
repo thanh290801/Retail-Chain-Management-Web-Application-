@@ -32,6 +32,7 @@
         public int ProductId { get; set; }
         public string? ProductName { get; set; }
         public int QuantityOrdered { get; set; }
+        public int QuantityReceived { get; set; } // ✅ Thêm dòng này
         public decimal PurchasePrice { get; set; }
     }
 }

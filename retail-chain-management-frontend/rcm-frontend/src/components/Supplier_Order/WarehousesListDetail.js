@@ -1,13 +1,14 @@
-﻿// WarehousesListDetail.jsx
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Modal, Form } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import Header from "../../headerComponent/header";
 
 const WarehousesListDetail = () => {
     const [warehouses, setWarehouses] = useState([]);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const navigate = useNavigate(); // ✅ Hook để điều hướng
 
     const fetchWarehouses = () => {
         axios.get("https://localhost:5000/api/Warehouses")
@@ -44,80 +45,86 @@ const WarehousesListDetail = () => {
     };
 
     return (
-       <div>
-            <Header/>
+        <div>
+            <Header />
             <div className="container mt-4">
-            <h2 className="mb-4">🏬 Danh sách kho hàng</h2>
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Tên kho</th>
-                        <th>Địa chỉ</th>
-                        <th>Dung tích</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {warehouses.map((w) => (
-                        <tr key={w.warehousesId}>
-                            <td>{w.name}</td>
-                            <td>{w.address}</td>
-                            <td>{w.capacity}</td>
-                            <td>
-                                <Button variant="warning" onClick={() => handleEdit(w)}>
-                                    ✏️ Sửa
-                                </Button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h2>🏬 Danh sách kho hàng</h2>
+                    <Button variant="primary" onClick={() => navigate('/addwarehouse')}>
+                        ➕ Tạo kho hàng
+                    </Button>
+                </div>
 
-            <Modal show={showModal} onHide={() => setShowModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Chỉnh sửa kho</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {selectedWarehouse && (
-                        <Form>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Tên kho</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    value={selectedWarehouse.name}
-                                    onChange={(e) => setSelectedWarehouse(prev => ({ ...prev, name: e.target.value }))}
-                                />
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Địa chỉ</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    value={selectedWarehouse.address}
-                                    onChange={(e) => setSelectedWarehouse(prev => ({ ...prev, address: e.target.value }))}
-                                />
-                            </Form.Group>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Dung tích</Form.Label>
-                                <Form.Control
-                                    type="number"
-                                    value={selectedWarehouse.capacity}
-                                    onChange={(e) => setSelectedWarehouse(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
-                                />
-                            </Form.Group>
-                        </Form>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowModal(false)}>
-                        Hủy
-                    </Button>
-                    <Button variant="success" onClick={handleSave}>
-                        📂 Lưu thay đổi
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+                <table className="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Tên kho</th>
+                            <th>Địa chỉ</th>
+                            <th>Dung tích</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {warehouses.map((w) => (
+                            <tr key={w.warehousesId}>
+                                <td>{w.name}</td>
+                                <td>{w.address}</td>
+                                <td>{w.capacity}</td>
+                                <td>
+                                    <Button variant="warning" onClick={() => handleEdit(w)}>
+                                        ✏️ Sửa
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                <Modal show={showModal} onHide={() => setShowModal(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Chỉnh sửa kho</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {selectedWarehouse && (
+                            <Form>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Tên kho</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={selectedWarehouse.name}
+                                        onChange={(e) => setSelectedWarehouse(prev => ({ ...prev, name: e.target.value }))}
+                                    />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Địa chỉ</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={selectedWarehouse.address}
+                                        onChange={(e) => setSelectedWarehouse(prev => ({ ...prev, address: e.target.value }))}
+                                    />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Dung tích</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        value={selectedWarehouse.capacity}
+                                        onChange={(e) => setSelectedWarehouse(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
+                                    />
+                                </Form.Group>
+                            </Form>
+                        )}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>
+                            Hủy
+                        </Button>
+                        <Button variant="success" onClick={handleSave}>
+                            📂 Lưu thay đổi
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            </div>
         </div>
-       </div>
     );
 };
 

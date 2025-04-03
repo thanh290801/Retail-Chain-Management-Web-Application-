@@ -273,6 +273,18 @@ namespace RCM.Backend.Controllers
             return Ok(new { message = "Đã xóa sản phẩm khỏi nhà cung cấp." });
         }
 
+        // GET: api/Supplier/check-taxcode?taxCode=123456789
+[HttpGet("check-taxcode")]
+public IActionResult CheckDuplicateTaxCode(string taxCode)
+{
+    if (string.IsNullOrEmpty(taxCode))
+        return BadRequest("Mã số thuế không được để trống");
+
+    var exists = _context.Suppliers.Any(s => s.TaxCode == taxCode);
+    return Ok(new { exists });
+}
+
+
     }
 
     

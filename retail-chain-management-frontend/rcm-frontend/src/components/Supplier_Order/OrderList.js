@@ -80,8 +80,9 @@ const OwnerOrderList = () => {
                 >
                     <option value="">-- Lọc theo trạng thái --</option>
                     <option value="Chưa nhận hàng">Chưa nhận hàng</option>
-                    <option value="Đã nhận hàng">Đã nhận hàng</option>
+                    <option value="Đã nhận đủ hàng">Đã nhận đủ hàng</option>
                     <option value="Đã nhận một phần">Đã nhận một phần</option>
+                    <option value="Đã thanh toán">Đã thanh toán</option>
                 </select>
 
                 <input
