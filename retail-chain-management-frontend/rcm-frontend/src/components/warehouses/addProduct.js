@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-const AddProductComponent = () => {
+const AddProductComponent = ({ onSuccess, onCancel }) => {
     const [product, setProduct] = useState({
         name: '',
         barcode: '',
@@ -12,16 +11,12 @@ const AddProductComponent = () => {
         imageUrl: ''
     });
     const [barcodeExists, setBarcodeExists] = useState(false);
-    const navigate = useNavigate();
+    const [uploading, setUploading] = useState(false);
 
     const handleChange = async (e) => {
         const { name, value } = e.target;
-        setProduct(prevState => ({
-            ...prevState,
-            [name]: value || ''
-        }));
+        setProduct(prev => ({ ...prev, [name]: value || '' }));
 
-        // Kiểm tra barcode tồn tại
         if (name === "barcode") {
             const trimmed = value?.trim();
             if (trimmed) {
@@ -39,6 +34,35 @@ const AddProductComponent = () => {
         }
     };
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            setUploading(true);
+            const res = await fetch('https://localhost:5000/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setProduct(prev => ({ ...prev, imageUrl: data.imageUrl }));
+                alert("Tải ảnh lên thành công!");
+            } else {
+                alert("Lỗi khi tải ảnh lên.");
+            }
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("Lỗi kết nối khi tải ảnh.");
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (barcodeExists) {
@@ -48,20 +72,20 @@ const AddProductComponent = () => {
 
         if (window.confirm('Bạn có chắc chắn muốn lưu sản phẩm này không?')) {
             try {
-                const response = await fetch('https://localhost:5000/api/products', {
+                const res = await fetch('https://localhost:5000/api/products', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...product, isEnabled: true })
                 });
-                if (response.ok) {
+                if (res.ok) {
+                    const newProduct = await res.json();
                     alert('Sản phẩm đã được thêm thành công!');
-                    navigate('/listallproduct');
+                    onSuccess(newProduct);
                 } else {
                     alert('Có lỗi xảy ra khi thêm sản phẩm!');
-                    console.log(product);
                 }
-            } catch (error) {
-                console.error('Error adding product:', error);
+            } catch (err) {
+                console.error('Add product error:', err);
                 alert('Lỗi kết nối đến server!');
             }
         }
@@ -69,7 +93,7 @@ const AddProductComponent = () => {
 
     const handleCancel = () => {
         if (window.confirm('Bạn có chắc chắn muốn hủy thêm sản phẩm không?')) {
-            navigate('/listallproduct');
+            onCancel();
         }
     };
 
@@ -77,6 +101,7 @@ const AddProductComponent = () => {
         <div className="p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">➕ Thêm Sản Phẩm</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Các trường thông tin khác giữ nguyên */}
                 <div>
                     <label className="block font-medium">Tên sản phẩm:</label>
                     <input type="text" name="name" value={product.name} onChange={handleChange} className="w-full p-2 border rounded" required />
@@ -84,9 +109,7 @@ const AddProductComponent = () => {
                 <div>
                     <label className="block font-medium">Mã vạch:</label>
                     <input type="text" name="barcode" value={product.barcode} onChange={handleChange} className="w-full p-2 border rounded" />
-                    {barcodeExists && (
-                        <p className="text-red-500 mt-1">⚠️ Mã vạch đã tồn tại trong hệ thống!</p>
-                    )}
+                    {barcodeExists && <p className="text-red-500 mt-1">⚠️ Mã vạch đã tồn tại trong hệ thống!</p>}
                 </div>
                 <div>
                     <label className="block font-medium">Đơn vị:</label>
@@ -113,42 +136,32 @@ const AddProductComponent = () => {
                     <label className="block font-medium">Danh mục:</label>
                     <input type="text" name="category" value={product.category} onChange={handleChange} className="w-full p-2 border rounded" />
                 </div>
+
+                {/* Upload ảnh thực tế */}
                 <div>
                     <label className="block font-medium">Ảnh sản phẩm:</label>
                     <input 
                         type="file" 
                         accept="image/*" 
                         className="w-full p-2 border rounded" 
-                        onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                                const previewUrl = URL.createObjectURL(file); // ✅ Sử dụng blob URL
-                                setProduct(prevState => ({ ...prevState, imageUrl: previewUrl }));
-                            }
-                        }}
+                        onChange={handleImageUpload}
                     />
-                    <p className="mt-2 text-sm">Hoặc nhập URL ảnh:</p>
-                    <input 
-                        type="text" 
-                        name="imageUrl" 
-                        value={product.imageUrl || ''} 
-                        onChange={handleChange} 
-                        className="w-full p-2 border rounded" 
-                        placeholder="Nhập URL ảnh sản phẩm" 
-                    />
+                    {uploading && <p className="text-blue-500 mt-1">Đang tải ảnh lên...</p>}
                     {product.imageUrl && (
                         <div className="mt-2">
                             <p className="text-sm text-gray-500">Xem trước ảnh:</p>
                             <img src={product.imageUrl} alt="Ảnh sản phẩm" className="w-24 h-24 object-cover mt-2" />
                         </div>
-                    )} 
+                    )}
                 </div>
+
+                {/* Hành động */}
                 <div className="flex justify-end space-x-4">
                     <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-500 text-white rounded">Hủy</button>
                     <button 
                         type="submit" 
                         className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50" 
-                        disabled={barcodeExists}
+                        disabled={barcodeExists || uploading}
                     >
                         Lưu
                     </button>

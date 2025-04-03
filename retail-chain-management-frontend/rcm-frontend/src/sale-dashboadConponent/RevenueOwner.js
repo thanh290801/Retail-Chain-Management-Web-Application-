@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Header from "../headerComponent/header";
+import LowStockProducts from "../components/warehouses/lowStockProduct";
 
 const CashBookOwner = () => {
     const navigate = useNavigate();
@@ -168,8 +169,9 @@ const CashBookOwner = () => {
                         {summary?.totalBank?.toLocaleString() || "0"} VNĐ
                     </p>
                 </button>
-
+                    
             </div>
+            <LowStockProducts/>
         </div >
         </div>
     );
