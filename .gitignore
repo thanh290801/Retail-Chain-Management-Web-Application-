@@ -3,7 +3,7 @@
 *.vsidx
 /retail-chain-management-backend/RCM.Backend/RCM.Backend/obj
 /retail-chain-management-backend/RCM.Backend/RCM.Backend/bin
-/retail-chain-management-backend/RCM.Backend/RCM.Backend/wwwroot/uploads
+
 retail-chain-management-backend/RCM.Backend/RCM.Backend/obj/project.assets.json
 *.exe
 *.dll
