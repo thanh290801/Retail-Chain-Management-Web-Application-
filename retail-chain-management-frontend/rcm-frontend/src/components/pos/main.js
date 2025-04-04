@@ -350,7 +350,9 @@ const Main = () => {
                 </Col>
 
                 <Col md={7}>
-                    <ButtonGroup className="invoice-tabs">
+                        <Row>
+                            <Col md={9}>
+                            <ButtonGroup className="invoice-tabs">
                         {Object.keys(invoices).map((invoiceId) => (
                             <Button
                                 key={invoiceId}
@@ -368,12 +370,15 @@ const Main = () => {
                                 />
                             </Button>
                         ))}
-
-                        {/* ✅ Nút Thêm Hóa Đơn Mới */}
-                        <Button variant="success" onClick={handleAddNewInvoice} className="ms-2 d-flex align-items-center">
-                            <BsPlus className="me-1" /> Hóa đơn mới
-                        </Button>
                     </ButtonGroup>
+                            </Col>
+                                <Col md={3}>
+                                    {/* ✅ Nút Thêm Hóa Đơn Mới */}
+                                    <Button variant="success" onClick={handleAddNewInvoice} className="ms-2 d-flex align-items-center">
+                                        <BsPlus className="me-1" /> Hóa đơn mới
+                                    </Button>
+                                </Col>
+                        </Row>
                 </Col>
 
                 <Col md={2}>
@@ -383,7 +388,7 @@ const Main = () => {
                         onHide={() => setShowReturnModal(false)}
                         handleCreateReturnInvoice={handleCreateReturnInvoice} // ✅ Truyền callback xử lý orderId
                     />
-                    <Button variant='light'>Trang chủ</Button>
+                    <Button variant='light' onClick={() => navigate('/staffHome')}>Trang chủ</Button>
                 </Col>
             </Row>
 
