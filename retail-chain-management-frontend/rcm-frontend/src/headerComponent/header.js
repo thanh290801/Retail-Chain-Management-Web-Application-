@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
-import { useEffect } from "react";
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 const Header = () => {
@@ -28,8 +26,6 @@ const Header = () => {
         setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
     };
 
-
-
     const toggleAccountDropdown = () => {
         setAccountDropdown((prev) => !prev);
     };
@@ -38,146 +34,172 @@ const Header = () => {
         setActiveDropdown(null);
         setAccountDropdown(false);
     };
-    useEffect(() => {
-
-        const token = localStorage.getItem("token");
-        if (!token) {
-            navigate("/login");
-        }
-    }, [navigate]); // Chạy 1 lần khi Header được render
 
     const handleLogout = () => {
-        // Xóa token khỏi localStorage
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-
-        // Reload lại trang để đảm bảo trạng thái mới
         window.location.href = "/login";
     };
 
-
+    const dropdownMenu = (items) => (
+        <div className="absolute bg-white shadow-lg rounded-lg py-2 px-2 z-50 space-y-1 w-80">
+            {items.map(({ to, label }, idx) => (
+                <Link
+                    key={idx}
+                    to={to}
+                    className="block px-4 py-2 hover:bg-gray-100 rounded-md no-underline text-gray-800 text-[16px] font-medium transition duration-150"
+                >
+                    {label}
+                </Link>
+            ))}
+        </div>
+    );
 
     return (
-        <>
-            <header className="bg-white shadow-md">
-                <div className="flex items-center justify-between p-2 bg-blue-600">
-                    <div className="flex items-center space-x-4">
-                        <h1 className="text-2xl font-bold text-white">RCM</h1>
-                        <nav className="flex space-x-4">
-                            <button onClick={() => navigate("/revenue-summary-owner")} className="text-white flex items-center">
-                                Tổng quan
-                            </button>
-                            <div
-                                className="relative"
-                                onMouseLeave={closeDropdown}>
-                                <button onClick={() => handleDropdown('goods')} className="text-white flex items-center">
-                                    Hàng hóa
-                                </button>
-                                {activeDropdown === 'goods' && (
-                                    <div className="absolute bg-white shadow-md rounded p-2 z-50 no-underline">
-                                        <Link to="/listallproduct" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách sản phẩm</Link>
-                                        <Link to="/ownerproductstock" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách tồn kho</Link>
-                                        
-                                        <Link to="/createpurchaseorder" className="block px-4 py-2 hover:bg-gray-200 no-underline">Tạo đơn nhập hàng</Link>
-                                        <Link to="/ownerorderlist" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách đơn hàng</Link>
-                                    </div>
-                                )}
-                            </div>
-                            {/* Dropdown Kho hàng - Chỉ hiển thị khi branchId = "0" */}
-                            <div className="relative" onMouseLeave={closeDropdown}>
-                                    <button onClick={() => handleDropdown('warehouse')} className="text-white flex items-center no-underline">
-                                        Kho hàng
-                                    </button>
-                                    {activeDropdown === 'warehouse' && (
-                                        <div className="absolute bg-white shadow-md rounded p-2 z-50 no-underline">
-                                            <Link to="/warehousetransfer" className="block px-4 py-2 hover:bg-gray-200 no-underline">Điều chuyển kho</Link>
-                                            <Link to="/inventoryhistory" className="block px-4 py-2 hover:bg-gray-200 no-underline">Lịch sử kiểm kho</Link>
-                                            <Link to="/warehouse-transfers-history" className="block px-4 py-2 hover:bg-gray-200 no-underline">Lịch sử điều chuyển</Link>
-                                        </div>
-                                    )}
-                                </div>
-                            <div
-                                className="relative"
-                                onMouseLeave={closeDropdown}
-                            >
-                                <button onClick={() => handleDropdown('transactions')} className="text-white flex items-center">
-                                    Giao dịch
-                                </button>
-                                {activeDropdown === 'transactions' && (
-                                    <div className="absolute bg-white shadow-md rounded p-2 z-50 no-underline">
-                                        <Link to="/button6" className="block px-4 py-2 hover:bg-gray-200 no-underline">Bán hàng</Link>
-                                        <Link to="/button5" className="block px-4 py-2 hover:bg-gray-200 no-underline">Đổi trả hàng</Link>
-                                    </div>
-                                )}
-                            </div>
-                            <div
-                                className="relative"
-                                onMouseLeave={closeDropdown}
-                            >
-                                <button onClick={() => handleDropdown('partners')} className="text-white flex items-center">
-                                    Đối tác
-                                </button>
-                                {activeDropdown === 'partners' && (
-                                    <div className="absolute bg-white shadow-md rounded p-2 z-50 no-underline">
-                                        <Link to="/supplierlist" className="block px-4 py-2 hover:bg-gray-200 no-underline">Nhà cung cấp</Link>
-                                    </div>
-                                )}
-                            </div>
+        <header className="bg-white shadow-md">
+            <div className="flex items-center justify-between px-8 py-2 bg-blue-600">
+                <div className="flex items-center space-x-6">
+                    <button>
+                        <h1 className="text-3xl font-bold text-white tracking-wide" onClick={() => navigate("/revenue-summary-owner")}>RCM</h1>
+                    </button>
+                    <nav className="flex space-x-4 text-[16px] font-medium">
 
-                            <div
-                                className="relative"
-                                onMouseLeave={closeDropdown}
-                            >
-                                <button onClick={() => handleDropdown('employees')} className="text-white flex items-center">
-                                    Nhân viên
-                                </button>
-                                {activeDropdown === 'employees' && (
-                                    <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                    <Link to="/staffmanage" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách nhân viên</Link>
-                                    <Link to="/salary" className="block px-4 py-2 hover:bg-gray-200 no-underline">Lương</Link>
-                                    <Link to="/attendance" className="block px-4 py-2 hover:bg-gray-200 no-underline">Bảng chấm công</Link>
-                                    <Link to="/requests" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách tăng ca</Link>
-                                </div>
-                                )}
-                            </div>
+                        {/* <button onClick={() => navigate("/revenue-summary-owner")} className="text-white font-bold hover:underline">
+              Tổng quan
+            </button> */}
 
-                            <button onClick={() => navigate("/cashBookOwner")} className="text-white flex items-center">Sổ quỹ </button>
-                            <button onClick={() => navigate("/financial-report")} className="text-white flex items-center">Báo cáo tài chính </button>
-
-                        </nav>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                    <Link to="/warehouselistdetail" className="block px-4 py-2 hover:bg-gray-200 bg-gray-200 no-underline">Danh sách chi nhánh</Link>
-                        <div
-                            className="relative"
+                        {/* Sản phẩm & Nhập hàng */}
+                        {/* <div
+                            className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
                             onMouseLeave={closeDropdown}
+                            onClick={() => handleDropdown('products')}
                         >
-                            <button onClick={toggleAccountDropdown} className="text-white">
-                                <span className="material-icons">Menu</span>
-                            </button>
-                            {accountDropdown && (
-                                <div className="absolute right-0 bg-white shadow-md rounded p-2">
-                                    <button
-                                        onClick={() => navigate("/profile")}
-                                        className="block w-full text-left px-4 py-2 hover:bg-gray-200"
-                                    >
-                                        Thông tin người dùng
-                                    </button>
+                            <span className="text-white font-bold">a</span>
+                            {activeDropdown === 'products' &&
+                                dropdownMenu([
+                                    { to: "/listallproduct", label: "Danh sách hàng hóa" },
+                                    { to: "/ownerproductstock", label: "Tồn kho sản phẩm" },
+                                    { to: "/createpurchaseorder", label: "Đặt hàng từ nhà cung cấp" },
+                                    { to: "/ownerorderlist", label: "Đơn hàng nhập kho" }
+                                ])
+                            }
+                        </div> */}
 
-                                    <button
-                                        onClick={handleLogout}
-                                        className="block w-full text-left px-4 py-2 hover:bg-gray-200"
-                                    >
-                                        Đăng xuất
-                                    </button>
-                                </div>
-                            )}
+                        {/* Điều phối kho */}
+                        <div
+                            className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
+                            onMouseLeave={closeDropdown}
+                            onClick={() => handleDropdown('warehouse')}
+                        >
+                            <span className="text-white font-bold">Quản lý kho</span>
+                            {activeDropdown === 'warehouse' &&
+                                dropdownMenu([
+                                    { to: "/listallproduct", label: "Danh sách hàng hóa" },
+                                    { to: "/ownerproductstock", label: "Tồn kho sản phẩm" },
+                                    { to: "/warehousetransfer", label: "Điều chuyển hàng hóa" },
+                                    { to: "/warehouse-transfers-history", label: "Lịch sử điều chuyển hàng hóa" },
+                                    { to: "/inventoryhistory", label: "Lịch sử kiểm kho" },
+                                    { to: "/ownerorderlist", label: "Quản lý nhập hàng" },
+                                ])
+                            }
                         </div>
+
+                        {/* Bán hàng & Trả hàng */}
+                        <div
+                            className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
+                            onMouseLeave={closeDropdown}
+                            onClick={() => handleDropdown('sales')}
+                        >
+                            <span className="text-white font-bold">Lịch sử bán lẻ</span>
+                            {activeDropdown === 'sales' &&
+                                dropdownMenu([
+                                    { to: "/button6", label: "Danh sách hóa đơn bán hàng" },
+                                    { to: "/button5", label: "Danh sách phiếu trả hàng" },
+                                    // { to: "/button4", label: "Phiếu hoàn nhập kho" }
+                                ])
+                            }
+                        </div>
+
+                        {/* Đối tác */}
+                        <div
+                            className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
+                            onMouseLeave={closeDropdown}
+                            onClick={() => handleDropdown('partners')}
+                        >
+                            <span className="text-white font-bold">Đối tác cung ứng</span>
+                            {activeDropdown === 'partners' &&
+                                dropdownMenu([
+                                    { to: "/supplierlist", label: "Danh sách nhà cung cấp" },
+                                    { to: "/createpurchaseorder", label: "Đặt hàng từ nhà cung cấp" },
+                                ])
+                            }
+                        </div>
+
+                        {/* Nhân sự */}
+                        <div
+                            className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
+                            onMouseLeave={closeDropdown}
+                            onClick={() => handleDropdown('employees')}
+                        >
+                            <span className="text-white font-bold">Nhân sự</span>
+                            {activeDropdown === 'employees' &&
+                                dropdownMenu([
+                                    { to: "/staffmanage", label: "Danh sách nhân viên" },
+                                    { to: "/salary", label: "Bảng lương" },
+                                    { to: "/attendance", label: "Bảng chấm công" },
+                                    { to: "/requests", label: "Yêu cầu làm thêm giờ" }
+                                ])
+                            }
+                        </div>
+
+                        <button onClick={() => navigate("/cashBookOwner")} className="text-white font-bold hover:bg-blue-800 px-3 py-2 rounded transition">
+                            Sổ quỹ
+                        </button>
+
+                        <button onClick={() => navigate("/financial-report")} className="text-white font-bold hover:bg-blue-800 px-3 py-2 rounded transition">
+                            Báo cáo tài chính
+                        </button>
+
+                    </nav>
+                </div>
+
+                {/* Tài khoản & Chi nhánh */}
+                <div className="flex items-center space-x-4">
+                    <Link
+                        to="/warehouselistdetail"
+                        className="block px-4 py-2 hover:bg-gray-100 bg-white no-underline text-black rounded-lg shadow-sm text-[16px] font-bold"
+                    >
+                        Chi nhánh
+                    </Link>
+
+                    <div className="relative" onMouseLeave={closeDropdown}>
+                        <button
+                            onClick={toggleAccountDropdown}
+                            className="flex items-center text-white hover:bg-blue-800 px-3 py-2 rounded transition font-bold text-[16px]"
+                        >
+                            <span className="material-icons text-[22px] mr-2">account_circle</span>
+                            Tài khoản
+                        </button>
+                        {accountDropdown && (
+                            <div className="absolute right-0 bg-white shadow-md rounded-lg p-2 space-y-1 min-w-[200px]">
+                                <button
+                                    onClick={() => navigate("/profile")}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg text-gray-800 text-[16px]"
+                                >
+                                    Thông tin người dùng
+                                </button>
+                                <button
+                                    onClick={handleLogout}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg text-gray-800 text-[16px]"
+                                >
+                                    Đăng xuất
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
-            </header>
-
-        </>
+            </div>
+        </header>
     );
 };
 

@@ -66,14 +66,14 @@ const StaffHomeComponent = () => {
                     </div>
 
                     <div className="p-4 bg-green-100 text-green-700 rounded-lg shadow-md">
-                        <h3 className="text-lg font-semibold">📥 Doanh thu tiền mặt</h3>
+                        <h3 className="text-lg font-semibold">💵 Doanh thu tiền mặt</h3>
                         <p className="text-2xl font-bold">
                             {financialData?.cashSale ? financialData.cashSale.toLocaleString() : "0"} VNĐ
                         </p>
                     </div>
 
                     <div className="p-4 bg-yellow-100 text-yellow-700 rounded-lg shadow-md">
-                        <h3 className="text-lg font-semibold">📤 Doanh thu chuyển khoản</h3>
+                        <h3 className="text-lg font-semibold">💳 Doanh thu chuyển khoản</h3>
                         <p className="text-2xl font-bold">
                             {financialData?.bankSale ? financialData.bankSale.toLocaleString() : "0"} VNĐ
                         </p>

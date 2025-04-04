@@ -154,7 +154,7 @@ const CashBookOwner = () => {
                     className="p-4 bg-green-100 text-green-700 rounded-lg shadow-md cursor-pointer hover:bg-green-200 transition"
                     onClick={() => handleViewOrders("cash")}
                 >
-                    <h3 className="text-lg font-semibold">📥 Doanh thu tiền mặt</h3>
+                    <h3 className="text-lg font-semibold">💵 Doanh thu tiền mặt</h3>
                     <p className="text-2xl font-bold">
                         {summary?.totalCash?.toLocaleString() || "0"} VNĐ
                     </p>
@@ -164,7 +164,7 @@ const CashBookOwner = () => {
                     className="p-4 bg-yellow-100 text-yellow-700 rounded-lg shadow-md cursor-pointer hover:bg-yellow-200 transition"
                     onClick={() => handleViewOrders("transfer")}
                 >
-                    <h3 className="text-lg font-semibold">📤 Doanh thu chuyển khoản</h3>
+                    <h3 className="text-lg font-semibold">💳 Doanh thu chuyển khoản</h3>
                     <p className="text-2xl font-bold">
                         {summary?.totalBank?.toLocaleString() || "0"} VNĐ
                     </p>
