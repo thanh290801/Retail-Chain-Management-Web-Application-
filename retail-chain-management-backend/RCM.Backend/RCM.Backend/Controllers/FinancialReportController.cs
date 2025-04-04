@@ -63,11 +63,11 @@ public class FinancialReportController : ControllerBase
 
         // 3. Chi phí nhân sự
         var salaryPayments = await _context.SalaryPaymentHistories
-            .Include(p => p.Employee)
-            .Where(p => p.PaymentDate >= startDate && p.PaymentDate < endDate
-                && !p.IsDeleted
-                && (branchId == 0 || p.Employee.BranchId == branchId))
-            .ToListAsync();
+    .Include(p => p.Employee)
+    .Where(p => p.PaymentDate >= startDate && p.PaymentDate < endDate
+        && (p.IsDeleted != true)
+        && (branchId == 0 || p.Employee.BranchId == branchId))
+    .ToListAsync();
 
         var salaryList = salaryPayments
             .GroupBy(p => p.EmployeeId)

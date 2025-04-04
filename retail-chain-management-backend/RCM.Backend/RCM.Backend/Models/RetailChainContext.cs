@@ -61,7 +61,7 @@ namespace RCM.Backend.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=localhost;Database=RetailChain;Trusted_Connection=True;TrustServerCertificate=True;");
+                optionsBuilder.UseSqlServer("Server=localhost;Database=RetailChain;Trusted_Connection=True;");
             }
         }
 
@@ -396,6 +396,8 @@ namespace RCM.Backend.Models
                 entity.Property(e => e.IsActive).HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.IsCheckedIn).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.OvertimeRate).HasColumnType("decimal(10, 2)");
 
                 entity.Property(e => e.Phone).HasMaxLength(20);
 
@@ -928,7 +930,9 @@ namespace RCM.Backend.Models
                 entity.Property(e => e.EndDate).HasColumnType("date");
 
                 entity.Property(e => e.StartDate).HasColumnType("date");
-                
+
+                entity.Property(e => e.UpdateAt).HasColumnType("datetime");
+
                 entity.HasOne(d => d.Employee)
                     .WithMany(p => p.Salaries)
                     .HasForeignKey(d => d.EmployeeId)
@@ -1076,7 +1080,13 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.ProductId).HasColumnName("product_id");
 
+                entity.Property(e => e.Reason)
+                    .HasMaxLength(255)
+                    .HasColumnName("reason");
+
                 entity.Property(e => e.RecordedQuantity).HasColumnName("recorded_quantity");
+
+                entity.Property(e => e.StockQuantity).HasColumnName("stock_quantity");
 
                 entity.HasOne(d => d.Audit)
                     .WithMany(p => p.StockAuditDetails)

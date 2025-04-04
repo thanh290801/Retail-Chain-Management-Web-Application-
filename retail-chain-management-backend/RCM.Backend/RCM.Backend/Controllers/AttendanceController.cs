@@ -437,7 +437,10 @@ public async Task<IActionResult> GetAttendanceReportRange(DateTime startDate, Da
                 if (isDuringRegularShift)
                     return (regularShiftName, "Cannot overtime during regular shift", TimeSpan.Zero, false);
 
-                TimeSpan overtimeStart = overtime.StartTime ?? (workShiftId == 1 ? TimeSpan.FromHours(14) : TimeSpan.FromHours(22));
+                TimeSpan overtimeStart = (overtime.StartTime != TimeSpan.Zero)
+    ? overtime.StartTime
+    : (workShiftId == 1 ? TimeSpan.FromHours(14) : TimeSpan.FromHours(22));
+
                 TimeSpan overtimeEnd = overtimeStart + TimeSpan.FromHours((double)overtime.TotalHours);
 
                 if (currentTime < overtimeStart || currentTime > overtimeEnd)
@@ -468,7 +471,11 @@ public async Task<IActionResult> GetAttendanceReportRange(DateTime startDate, Da
 
                 if (overtime != null)
                 {
-                    TimeSpan overtimeStart = overtime.StartTime ?? TimeSpan.FromHours(14);
+                    TimeSpan overtimeStart = overtime?.StartTime != TimeSpan.Zero
+    ? overtime.StartTime
+    : TimeSpan.FromHours(14);
+
+
                     TimeSpan overtimeEnd = overtimeStart + TimeSpan.FromHours((double)overtime.TotalHours);
 
                     if (currentTime < overtimeStart || currentTime > overtimeEnd)

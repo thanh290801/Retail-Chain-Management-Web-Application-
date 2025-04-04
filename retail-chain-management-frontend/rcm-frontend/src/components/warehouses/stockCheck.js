@@ -13,6 +13,7 @@ const StockCheck = () => {
     const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [accountId, setAccountId] = useState(null);
+    const [auditDate, setAuditDate] = useState(new Date().toISOString().slice(0, 16)); // yyyy-MM-ddTHH:mm
 
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 15;
@@ -53,7 +54,9 @@ const StockCheck = () => {
             .then(data => {
                 const updatedProducts = data.map(product => ({
                     ...product,
-                    recordedQuantity: product.quantity
+                    stockQuantity: product.quantity,
+                    recordedQuantity: product.quantity,
+                    reason: "Không có sai lệch"
                 }));
                 setProducts(updatedProducts);
             })
@@ -68,8 +71,25 @@ const StockCheck = () => {
 
     const handleQuantityChange = (productsId, quantity) => {
         setProducts(prev =>
+            prev.map(p => {
+                if (p.productsId === productsId) {
+                    const newQty = parseInt(quantity) || 0;
+                    const reason = newQty !== p.stockQuantity ? "Sai lệch do kiểm kê" : "Không có sai lệch";
+                    return {
+                        ...p,
+                        recordedQuantity: newQty,
+                        reason
+                    };
+                }
+                return p;
+            })
+        );
+    };
+
+    const handleReasonChange = (productsId, newReason) => {
+        setProducts(prev =>
             prev.map(p =>
-                p.productsId === productsId ? { ...p, recordedQuantity: parseInt(quantity) || 0 } : p
+                p.productsId === productsId ? { ...p, reason: newReason || "Sai lệch do kiểm kê" } : p
             )
         );
     };
@@ -79,9 +99,12 @@ const StockCheck = () => {
             warehouseId: parseInt(warehouseId),
             auditorId: parseInt(auditor),
             coAuditorId: coAuditor ? parseInt(coAuditor) : null,
+            auditDate: auditDate,
             products: products.map(p => ({
                 productId: p.productsId,
-                recordedQuantity: parseInt(p.recordedQuantity, 10)
+                recordedQuantity: parseInt(p.recordedQuantity, 10),
+                stockQuantity: p.stockQuantity,
+                reason: p.reason
             }))
         };
 
@@ -97,10 +120,7 @@ const StockCheck = () => {
                 } else {
                     alert("✅ Phiếu kiểm kho đã được tạo!");
                     fetchProducts();
-                    const adjustmentId = data.stockAdjustmentsId;
-                    if (adjustmentId && !isNaN(adjustmentId)) {
-                        navigate(`/stock-adjustment/${adjustmentId}`);
-                    }
+                    navigate("/productstock")
                 }
             })
             .catch(error => console.error("❌ Lỗi khi gửi yêu cầu kiểm kho:", error));
@@ -122,8 +142,18 @@ const StockCheck = () => {
                 <h2 className="text-xl font-semibold mb-4">📋 Tạo Phiếu Kiểm Kho</h2>
 
                 <div className="mb-4">
-                    <label className="block font-medium">Kho kiểm:</label>
+                    <label className="block font-medium">🧭 Kho kiểm:</label>
                     <div className="p-2 border rounded bg-gray-100">{warehouseName || "Đang tải..."}</div>
+                </div>
+
+                <div className="mb-4">
+                    <label className="block font-medium">🕒 Ngày giờ kiểm kho:</label>
+                    <input
+                        type="datetime-local"
+                        className="p-2 border rounded w-full"
+                        value={auditDate}
+                        onChange={(e) => setAuditDate(e.target.value)}
+                    />
                 </div>
 
                 <div className="mb-4 flex space-x-4">
@@ -156,7 +186,7 @@ const StockCheck = () => {
 
                 <input
                     type="text"
-                    placeholder="Tìm kiếm sản phẩm..."
+                    placeholder="🔍 Tìm kiếm sản phẩm..."
                     className="p-2 border rounded w-full mb-4"
                     value={searchTerm}
                     onChange={(e) => {
@@ -168,11 +198,12 @@ const StockCheck = () => {
                 <table className="w-full bg-white shadow-md rounded">
                     <thead className="bg-gray-100">
                         <tr>
-                            <th className="p-2">Mã sản phẩm</th>
+                            <th className="p-2">Mã SP</th>
                             <th className="p-2">Tên sản phẩm</th>
                             <th className="p-2">Đơn vị</th>
                             <th className="p-2">Tồn kho</th>
                             <th className="p-2">SL thực tế</th>
+                            <th className="p-2">Lý do (nếu sai lệch)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -181,22 +212,38 @@ const StockCheck = () => {
                                 <td className="p-2">{product.productsId}</td>
                                 <td className="p-2">{product.name}</td>
                                 <td className="p-2">{product.unit}</td>
-                                <td className="p-2">{product.quantity}</td>
+                                <td className="p-2">{product.stockQuantity}</td>
                                 <td className="p-2">
                                     <input
                                         type="number"
                                         min="0"
                                         className="p-1 border rounded w-20"
                                         value={product.recordedQuantity}
-                                        onChange={(e) => handleQuantityChange(product.productsId, e.target.value)}
+                                        onChange={(e) =>
+                                            handleQuantityChange(product.productsId, e.target.value)
+                                        }
                                     />
+                                </td>
+                                <td className="p-2">
+                                    {product.stockQuantity !== product.recordedQuantity ? (
+                                        <input
+                                            type="text"
+                                            className="p-1 border rounded w-full"
+                                            value={product.reason}
+                                            onChange={(e) =>
+                                                handleReasonChange(product.productsId, e.target.value)
+                                            }
+                                        />
+                                    ) : (
+                                        <span className="italic text-gray-500">Không có sai lệch</span>
+                                    )}
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
 
-                {/* PHÂN TRANG */}
+                {/* Phân trang */}
                 {totalPages > 1 && (
                     <div className="mt-4 flex justify-center space-x-2">
                         {Array.from({ length: totalPages }, (_, index) => (

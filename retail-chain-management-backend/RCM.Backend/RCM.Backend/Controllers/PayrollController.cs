@@ -140,7 +140,10 @@ namespace RCM.Backend.Controllers
 
                     if (overtimeCheckIn != null && overtimeCheckOut != null)
                     {
-                        TimeSpan overtimeStart = overtime.StartTime ?? TimeSpan.FromHours(14);
+                        TimeSpan overtimeStart = overtime.StartTime.Ticks == 0
+    ? TimeSpan.FromHours(14)
+    : overtime.StartTime;
+
                         TimeSpan overtimeEnd = overtimeStart + TimeSpan.FromHours((double)overtime.TotalHours);
 
                         var checkInTime = overtimeCheckIn.CheckInTime.TimeOfDay;
@@ -436,7 +439,10 @@ namespace RCM.Backend.Controllers
 
                 if (overtimeCheckIn != null && overtimeCheckOut != null)
                 {
-                    TimeSpan overtimeStart = overtime.StartTime ?? TimeSpan.FromHours(14);
+                    TimeSpan overtimeStart = overtime.StartTime.Ticks == 0
+    ? TimeSpan.FromHours(14)
+    : overtime.StartTime;
+
                     TimeSpan overtimeEnd = overtimeStart + TimeSpan.FromHours((double)overtime.TotalHours);
 
                     var checkInTime = overtimeCheckIn.CheckInTime.TimeOfDay;
@@ -626,7 +632,10 @@ namespace RCM.Backend.Controllers
 
                 if (overtimeCheckIn != null && overtimeCheckOut != null)
                 {
-                    TimeSpan overtimeStart = overtime.StartTime ?? TimeSpan.FromHours(14);
+                    TimeSpan overtimeStart = overtime.StartTime.Ticks == 0
+    ? TimeSpan.FromHours(14)
+    : overtime.StartTime;
+
                     TimeSpan overtimeEnd = overtimeStart + TimeSpan.FromHours((double)overtime.TotalHours);
 
                     var checkInTime = overtimeCheckIn.CheckInTime.TimeOfDay;
@@ -844,7 +853,10 @@ namespace RCM.Backend.Controllers
 
                 if (overtimeCheckIn != null && overtimeCheckOut != null)
                 {
-                    TimeSpan overtimeStart = overtime.StartTime ?? TimeSpan.FromHours(14);
+                    TimeSpan overtimeStart = overtime.StartTime.Ticks == 0
+    ? TimeSpan.FromHours(14)
+    : overtime.StartTime;
+
                     TimeSpan overtimeEnd = overtimeStart + TimeSpan.FromHours((double)overtime.TotalHours);
 
                     var checkInTime = overtimeCheckIn.CheckInTime.TimeOfDay;
@@ -931,7 +943,7 @@ namespace RCM.Backend.Controllers
             if (overtimeRecord.IsApproved)
                 return BadRequest(new { Message = "Yêu cầu tăng ca này đã được duyệt, không thể từ chối." });
 
-            if (overtimeRecord.IsRejected)
+            if (overtimeRecord.IsRejected == true)
                 return BadRequest(new { Message = "Yêu cầu tăng ca này đã bị từ chối trước đó." });
 
             overtimeRecord.IsApproved = false;
@@ -951,7 +963,7 @@ namespace RCM.Backend.Controllers
             if (overtimeRecord.IsApproved)
                 return BadRequest(new { Message = "Yêu cầu tăng ca này đã được duyệt trước đó." });
 
-            if (overtimeRecord.IsRejected)
+            if (overtimeRecord.IsRejected == true)
                 return BadRequest(new { Message = "Yêu cầu tăng ca này đã bị từ chối trước đó." });
 
             overtimeRecord.IsApproved = true;

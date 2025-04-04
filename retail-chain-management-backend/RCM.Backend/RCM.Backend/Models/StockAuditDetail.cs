@@ -9,6 +9,8 @@ namespace RCM.Backend.Models
         public int AuditId { get; set; }
         public int ProductId { get; set; }
         public int RecordedQuantity { get; set; }
+        public int? StockQuantity { get; set; }
+        public string? Reason { get; set; }
 
         public virtual StockAuditRecord Audit { get; set; } = null!;
         public virtual Product Product { get; set; } = null!;

@@ -35,36 +35,26 @@ public async Task<IActionResult> GetStockAuditHistory()
 [HttpGet("details/{auditId}")]
 public IActionResult GetStockAuditDetails(int auditId)
 {
-    var auditRecord = _context.StockAuditRecords.FirstOrDefault(a => a.StockAuditRecordsId == auditId);
-    if (auditRecord == null)
-        return NotFound();
+    var auditRecord = _context.StockAuditRecords
+        .FirstOrDefault(a => a.StockAuditRecordsId == auditId);
 
-    // Lấy tất cả điều chỉnh để xử lý logic so sánh ngày trên client
-    var adjustmentRecords = _context.StockAdjustments
-        .Where(sa => sa.WarehouseId == auditRecord.WarehouseId)
+    if (auditRecord == null)
+        return NotFound(new { Message = "Không tìm thấy phiếu kiểm kho." });
+
+    var auditDetails = _context.StockAuditDetails
+        .Where(sad => sad.AuditId == auditId)
+        .Select(sad => new
+        {
+            sad.StockAuditDetailsId,
+            AuditId = sad.AuditId,
+            ProductId = sad.ProductId,
+            RecordedQuantity = sad.RecordedQuantity,
+            StockQuantity = sad.StockQuantity,
+            Reason = sad.Reason
+        })
         .ToList();
 
-    var adjustmentRecord = adjustmentRecords.FirstOrDefault(sa =>
-        sa.AdjustmentDate.HasValue &&
-        sa.AdjustmentDate.Value.Date == auditRecord.AuditDate.GetValueOrDefault().Date);
-
-    var auditDetails = from sad in _context.StockAuditDetails
-                       where sad.AuditId == auditId
-                       join adjDetail in _context.StockAdjustmentDetails
-                           .Where(ad => adjustmentRecord != null && ad.AdjustmentId == adjustmentRecord.StockAdjustmentsId)
-                           on sad.ProductId equals adjDetail.ProductId into adjGroup
-                       from adjDetail in adjGroup.DefaultIfEmpty()
-                       select new
-                       {
-                           sad.StockAuditDetailsId,
-                           sad.ProductId,
-                           sad.RecordedQuantity,
-                           PreviousQuantity = adjDetail != null ? adjDetail.PreviousQuantity : sad.RecordedQuantity,
-                           AdjustedQuantity = adjDetail != null ? adjDetail.AdjustedQuantity : sad.RecordedQuantity,
-                           Reason = adjDetail != null ? adjDetail.Reason : "Không có ghi chú"
-                       };
-
-    return Ok(auditDetails.ToList());
+    return Ok(auditDetails);
 }
 
     }

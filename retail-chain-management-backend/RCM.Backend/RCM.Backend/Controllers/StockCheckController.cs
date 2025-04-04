@@ -61,112 +61,75 @@ public class StockCheckController : ControllerBase
 public IActionResult CreateStockAudit([FromBody] StockAuditRequest request)
 {
     if (request == null || request.Products == null || request.Products.Count == 0)
-    {
         return BadRequest("Dữ liệu không hợp lệ.");
-    }
 
     using (var transaction = _context.Database.BeginTransaction())
     {
         try
         {
-            // 🔹 Tạo phiếu kiểm kho
+            // 🔹 Ghi phiếu kiểm kho
             var auditRecord = new StockAuditRecord
             {
                 WarehouseId = request.WarehouseId,
                 AuditorId = request.AuditorId,
                 CoAuditorId = request.CoAuditorId,
-                AuditDate = DateTime.UtcNow
+                AuditDate = request.AuditDate
             };
             _context.StockAuditRecords.Add(auditRecord);
-            _context.SaveChanges(); // 🔥 Lưu ngay để lấy ID
+            _context.SaveChanges();
 
             var auditDetails = new List<StockAuditDetail>();
-            var adjustmentDetails = new List<StockAdjustmentDetail>();
 
-            // 🔹 Kiểm tra sản phẩm và cập nhật tồn kho
             foreach (var item in request.Products)
             {
+                // 🔹 Tìm tồn kho hiện tại
                 var stock = _context.StockLevels
                     .FirstOrDefault(s => s.WarehouseId == request.WarehouseId && s.ProductId == item.ProductId);
-                
+
                 if (stock == null) continue;
 
+                // 🔹 Tính lý do sai lệch
+                var reason = item.RecordedQuantity == item.StockQuantity
+                    ? "Không có sai lệch"
+                    : string.IsNullOrWhiteSpace(item.Reason) ? "Sai lệch do kiểm kê" : item.Reason;
+
+                // 🔹 Ghi chi tiết kiểm kho
                 auditDetails.Add(new StockAuditDetail
                 {
                     AuditId = auditRecord.StockAuditRecordsId,
                     ProductId = item.ProductId,
-                    RecordedQuantity = item.RecordedQuantity
+                    RecordedQuantity = item.RecordedQuantity,
+                    StockQuantity = stock.Quantity,
+                    Reason = reason
                 });
 
-                // Nếu số lượng thực tế khác số lượng hệ thống, tạo phiếu điều chỉnh
-                if (stock.Quantity != item.RecordedQuantity)
-                {
-                    // 🔥 Kiểm tra xem đã có phiếu điều chỉnh cho kho này chưa
-                    var adjustment = _context.StockAdjustments
-                        .FirstOrDefault(a => a.WarehouseId == request.WarehouseId && a.AuditorId == request.AuditorId);
-                    
-                    if (adjustment == null)
-                    {
-                        // 🔹 Tạo phiếu điều chỉnh số lượng
-adjustment = new StockAdjustment
-{
-    WarehouseId = request.WarehouseId,
-    AuditorId = request.AuditorId,
-    AdjustmentDate = DateTime.UtcNow,
-    Notes = "Sai lệch kiểm kho"
-};
-
-// 🔹 Lưu vào database để nhận ID mới
-_context.StockAdjustments.Add(adjustment);
-_context.SaveChanges();
-Console.WriteLine($"✅ StockAdjustment Created - ID: {adjustment.StockAdjustmentsId}");
-
-// 🛠 Kiểm tra nếu ID vẫn null
-if (adjustment.StockAdjustmentsId == 0)
-{
-    return StatusCode(500, new { message = "Lỗi khi lấy ID phiếu điều chỉnh từ database." });
-}
-
-                    }
-
-                    // 🔹 Lưu vào `stock_adjustment_details`
-                    adjustmentDetails.Add(new StockAdjustmentDetail
-                    {
-                        AdjustmentId = adjustment.StockAdjustmentsId,
-                        ProductId = item.ProductId,
-                        PreviousQuantity = stock.Quantity,
-                        AdjustedQuantity = item.RecordedQuantity,
-                        Reason = "Sai lệch kiểm kho"
-                    });
-
-                    // 🔹 Cập nhật lại số lượng tồn kho
-                    stock.Quantity = item.RecordedQuantity;
-                }
+                // 🔹 Cập nhật tồn kho
+                stock.Quantity = item.RecordedQuantity;
             }
 
-            // 🔹 Lưu danh sách vào bảng
             _context.StockAuditDetails.AddRange(auditDetails);
-            _context.StockAdjustmentDetails.AddRange(adjustmentDetails);
             _context.SaveChanges();
-
             transaction.Commit();
-            
-            return Ok(new 
-{ 
-    message = "Phiếu kiểm kho đã được tạo thành công.", 
-    stockAuditRecordsId = auditRecord.StockAuditRecordsId,
-    stockAdjustmentsId = adjustmentDetails.Any() ? (int?)adjustmentDetails.First().AdjustmentId : null,
-    adjustedProductCount = adjustmentDetails.Count 
-});
 
+            return Ok(new
+            {
+                message = "✅ Phiếu kiểm kho đã được tạo.",
+                stockAuditRecordsId = auditRecord.StockAuditRecordsId,
+                updatedStockCount = auditDetails.Count
+            });
         }
         catch (Exception ex)
         {
             transaction.Rollback();
-            return StatusCode(500, new { message = "Lỗi khi lưu dữ liệu.", error = ex.InnerException?.Message ?? ex.Message });
+            return StatusCode(500, new
+            {
+                message = "❌ Lỗi khi lưu dữ liệu",
+                error = ex.InnerException?.Message ?? ex.Message
+            });
         }
     }
 }
+
 
 /// <summary>
 /// Lưu điều chỉnh số lượng từ phiếu kiểm kho
@@ -291,13 +254,15 @@ public IActionResult GetStockAdjustmentDetails(int adjustmentId)
 }
 
     // **Models Request**
-    public class StockAuditRequest
-    {
-        public int WarehouseId { get; set; }
-        public int AuditorId { get; set; }
-        public int? CoAuditorId { get; set; }
-        public List<StockAuditDetailRequest> Products { get; set; }
-    }
+   public class StockAuditRequest
+{
+    public int WarehouseId { get; set; }
+    public int AuditorId { get; set; }
+    public int? CoAuditorId { get; set; }
+    public DateTime AuditDate { get; set; } // ✅ mới thêm
+    public List<ProductAuditDto> Products { get; set; }
+}
+
 
     public class StockAuditDetailRequest
     {
@@ -320,6 +285,13 @@ public class StockAdjustmentDetailRequest
     public int PreviousQuantity { get; set; }
     public int AdjustedQuantity { get; set; }
     public string Reason { get; set; }
+}
+public class ProductAuditDto
+{
+    public int ProductId { get; set; }
+    public int RecordedQuantity { get; set; }
+    public string Reason { get; set; }
+    public int StockQuantity { get; set; } // tồn kho hệ thống trước khi kiểm
 }
 
 }
