@@ -7,3 +7,5 @@
 retail-chain-management-backend/RCM.Backend/RCM.Backend/obj/project.assets.json
 *.exe
 *.dll
+retail-chain-management-backend/RCM.Backend/RCM.Backend/bin/Debug/net6.0/RCM.Backend.dll
+retail-chain-management-backend/RCM.Backend/RCM.Backend/bin/Debug/net6.0/RCM.Backend.exe
