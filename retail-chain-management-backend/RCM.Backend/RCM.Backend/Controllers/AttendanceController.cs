@@ -230,6 +230,70 @@ namespace RCM.Backend.Controllers
             // Trả về mảng rỗng nếu không có bản ghi, thay vì lỗi 404
             return Ok(records.Select(FormatAttendanceRecord).ToList());
         }
+        [HttpGet("AttendanceReport/Range")]
+public async Task<IActionResult> GetAttendanceReportRange(DateTime startDate, DateTime endDate)
+{
+    if (startDate > endDate)
+        return BadRequest(new { Message = "Ngày bắt đầu phải trước hoặc bằng ngày kết thúc." });
+
+    var allEmployees = await _context.Employees.ToListAsync();
+
+    var result = new Dictionary<string, object>();
+
+    for (var date = startDate.Date; date <= endDate.Date; date = date.AddDays(1))
+    {
+        var checkIns = await _context.AttendanceCheckIns
+            .Where(c => c.AttendanceDate == date)
+            .Join(_context.Employees,
+                ci => ci.EmployeeId,
+                e => e.EmployeeId,
+                (ci, e) => new
+                {
+                    e.EmployeeId,
+                    e.FullName,
+                    e.BirthDate,
+                    e.IsActive,
+                    ci.CheckInTime,
+                    ci.Shift
+                }).ToListAsync();
+
+        var checkOuts = await _context.AttendanceCheckOuts
+            .Where(c => c.AttendanceDate == date)
+            .ToListAsync();
+
+        var attended = checkIns.Select(c => new
+        {
+            c.EmployeeId,
+            c.FullName,
+            c.BirthDate,
+            c.IsActive,
+            CheckInTime = c.CheckInTime.ToString("dd/MM/yyyy HH:mm:ss"),
+            CheckOutTime = checkOuts
+                .Where(co => co.EmployeeId == c.EmployeeId && co.Shift == c.Shift)
+                .Select(co => co.CheckOutTime.ToString("dd/MM/yyyy HH:mm:ss"))
+                .FirstOrDefault()
+        }).ToList();
+
+        var attendedIds = attended.Select(a => a.EmployeeId).ToHashSet();
+        var notAttended = allEmployees
+            .Where(e => !attendedIds.Contains(e.EmployeeId))
+            .Select(e => new
+            {
+                e.EmployeeId,
+                e.FullName,
+                e.BirthDate,
+                e.IsActive
+            }).ToList();
+
+        result[date.ToString("yyyy-MM-dd")] = new
+        {
+            AttendedRecords = attended,
+            NotAttendedRecords = notAttended
+        };
+    }
+
+    return Ok(result);
+}
 
         #region Helper Methods
         private async Task<(string shift, string status, TimeSpan lateDuration, bool isOvertimeApproved)> ProcessCheckInLogic(
