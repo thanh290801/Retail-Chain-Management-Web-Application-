@@ -74,25 +74,25 @@ const Header = () => {
                                     Hàng hóa
                                 </button>
                                 {activeDropdown === 'goods' && (
-                                    <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                        <Link to="/listallproduct" className="block px-4 py-2 hover:bg-gray-200">Danh sách sản phẩm</Link>
-                                        <Link to="/ownerproductstock" className="block px-4 py-2 hover:bg-gray-200">Danh sách tồn kho</Link>
+                                    <div className="absolute bg-white shadow-md rounded p-2 z-50 no-underline">
+                                        <Link to="/listallproduct" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách sản phẩm</Link>
+                                        <Link to="/ownerproductstock" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách tồn kho</Link>
                                         
-                                        <Link to="/createpurchaseorder" className="block px-4 py-2 hover:bg-gray-200">Tạo đơn nhập hàng</Link>
-                                        <Link to="/ownerorderlist" className="block px-4 py-2 hover:bg-gray-200">Danh sách đơn hàng</Link>
+                                        <Link to="/createpurchaseorder" className="block px-4 py-2 hover:bg-gray-200 no-underline">Tạo đơn nhập hàng</Link>
+                                        <Link to="/ownerorderlist" className="block px-4 py-2 hover:bg-gray-200 no-underline">Danh sách đơn hàng</Link>
                                     </div>
                                 )}
                             </div>
                             {/* Dropdown Kho hàng - Chỉ hiển thị khi branchId = "0" */}
                             <div className="relative" onMouseLeave={closeDropdown}>
-                                    <button onClick={() => handleDropdown('warehouse')} className="text-white flex items-center">
+                                    <button onClick={() => handleDropdown('warehouse')} className="text-white flex items-center no-underline">
                                         Kho hàng
                                     </button>
                                     {activeDropdown === 'warehouse' && (
-                                        <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                            <Link to="/warehousetransfer" className="block px-4 py-2 hover:bg-gray-200">Điều chuyển kho</Link>
-                                            <Link to="/inventoryhistory" className="block px-4 py-2 hover:bg-gray-200">Lịch sử kiểm kho</Link>
-                                            <Link to="/warehouse-transfers-history" className="block px-4 py-2 hover:bg-gray-200">Lịch sử điều chuyển</Link>
+                                        <div className="absolute bg-white shadow-md rounded p-2 z-50 no-underline">
+                                            <Link to="/warehousetransfer" className="block px-4 py-2 hover:bg-gray-200 no-underline">Điều chuyển kho</Link>
+                                            <Link to="/inventoryhistory" className="block px-4 py-2 hover:bg-gray-200 no-underline">Lịch sử kiểm kho</Link>
+                                            <Link to="/warehouse-transfers-history" className="block px-4 py-2 hover:bg-gray-200 no-underline">Lịch sử điều chuyển</Link>
                                         </div>
                                     )}
                                 </div>
@@ -104,10 +104,9 @@ const Header = () => {
                                     Giao dịch
                                 </button>
                                 {activeDropdown === 'transactions' && (
-                                    <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                        <Link to="/button6" className="block px-4 py-2 hover:bg-gray-200">Bán hàng</Link>
-                                        <Link to="/button5" className="block px-4 py-2 hover:bg-gray-200">Đổi trả hàng</Link>
-                                        <Link to="/button4" className="block px-4 py-2 hover:bg-gray-200">Phiếu nhập hàng</Link>
+                                    <div className="absolute bg-white shadow-md rounded p-2 z-50 no-underline">
+                                        <Link to="/button6" className="block px-4 py-2 hover:bg-gray-200 no-underline">Bán hàng</Link>
+                                        <Link to="/button5" className="block px-4 py-2 hover:bg-gray-200 no-underline">Đổi trả hàng</Link>
                                     </div>
                                 )}
                             </div>
@@ -119,8 +118,8 @@ const Header = () => {
                                     Đối tác
                                 </button>
                                 {activeDropdown === 'partners' && (
-                                    <div className="absolute bg-white shadow-md rounded p-2 z-50">
-                                        <Link to="/supplierlist" className="block px-4 py-2 hover:bg-gray-200">Nhà cung cấp</Link>
+                                    <div className="absolute bg-white shadow-md rounded p-2 z-50 no-underline">
+                                        <Link to="/supplierlist" className="block px-4 py-2 hover:bg-gray-200 no-underline">Nhà cung cấp</Link>
                                     </div>
                                 )}
                             </div>
@@ -148,7 +147,7 @@ const Header = () => {
                         </nav>
                     </div>
                     <div className="flex items-center space-x-4">
-                    <Link to="/warehouselistdetail" className="block px-4 py-2 hover:bg-gray-200 bg-gray-200 ">Danh sách chi nhánh</Link>
+                    <Link to="/warehouselistdetail" className="block px-4 py-2 hover:bg-gray-200 bg-gray-200 no-underline">Danh sách chi nhánh</Link>
                         <div
                             className="relative"
                             onMouseLeave={closeDropdown}

@@ -1,14 +1,15 @@
 ﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Modal, Form } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
 import Header from "../../headerComponent/header";
+import AddWarehouseComponent from "../warehouses/addWarehouse";
+
 
 const WarehousesListDetail = () => {
     const [warehouses, setWarehouses] = useState([]);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const navigate = useNavigate(); // ✅ Hook để điều hướng
+    const [showAddModal, setShowAddModal] = useState(false);
 
     const fetchWarehouses = () => {
         axios.get("https://localhost:5000/api/Warehouses")
@@ -34,13 +35,13 @@ const WarehousesListDetail = () => {
             capacity: selectedWarehouse.capacity
         })
             .then(() => {
-                alert("Cập nhật kho thành công");
+                alert("✅ Cập nhật kho thành công");
                 setShowModal(false);
                 fetchWarehouses();
             })
             .catch(err => {
-                console.error("Lỗi khi cập nhật kho:", err);
-                alert("Cập nhật kho thất bại");
+                console.error("❌ Lỗi khi cập nhật kho:", err);
+                alert("❌ Cập nhật kho thất bại");
             });
     };
 
@@ -49,9 +50,9 @@ const WarehousesListDetail = () => {
             <Header />
             <div className="container mt-4">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h2>🏬 Danh sách kho hàng</h2>
-                    <Button variant="primary" onClick={() => navigate('/addwarehouse')}>
-                        ➕ Tạo kho hàng
+                    <h2>🏬 Danh sách chi nhánh</h2>
+                    <Button variant="primary" onClick={() => setShowAddModal(true)}>
+                        ➕ Tạo chi nhánh
                     </Button>
                 </div>
 
@@ -80,9 +81,10 @@ const WarehousesListDetail = () => {
                     </tbody>
                 </table>
 
+                {/* Modal chỉnh sửa kho */}
                 <Modal show={showModal} onHide={() => setShowModal(false)}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Chỉnh sửa kho</Modal.Title>
+                        <Modal.Title>✏️ Chỉnh sửa kho</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         {selectedWarehouse && (
@@ -92,7 +94,9 @@ const WarehousesListDetail = () => {
                                     <Form.Control
                                         type="text"
                                         value={selectedWarehouse.name}
-                                        onChange={(e) => setSelectedWarehouse(prev => ({ ...prev, name: e.target.value }))}
+                                        onChange={(e) =>
+                                            setSelectedWarehouse(prev => ({ ...prev, name: e.target.value }))
+                                        }
                                     />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
@@ -100,7 +104,9 @@ const WarehousesListDetail = () => {
                                     <Form.Control
                                         type="text"
                                         value={selectedWarehouse.address}
-                                        onChange={(e) => setSelectedWarehouse(prev => ({ ...prev, address: e.target.value }))}
+                                        onChange={(e) =>
+                                            setSelectedWarehouse(prev => ({ ...prev, address: e.target.value }))
+                                        }
                                     />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
@@ -108,7 +114,9 @@ const WarehousesListDetail = () => {
                                     <Form.Control
                                         type="number"
                                         value={selectedWarehouse.capacity}
-                                        onChange={(e) => setSelectedWarehouse(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
+                                        onChange={(e) =>
+                                            setSelectedWarehouse(prev => ({ ...prev, capacity: parseInt(e.target.value) }))
+                                        }
                                     />
                                 </Form.Group>
                             </Form>
@@ -122,6 +130,28 @@ const WarehousesListDetail = () => {
                             📂 Lưu thay đổi
                         </Button>
                     </Modal.Footer>
+                </Modal>
+
+                {/* Modal thêm chi nhánh */}
+                <Modal
+                    show={showAddModal}
+                    onHide={() => setShowAddModal(false)}
+                    size="lg"
+                    backdrop="true"
+                    keyboard={true}
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title>➕ Thêm Kho Hàng</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <AddWarehouseComponent
+                            onSuccess={() => {
+                                setShowAddModal(false);
+                                fetchWarehouses();
+                            }}
+                            onCancel={() => setShowAddModal(false)}
+                        />
+                    </Modal.Body>
                 </Modal>
             </div>
         </div>

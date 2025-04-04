@@ -7,20 +7,40 @@
       "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\payrollcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\overtimerecord.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\overtimerecord.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\attendancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\attendancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\salary.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\salary.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\staffcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\staffcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\rcm.backend.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\rcm.backend.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\retailchaincontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\retailchaincontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\stocklevelscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\stocklevelscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\retailchaincontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\retailchaincontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\models\\salary.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\models\\salary.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\employeecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -29,10 +49,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\financialcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\financialcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\staffcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\staffcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -57,10 +73,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\ordercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|d:\\sp490\\do an\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\employeescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -166,7 +178,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 11,
+          "SelectedChildIndex": 12,
           "Children": [
             {
               "$type": "Bookmark",
@@ -211,14 +223,27 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "Salary.cs",
-              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Salary.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Models\\Salary.cs",
-              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Salary.cs",
-              "RelativeToolTip": "RCM.Backend\\Models\\Salary.cs",
-              "ViewState": "AQIAAA0AAAAAAAAAAAAywBQAAAAfAAAA",
+              "Title": "AttendanceController.cs",
+              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AttendanceController.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AttendanceController.cs",
+              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AttendanceController.cs",
+              "RelativeToolTip": "RCM.Backend\\Controllers\\AttendanceController.cs",
+              "ViewState": "AQIAACoBAAAAmZmZmVkiwKUAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-01T17:59:52.597Z",
+              "WhenOpened": "2025-04-01T16:05:31.303Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "OvertimeRecord.cs",
+              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\OvertimeRecord.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Models\\OvertimeRecord.cs",
+              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\OvertimeRecord.cs",
+              "RelativeToolTip": "RCM.Backend\\Models\\OvertimeRecord.cs",
+              "ViewState": "AQIAAAsAAAAAAAAAAAA/wA8AAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-02T15:22:08.143Z",
               "EditorCaption": ""
             },
             {
@@ -229,27 +254,66 @@
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\PayrollController.cs",
               "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\PayrollController.cs",
               "RelativeToolTip": "RCM.Backend\\Controllers\\PayrollController.cs",
-              "ViewState": "AQIAAOAAAADgzMzMzMwXwPUAAAAtAAAA",
+              "ViewState": "AQIAAM4AAAAAAQAAAAAwwNYAAAA7AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-01T16:07:18.921Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "StaffController.cs",
+              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\StaffController.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\StaffController.cs",
+              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\StaffController.cs",
+              "RelativeToolTip": "RCM.Backend\\Controllers\\StaffController.cs",
+              "ViewState": "AQIAAHACAAAAAAAAAAAuwK8CAAAJAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-01T16:31:50.787Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 4,
+              "Title": "RCM.Backend",
+              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\RCM.Backend.csproj",
+              "RelativeDocumentMoniker": "RCM.Backend\\RCM.Backend.csproj",
+              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\RCM.Backend.csproj",
+              "RelativeToolTip": "RCM.Backend\\RCM.Backend.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAACYAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-04-03T09:30:06.005Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "OrderController.cs",
+              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\OrderController.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\OrderController.cs",
+              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\OrderController.cs",
+              "RelativeToolTip": "RCM.Backend\\Controllers\\OrderController.cs",
+              "ViewState": "AQIAAEsBAAAAHs3MzMz4v3MBAAAnAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-01T16:06:50.708Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "RetailChainContext.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\RetailChainContext.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\RetailChainContext.cs",
               "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\RetailChainContext.cs",
               "RelativeToolTip": "RCM.Backend\\Models\\RetailChainContext.cs",
-              "ViewState": "AQIAAJkDAABAyMzMzEwTwKIDAAAQAAAA",
+              "ViewState": "AQIAABUAAAAAAAAAAIAzwB8AAAArAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-10T21:50:58.966Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 8,
               "Title": "appsettings.json",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\appsettings.json",
               "RelativeDocumentMoniker": "RCM.Backend\\appsettings.json",
@@ -257,25 +321,35 @@
               "RelativeToolTip": "RCM.Backend\\appsettings.json",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAkAAABFAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-03-10T21:45:27.419Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-10T21:45:27.419Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "AttendanceController.cs",
-              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AttendanceController.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AttendanceController.cs",
-              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AttendanceController.cs",
-              "RelativeToolTip": "RCM.Backend\\Controllers\\AttendanceController.cs",
-              "ViewState": "AQIAACAAAAAoMzMzM5MwwCwAAAAyAAAA",
+              "DocumentIndex": 7,
+              "Title": "StockLevelsController.cs",
+              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\StockLevelsController.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\StockLevelsController.cs",
+              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\StockLevelsController.cs",
+              "RelativeToolTip": "RCM.Backend\\Controllers\\StockLevelsController.cs",
+              "ViewState": "AQIAABAAAAAAAAAAAAAQwAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-01T16:05:31.303Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-02T13:20:22.132Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 9,
+              "Title": "Salary.cs",
+              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Salary.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Models\\Salary.cs",
+              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Salary.cs",
+              "RelativeToolTip": "RCM.Backend\\Models\\Salary.cs",
+              "ViewState": "AQIAAA0AAAAAAAAAAAAywBQAAAAfAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-01T17:59:52.597Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
               "Title": "EmployeeController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\EmployeeController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\EmployeeController.cs",
@@ -283,12 +357,11 @@
               "RelativeToolTip": "RCM.Backend\\Controllers\\EmployeeController.cs",
               "ViewState": "AQIAAFAAAACAZmZmZkYzwAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-01T16:06:01.2Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-01T16:06:01.2Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 11,
               "Title": "FinancialController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\FinancialController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\FinancialController.cs",
@@ -296,12 +369,11 @@
               "RelativeToolTip": "RCM.Backend\\Controllers\\FinancialController.cs",
               "ViewState": "AQIAAFYAAAAAAAAAAADwv3AAAAAFAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-10T23:36:23.743Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-10T23:36:23.743Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 14,
               "Title": "SupplierController copy.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\SupplierController copy.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\SupplierController copy.cs",
@@ -313,7 +385,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 12,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Program.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Program.cs",
@@ -325,7 +397,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 13,
               "Title": "PurchaseOrderDto.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\PurchaseOrderDto.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\DTOs\\PurchaseOrderDto.cs",
@@ -337,19 +409,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "StaffController.cs",
-              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\StaffController.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\StaffController.cs",
-              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\StaffController.cs",
-              "RelativeToolTip": "RCM.Backend\\Controllers\\StaffController.cs",
-              "ViewState": "AQIAAFgAAAAAgJmZmZn9v2MAAABAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-01T16:31:50.787Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 15,
               "Title": "ResetPasssController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\ResetPasssController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\ResetPasssController.cs",
@@ -361,7 +421,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 16,
               "Title": "PurchaseOrdersController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\PurchaseOrdersController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\PurchaseOrdersController.cs",
@@ -373,7 +433,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 17,
               "Title": "ProductsController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\ProductsController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\ProductsController.cs",
@@ -385,19 +445,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "OrderController.cs",
-              "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\OrderController.cs",
-              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\OrderController.cs",
-              "ToolTip": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\OrderController.cs",
-              "RelativeToolTip": "RCM.Backend\\Controllers\\OrderController.cs",
-              "ViewState": "AQIAAEgBAAAASDMzMzMXwAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-01T16:06:50.708Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 18,
               "Title": "EmployeesController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\EmployeesController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\EmployeesController.cs",
@@ -409,7 +457,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 20,
               "Title": "CashBookOwnerController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\CashBookOwnerController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\CashBookOwnerController.cs",
@@ -421,7 +469,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 22,
               "Title": "AddToStockController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AddToStockController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AddToStockController.cs",
@@ -433,7 +481,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 24,
               "Title": "SaleInvoiceController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\SaleInvoiceController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\SaleInvoiceController.cs",
@@ -446,7 +494,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 19,
               "Title": "CashHandoverController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\CashHandoverController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\CashHandoverController.cs",
@@ -459,7 +507,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 26,
               "Title": "launchSettings.json",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Properties\\launchSettings.json",
               "RelativeDocumentMoniker": "RCM.Backend\\Properties\\launchSettings.json",
@@ -471,7 +519,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 21,
               "Title": "AuthController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AuthController.cs",
@@ -483,7 +531,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 23,
               "Title": "AccountController.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AccountController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AccountController.cs",
@@ -495,7 +543,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 25,
               "Title": "RefundRequest.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\RefundRequest.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\DTOs\\RefundRequest.cs",
@@ -507,7 +555,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 27,
               "Title": "WeatherForecast.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\WeatherForecast.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\WeatherForecast.cs",
@@ -519,7 +567,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 29,
               "Title": "CashHandover.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\CashHandover.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\CashHandover.cs",
@@ -531,7 +579,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 28,
               "Title": "ProductDTO.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\ProductDTO.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\DTOs\\ProductDTO.cs",
@@ -543,7 +591,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 31,
               "Title": "Employee.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Employee.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Employee.cs",
@@ -555,7 +603,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 32,
               "Title": "Batch.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Batch.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Batch.cs",
@@ -567,7 +615,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 30,
               "Title": "BatchDetail.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\BatchDetail.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\BatchDetail.cs",
@@ -579,7 +627,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 33,
               "Title": "Warehouse.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Warehouse.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Warehouse.cs",
@@ -591,7 +639,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 35,
               "Title": "LoginRequest.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\LoginRequest.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\LoginRequest.cs",
@@ -603,7 +651,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 34,
               "Title": "JwtService.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\JwtService.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Services\\JwtService.cs",
@@ -615,7 +663,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 36,
               "Title": "Account.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Account.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Account.cs",
@@ -627,7 +675,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
+              "DocumentIndex": 37,
               "Title": "IJwtService.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\IJwtService.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Services\\IJwtService.cs",
@@ -639,7 +687,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 38,
               "Title": "IUserService.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\IUserService.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Services\\IUserService.cs",
@@ -651,7 +699,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 39,
               "Title": "UserService.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\UserService.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Services\\UserService.cs",
@@ -663,7 +711,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 41,
               "Title": "AuthResponse.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\AuthResponse.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\AuthResponse.cs",
@@ -675,7 +723,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 40,
               "Title": "Order.cs",
               "DocumentMoniker": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Order.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Order.cs",
