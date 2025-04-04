@@ -617,10 +617,26 @@ namespace RCM.Backend.Controllers
             }
         }
         [HttpGet("ApprovedOvertimeList")]
-        public async Task<IActionResult> GetApprovedOvertimeList(int month, int year)
+        public async Task<IActionResult> GetApprovedOvertimeList([FromQuery] int? employeeId, [FromQuery] int month, [FromQuery] int year)
         {
-            var records = await _context.OvertimeRecords
-                .Where(o => o.Date.Month == month && o.Date.Year == year)
+            // Kiểm tra tham số đầu vào
+            if (month < 1 || month > 12)
+                return BadRequest(new { Message = "Invalid month. Must be between 1 and 12." });
+            if (year < 2000)
+                return BadRequest(new { Message = "Invalid year. Must be 2000 or later." });
+            if (employeeId.HasValue && employeeId <= 0)
+                return BadRequest(new { Message = "Invalid Employee ID." });
+
+            var query = _context.OvertimeRecords
+                .Where(o => o.Date.Month == month && o.Date.Year == year);
+
+            // Nếu employeeId không null, lọc theo employeeId
+            if (employeeId.HasValue)
+            {
+                query = query.Where(o => o.EmployeeId == employeeId.Value);
+            }
+
+            var records = await query
                 .Join(_context.Employees,
                     o => o.EmployeeId,
                     e => e.EmployeeId,
@@ -632,13 +648,12 @@ namespace RCM.Backend.Controllers
                         TotalHours = o.TotalHours,
                         Reason = o.Reason,
                         IsApproved = o.IsApproved,
-                        IsRejected = o.IsRejected // Thêm trường này
+                        IsRejected = o.IsRejected
                     })
                 .ToListAsync();
 
             return Ok(new { approvedOvertimeRecords = records });
         }
-
         [HttpGet("download-template")]
         public IActionResult DownloadTemplate()
         {

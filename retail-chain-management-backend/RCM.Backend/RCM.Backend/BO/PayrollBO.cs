@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static RCM.Backend.Controllers.PayrollController;
 using static RCM.Backend.DTOs.ShiftDTO;
 
 namespace RCM.Backend
@@ -18,7 +19,7 @@ namespace RCM.Backend
             _repository = repository;
         }
 
-        public async Task SetupShiftsAsync(ShiftSettingDTO request)
+        public async Task SetupShiftsAsync(Controllers.PayrollController.ShiftSettingDTO request)
         {
             if (request.TotalShifts <= 0 || request.Month < 1 || request.Month > 12 || request.Year < 2000)
             {
