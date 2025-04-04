@@ -4,62 +4,50 @@ import { vi } from "date-fns/locale";
 import { toast } from "react-toastify";
 import { useParams } from "react-router-dom";
 
+// const employeeId = localStorage.getItem("employeeId");
+
 const Calendar = () => {
-  const { id } = useParams();
-  const employeeId = id || localStorage.getItem("employeeId");
+  const { id } = useParams(); // Lấy id từ URL (nếu có)
+  const employeeId = id || localStorage.getItem("employeeId"); // Nếu có id, dùng id, không thì lấy từ localStorage
   const [attendance, setAttendance] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [overtimeModalOpen, setOvertimeModalOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [checkInMessage, setCheckInMessage] = useState(null);
-  const [workShiftId, setWorkShiftId] = useState(null);
-  const [overtimeStartTime, setOvertimeStartTime] = useState("");
-  const [overtimeHours, setOvertimeHours] = useState("");
 
-  const api_url = process.env.REACT_APP_API_URL;
+  const api_url = process.env.REACT_APP_API_URL
 
   useEffect(() => {
     fetchAttendanceData();
   }, []);
 
   const fetchAttendanceData = () => {
-    console.log("Bắt đầu fetch dữ liệu chấm công..."); // Log để kiểm tra hàm được gọi
-    fetch(`${api_url}/Attendance/AttendanceDetail?employeeId=${employeeId}`)
-      .then((res) => {
-        console.log("Response status:", res.status); // Log status của response
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`);
-        }
-        return res.json();
-      })
+    fetch(
+      `${api_url}/Attendance/AttendanceDetail?employeeId=${employeeId}`
+    )
+      .then((res) => res.json())
       .then((data) => {
-        console.log("Dữ liệu từ API:", data); // Log toàn bộ dữ liệu trả về
-        // Kiểm tra nếu data là mảng và có ít nhất 1 bản ghi
-        if (Array.isArray(data) && data.length > 0) {
-          console.log("Bản ghi đầu tiên:", data[0]); // Log bản ghi đầu tiên
-          console.log("WorkShiftId:", data[0].workShiftId); // Log workShiftId
-          setWorkShiftId(data[0].workShiftId); // Gán workShiftId vào state
-        } else {
-          console.log("Không có dữ liệu chấm công hoặc workShiftId không tồn tại.");
-          setWorkShiftId(null);
-        }
-  
-        // Format dữ liệu chấm công
+        console.log("Dữ liệu từ API:", data);
+
         const formattedAttendance = data.reduce((acc, entry) => {
           const dateStr = format(new Date(entry.attendanceDate), "yyyy-MM-dd");
+
           acc[dateStr] = {
-            checkIn: entry.checkInTime ? format(new Date(entry.checkInTime), "HH:mm:ss") : null,
-            checkOut: entry.checkOutTime ? format(new Date(entry.checkOutTime), "HH:mm:ss") : null,
+            checkIn: entry.checkInTime
+              ? format(new Date(entry.checkInTime), "HH:mm:ss")
+              : null,
+            checkOut: entry.checkOutTime
+              ? format(new Date(entry.checkOutTime), "HH:mm:ss")
+              : null,
           };
+
           return acc;
         }, {});
-  
+
+        console.log("Dữ liệu chấm công đã format:", formattedAttendance);
         setAttendance(formattedAttendance);
       })
-      .catch((error) => {
-        console.error("Lỗi khi fetch dữ liệu:", error.message); // Log lỗi chi tiết
-      });
+      .catch((error) => console.error("Lỗi lấy dữ liệu:", error));
   };
 
   const handleCheckIn = async () => {
@@ -71,23 +59,27 @@ const Calendar = () => {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Đã có lỗi xảy ra!");
+        // Nếu response không OK, lấy lỗi trả về dưới dạng text
+        const errorText = await res.text();
+        throw new Error(errorText || "Đã có lỗi xảy ra!");
       }
 
       const data = await res.json();
-      fetchAttendanceData();
+      console.log("Check-in thành công:", data);
+
+      fetchAttendanceData(); // Cập nhật lại dữ liệu sau khi check-in
       setModalOpen(false);
 
       setCheckInMessage({
         message: data.message,
         shift: data.shift,
         status: data.status,
-        time: data.checkInTime,
-        overtime: data.overtime,
+        time: data.timeCheckIn,
+        overtime: data.overtime
       });
-      toast.success("Check-in thành công", { position: "top-right" });
+      toast.success("Checkin thành công", { position: "top-right" });
     } catch (error) {
+      console.error("Lỗi check-in:", error.message);
       toast.error(error.message, { position: "top-right" });
     }
   };
@@ -100,52 +92,26 @@ const Calendar = () => {
     })
       .then(async (res) => {
         if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || "Đã có lỗi xảy ra!");
+          // Nếu response không OK (ví dụ 400, 500)
+          const textData = await res.text(); // Đọc dữ liệu trả về dưới dạng text
+          throw new Error(textData || "Đã có lỗi xảy ra!"); // Ném lỗi để bắt trong catch
         }
-        return res.json();
+        return res.json(); // Nếu OK, parse JSON
       })
       .then((data) => {
-        fetchAttendanceData();
+        console.log("Check-out thành công:", data);
+        fetchAttendanceData(); // Cập nhật lại dữ liệu sau khi check-out
         setModalOpen(false);
-        toast.success("Check-out thành công", { position: "top-right" });
+        toast.success("Checkout thành công", { position: "top-right" });
       })
       .catch((error) => {
         toast.error(error.message, { position: "top-right" });
       });
   };
-
-  const handleRequestOvertime = () => {
-    fetch(`${api_url}/Attendance/RequestOvertime`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        employeeId,
-        date: selectedDate,
-        startTime: overtimeStartTime,
-        totalHours: parseFloat(overtimeHours),
-        reason: "Đề xuất tăng ca",
-      }),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || "Đã có lỗi xảy ra!");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setOvertimeModalOpen(false);
-        toast.success("Đề xuất tăng ca thành công", { position: "top-right" });
-      })
-      .catch((error) => {
-        toast.error(error.message, { position: "top-right" });
-      });
-  };
-
   const getColorClass = (dateStr) => {
     const todayStr = format(new Date(), "yyyy-MM-dd");
     const entry = attendance[dateStr];
+
     if (!entry) {
       return dateStr < todayStr ? "bg-red-300 text-white" : "bg-gray-200";
     }
@@ -160,6 +126,7 @@ const Calendar = () => {
 
   const openModal = (date) => {
     const dateStr = format(date, "yyyy-MM-dd");
+    console.log("Ngày được chọn:", dateStr);
     setSelectedDate(dateStr);
     setModalOpen(true);
   };
@@ -168,23 +135,12 @@ const Calendar = () => {
     setCurrentMonth((prev) => prev + direction);
   };
 
-  // Tạo danh sách giờ tăng ca hợp lệ dựa trên workShiftId
-  const getOvertimeHours = () => {
-    const hours = [];
-    if (workShiftId === 1) { // Ca sáng: 6:00 - 14:00, tăng ca từ 14:00 - 22:00
-      for (let i = 14; i <= 22; i++) {
-        hours.push(`${i.toString().padStart(2, "0")}:00`);
-      }
-    } else if (workShiftId === 2) { // Ca chiều: 14:00 - 22:00, tăng ca từ 6:00 - 14:00
-      for (let i = 6; i <= 14; i++) {
-        hours.push(`${i.toString().padStart(2, "0")}:00`);
-      }
-    }
-    return hours;
-  };
-
   const firstDay = new Date(new Date().getFullYear(), currentMonth, 1);
-  const daysInMonth = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate();
+  const daysInMonth = new Date(
+    new Date().getFullYear(),
+    currentMonth + 1,
+    0
+  ).getDate();
   const paddedDates = Array(firstDay.getDay())
     .fill(null)
     .concat(
@@ -197,13 +153,20 @@ const Calendar = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <button className="p-2 bg-gray-300 rounded" onClick={() => changeMonth(-1)}>
+        <button
+          className="p-2 bg-gray-300 rounded"
+          onClick={() => changeMonth(-1)}
+        >
           ◀
         </button>
         <h2 className="text-xl font-bold uppercase">
+          {" "}
           {format(firstDay, "MMMM yyyy", { locale: vi })}
         </h2>
-        <button className="p-2 bg-gray-300 rounded" onClick={() => changeMonth(1)}>
+        <button
+          className="p-2 bg-gray-300 rounded"
+          onClick={() => changeMonth(1)}
+        >
           ▶
         </button>
       </div>
@@ -241,10 +204,15 @@ const Calendar = () => {
             </h2>
             {(() => {
               const now = new Date();
+              const currentHour = now.getHours();
               const todayStr = format(now, "yyyy-MM-dd");
               const isToday = selectedDate === todayStr;
               const hasCheckedIn = attendance[selectedDate]?.checkIn;
               const hasCheckedOut = attendance[selectedDate]?.checkOut;
+
+              console.log("Giờ hiện tại:", currentHour);
+              console.log("Ngày hiện tại:", todayStr);
+              console.log("Trạng thái chấm công:", attendance[selectedDate]);
 
               return (
                 <>
@@ -258,7 +226,7 @@ const Calendar = () => {
 
                   {isToday && !hasCheckedIn && (
                     <button
-                      className="mt-4 p-2 bg-blue-500 text-white rounded mr-4"
+                      className="mt-4 p-2 bg-blue-500 text-white rounded mr-16"
                       onClick={handleCheckIn}
                     >
                       Check-in
@@ -266,18 +234,10 @@ const Calendar = () => {
                   )}
                   {hasCheckedIn && !hasCheckedOut && (
                     <button
-                      className="mt-4 p-2 bg-red-500 text-white rounded mr-4"
+                      className="mt-4 p-2 bg-red-500 text-white rounded mr-16"
                       onClick={handleCheckOut}
                     >
                       Check-out
-                    </button>
-                  )}
-                  {isToday && (
-                    <button
-                      className="mt-4 p-2 bg-green-500 text-white rounded mr-4"
-                      onClick={() => setOvertimeModalOpen(true)}
-                    >
-                      Đề xuất tăng ca
                     </button>
                   )}
                 </>
@@ -292,53 +252,7 @@ const Calendar = () => {
           </div>
         </div>
       )}
-
-      {overtimeModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg">
-            <h2 className="text-xl font-bold mb-2">Đề xuất tăng ca</h2>
-            <div className="mb-4">
-              <label className="block mb-1">Giờ bắt đầu:</label>
-              <select
-                value={overtimeStartTime}
-                onChange={(e) => setOvertimeStartTime(e.target.value)}
-                className="p-2 border rounded w-full"
-              >
-                <option value="">Chọn giờ</option>
-                {getOvertimeHours().map((hour) => (
-                  <option key={hour} value={hour}>
-                    {hour}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1">Số giờ tăng ca:</label>
-              <input
-                type="number"
-                value={overtimeHours}
-                onChange={(e) => setOvertimeHours(e.target.value)}
-                className="p-2 border rounded w-full"
-                min="1"
-                step="0.5"
-              />
-            </div>
-            <button
-              className="mt-4 p-2 bg-blue-500 text-white rounded mr-4"
-              onClick={handleRequestOvertime}
-            >
-              Đề xuất
-            </button>
-            <button
-              className="mt-4 p-2 bg-gray-400 text-white rounded"
-              onClick={() => setOvertimeModalOpen(false)}
-            >
-              Hủy
-            </button>
-          </div>
-        </div>
-      )}
-
+      {/* thông báo trạng thái */}
       {checkInMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded shadow-lg">
@@ -350,10 +264,7 @@ const Calendar = () => {
               <strong>Thời gian:</strong> {checkInMessage.time}
             </p>
             <p>
-              <strong>Ca làm:</strong> {checkInMessage.shift}
-            </p>
-            <p>
-              <strong>Tăng ca:</strong> {checkInMessage.overtime}
+              <strong>Tiền phạt:</strong> {checkInMessage.fine}
             </p>
             <button
               className="mt-4 p-2 bg-gray-400 text-white rounded"

@@ -181,7 +181,7 @@ export default function StaffManager() {
       closeModal();
       fetchStaff();
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Tên đang nhập đã tồn tại !";
+      const errorMessage = error.response?.data?.message || "Đã có lỗi xảy ra!";
       toast.error(errorMessage, { position: "top-right" });
     }
   };

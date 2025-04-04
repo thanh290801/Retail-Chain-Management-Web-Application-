@@ -5,7 +5,6 @@ using RCM.Backend.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace RCM.Backend.Controllers
 {
@@ -15,43 +14,122 @@ namespace RCM.Backend.Controllers
     {
         private readonly RetailChainContext _context;
         private readonly IConfiguration _configuration;
-        private static readonly TimeSpan MorningShiftStart = TimeSpan.FromHours(6); // 6:00 AM
-        private static readonly TimeSpan AfternoonShiftStart = TimeSpan.FromHours(14); // 2:00 PM
 
         public AttendanceController(RetailChainContext context, IConfiguration configuration)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _context = context;
+            _configuration = configuration;
         }
-
         [HttpPost("CheckIn")]
         public async Task<IActionResult> CheckIn([FromBody] CheckInRequest request)
         {
-            if (!ModelState.IsValid || request?.EmployeeId <= 0)
-                return BadRequest(new { Message = "Dữ liệu không hợp lệ." });
+            if (request == null || request.EmployeeId <= 0)
+            {
+                return BadRequest("Dữ liệu không hợp lệ.");
+            }
 
-            var employee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.EmployeeId == request.EmployeeId);
+            var employee = await _context.Employees.FindAsync(request.EmployeeId);
             if (employee == null)
+            {
                 return NotFound("Không tìm thấy nhân viên.");
+            }
 
-            if (!employee.WorkShiftId.HasValue || (employee.WorkShiftId != 1 && employee.WorkShiftId != 2))
-                return BadRequest("Nhân viên chưa được setup ca làm việc hợp lệ.");
+            if (!employee.WorkShiftId.HasValue)
+            {
+                return BadRequest("Nhân viên chưa được setup ca làm việc.");
+            }
 
             var now = DateTime.Now;
             var currentTime = now.TimeOfDay;
 
-            var (shift, status, lateDuration, isOvertimeApproved) = await ProcessCheckInLogic(
-                request.EmployeeId, employee.WorkShiftId.Value, now, currentTime);
+            var morningShiftStart = new TimeSpan(6, 0, 0);    // 6:00 AM
+            var morningShiftEnd = new TimeSpan(13, 0, 0);     // 1:00 PM
+            var afternoonShiftStart = new TimeSpan(13, 0, 0); // 1:00 PM
+            var afternoonShiftEnd = new TimeSpan(20, 0, 0);   // 8:00 PM
+            var gracePeriod = new TimeSpan(0, 15, 0);         // 15-minute grace period
 
-            if (status == "Already checked in for this shift")
-                return BadRequest($"Bạn đã check-in cho {shift} trong ngày hôm nay.");
+            string shift;
+            string status;
+            int? onTime = null;
+            bool isOvertimeApproved = false;
 
-            if (status == "Overtime already approved for another employee today")
-                return BadRequest("Đã có nhân viên khác được duyệt tăng ca hôm nay.");
+            // Kiểm tra xem có yêu cầu tăng ca được phê duyệt không
+            var approvedOvertime = await _context.OvertimeRecords
+                .FirstOrDefaultAsync(o => o.EmployeeId == request.EmployeeId
+                    && o.Date == now.Date
+                    && o.IsApproved == true);
 
-            if (status == "Cannot overtime during regular shift")
-                return BadRequest("Không thể check-in tăng ca trong giờ ca chính.");
+            // Kiểm tra xem đã check-in hôm nay chưa
+            var existingCheckInToday = await _context.AttendanceCheckIns
+                .AnyAsync(a => a.EmployeeId == request.EmployeeId
+                    && a.AttendanceDate == now.Date);
+
+            if (approvedOvertime != null)
+            {
+                // Nếu có tăng ca được duyệt
+                var existingOvertimeCheckIn = await _context.AttendanceCheckIns
+                    .AnyAsync(a => a.EmployeeId == request.EmployeeId
+                        && a.AttendanceDate == now.Date
+                        && a.Shift == "Tăng ca");
+
+                if (existingOvertimeCheckIn)
+                {
+                    return BadRequest("Bạn đã check-in cho tăng ca hôm nay.");
+                }
+
+                isOvertimeApproved = true;
+                shift = "Tăng ca";
+                status = "On Time";
+                onTime = 2; // Tăng ca
+            }
+            else
+            {
+                // Nếu không có tăng ca, kiểm tra khung giờ bình thường
+                if (existingCheckInToday)
+                {
+                    return BadRequest("Bạn đã check-in hôm nay. Không thể check-in lại trừ khi có yêu cầu tăng ca được duyệt.");
+                }
+
+                if (currentTime >= morningShiftStart && currentTime < afternoonShiftStart)
+                {
+                    shift = "Ca sáng";
+                    if (currentTime <= (morningShiftStart + gracePeriod))
+                    {
+                        status = "On Time";
+                        onTime = 1; // Đúng giờ ca thường
+                    }
+                    else
+                    {
+                        status = "Late";
+                        onTime = 0; // Trễ ca thường
+                    }
+                }
+                else if (currentTime >= afternoonShiftStart && currentTime <= afternoonShiftEnd)
+                {
+                    shift = "Ca chiều";
+                    if (currentTime <= (afternoonShiftStart + gracePeriod))
+                    {
+                        status = "On Time";
+                        onTime = 1; // Đúng giờ ca thường
+                    }
+                    else
+                    {
+                        status = "Late";
+                        onTime = 0; // Trễ ca thường
+                    }
+                }
+                else
+                {
+                    return BadRequest("Ngoài giờ check-in cho phép (6:00-20:00). Vui lòng xin phép tăng ca nếu cần làm ngoài giờ.");
+                }
+
+                // Kiểm tra ca làm việc được gán
+                string assignedShift = employee.WorkShiftId == 1 ? "Ca sáng" : "Ca chiều";
+                if (shift != assignedShift)
+                {
+                    return BadRequest($"Bạn chỉ được check-in cho {assignedShift}. Vui lòng xin phép tăng ca nếu muốn làm ngoài giờ.");
+                }
+            }
 
             var checkIn = new AttendanceCheckIn
             {
@@ -59,35 +137,19 @@ namespace RCM.Backend.Controllers
                 AttendanceDate = now.Date,
                 Shift = shift,
                 CheckInTime = now,
-                OnTime = status == "On Time" ? 1 : 0
+                OnTime = onTime
             };
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                _context.AttendanceCheckIns.Add(checkIn);
+            _context.AttendanceCheckIns.Add(checkIn);
 
-                if (isOvertimeApproved)
-                {
-                    var overtime = await _context.OvertimeRecords
-                        .FirstOrDefaultAsync(o => o.EmployeeId == request.EmployeeId
-                            && o.Date == now.Date
-                            && o.IsApproved);
-                    if (overtime != null && overtime.StartTime == TimeSpan.Zero)
-                    {
-                        overtime.StartTime = currentTime;
-                        overtime.Reason ??= "Check-in tăng ca";
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-            }
-            catch (Exception ex)
+            // Cập nhật giờ bắt đầu tăng ca nếu chưa có
+            if (isOvertimeApproved && approvedOvertime.StartTime == TimeSpan.Zero)
             {
-                await transaction.RollbackAsync();
-                return StatusCode(500, new { Message = "Lỗi khi lưu dữ liệu check-in.", Error = ex.Message });
+                approvedOvertime.StartTime = currentTime;
+                approvedOvertime.Reason = approvedOvertime.Reason ?? "Check-in tăng ca";
             }
+
+            await _context.SaveChangesAsync();
 
             return Ok(new
             {
@@ -97,104 +159,188 @@ namespace RCM.Backend.Controllers
                 Shift = shift,
                 Status = status,
                 CheckInTime = now.ToString("dd/MM/yyyy HH:mm:ss"),
-                LateDuration = lateDuration > TimeSpan.Zero ? $"{lateDuration.Hours:D2}:{lateDuration.Minutes:D2}:{lateDuration.Seconds:D2}" : null,
+                OnTime = onTime == 2 ? "Tăng ca" : (onTime == 1 ? "Đúng giờ" : (onTime == 0 ? "Trễ" : null)),
                 Overtime = isOvertimeApproved ? "Check-in theo yêu cầu tăng ca" : "Không tăng ca"
             });
         }
-
         [HttpPost("CheckOut")]
         public async Task<IActionResult> CheckOut([FromBody] CheckOutRequest request)
         {
-            if (!ModelState.IsValid || request?.EmployeeId <= 0)
-                return BadRequest(new { Message = "Dữ liệu không hợp lệ." });
+            if (request == null || request.EmployeeId <= 0)
+            {
+                return BadRequest("Dữ liệu không hợp lệ.");
+            }
 
             var employee = await _context.Employees.FindAsync(request.EmployeeId);
             if (employee == null)
-                return NotFound(new { Message = "Không tìm thấy nhân viên." });
+            {
+                return NotFound("Không tìm thấy nhân viên.");
+            }
+
+            if (!employee.WorkShiftId.HasValue)
+            {
+                return BadRequest("Nhân viên chưa được setup ca làm việc.");
+            }
 
             var now = DateTime.Now;
-            var checkIn = await GetLatestCheckIn(request.EmployeeId, now.Date);
+            var currentTime = now.TimeOfDay;
+
+            var morningShiftStart = new TimeSpan(6, 0, 0);    // 6:00 AM
+            var morningShiftEnd = new TimeSpan(13, 0, 0);     // 1:00 PM
+            var afternoonShiftStart = new TimeSpan(13, 0, 0); // 1:00 PM
+            var afternoonShiftEnd = new TimeSpan(20, 0, 0);   // 8:00 PM
+
+            // Tìm check-in gần nhất trong ngày
+            var checkIn = await _context.AttendanceCheckIns
+                .Where(a => a.EmployeeId == request.EmployeeId
+                    && a.AttendanceDate == now.Date)
+                .OrderByDescending(a => a.CheckInTime)
+                .FirstOrDefaultAsync();
+
             if (checkIn == null)
-                return BadRequest(new { Message = "Bạn chưa check-in trong ngày hôm nay." });
+            {
+                return BadRequest("Bạn chưa check-in trong ngày hôm nay. Vui lòng check-in trước khi check-out.");
+            }
 
-            var checkOutCount = await _context.AttendanceCheckOuts
-                .CountAsync(a => a.EmployeeId == request.EmployeeId && a.AttendanceDate == now.Date);
+            // Kiểm tra xem đã check-out cho ca này chưa
+            var existingCheckOut = await _context.AttendanceCheckOuts
+                .FirstOrDefaultAsync(a => a.EmployeeId == request.EmployeeId
+                    && a.AttendanceDate == now.Date
+                    && a.Shift == checkIn.Shift);
 
-            if (await HasExistingCheckOut(request.EmployeeId, now.Date, checkIn.Shift))
-                return BadRequest(new { Message = $"Bạn đã check-out cho {checkIn.Shift} hôm nay." });
+            if (existingCheckOut != null)
+            {
+                return BadRequest($"Bạn đã check-out cho {checkIn.Shift} hôm nay.");
+            }
 
-            var hasOvertime = await _context.OvertimeRecords
-                .AnyAsync(o => o.EmployeeId == request.EmployeeId && o.Date == now.Date && o.IsApproved);
+            // Kiểm tra yêu cầu tăng ca được phê duyệt
+            var approvedOvertime = await _context.OvertimeRecords
+                .FirstOrDefaultAsync(o => o.EmployeeId == request.EmployeeId
+                    && o.Date == now.Date
+                    && o.IsApproved == true
+                    && o.EndTime == TimeSpan.Zero); // Chưa check-out
 
-            if (checkOutCount >= 1 && !hasOvertime)
-                return BadRequest(new { Message = "Chỉ được check-out một lần mỗi ngày trừ khi có tăng ca." });
+            bool isOvertimeApproved = approvedOvertime != null;
+            string shift = checkIn.Shift;
+            string status = "Normal";
+            decimal overtimeHours = 0;
 
-            if (checkOutCount >= 2)
-                return BadRequest(new { Message = "Đã đạt tối đa số lần check-out trong ngày." });
+            // Xác định thời gian kết thúc ca theo lịch
+            TimeSpan shiftEnd = shift switch
+            {
+                "Ca sáng" => morningShiftEnd,
+                "Ca chiều" => afternoonShiftEnd,
+                "Tăng ca" => currentTime, // Tăng ca không có giờ kết thúc cố định
+                _ => TimeSpan.Zero
+            };
 
-            var (status, lateDuration) = ProcessCheckOutLogic(checkIn, now);
+            if (now <= checkIn.CheckInTime)
+            {
+                return BadRequest("Check-out không hợp lệ. Phải sau giờ check-in.");
+            }
+
+            if (!isOvertimeApproved && shift != "Tăng ca")
+            {
+                // Kiểm tra giờ check-out cho ca thường
+                if (currentTime < shiftEnd)
+                {
+                    return BadRequest($"Check-out không hợp lệ. Phải sau {(shift == "Ca sáng" ? "13:00" : "20:00")}.");
+                }
+                if (currentTime > shiftEnd)
+                {
+                    overtimeHours = (decimal)(currentTime - shiftEnd).TotalHours;
+                    status = "Overtime (Unapproved)";
+                }
+            }
 
             var checkOut = new AttendanceCheckOut
             {
                 EmployeeId = request.EmployeeId,
                 AttendanceDate = now.Date,
-                Shift = checkIn.Shift,
+                Shift = shift,
                 CheckOutTime = now
             };
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            _context.AttendanceCheckOuts.Add(checkOut);
+
+            // Xử lý tăng ca
+            if (isOvertimeApproved && shift == "Tăng ca")
             {
-                _context.AttendanceCheckOuts.Add(checkOut);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                approvedOvertime.EndTime = currentTime;
+                approvedOvertime.TotalHours = (decimal)(now - checkIn.CheckInTime).TotalHours;
+                approvedOvertime.Reason = approvedOvertime.Reason ?? "Check-out tăng ca";
+                status = "Overtime (Approved)";
+                overtimeHours = approvedOvertime.TotalHours;
             }
-            catch (Exception ex)
+            else if (overtimeHours > 0)
             {
-                await transaction.RollbackAsync();
-                return StatusCode(500, new { Message = "Lỗi khi lưu dữ liệu check-out.", Error = ex.Message });
+                // Ghi nhận tăng ca chưa duyệt nếu vượt giờ ca thường
+                var overtimeRecord = new OvertimeRecord
+                {
+                    EmployeeId = request.EmployeeId,
+                    Date = now.Date,
+                    StartTime = shiftEnd,
+                    EndTime = currentTime,
+                    TotalHours = overtimeHours,
+                    Reason = $"Check-out vượt giờ - {shift}",
+                    IsApproved = false
+                };
+                _context.OvertimeRecords.Add(overtimeRecord);
             }
+
+            await _context.SaveChangesAsync();
 
             return Ok(new
             {
                 Message = "Check-out thành công.",
                 EmployeeId = employee.EmployeeId,
                 EmployeeName = employee.FullName,
-                Shift = checkIn.Shift,
+                Shift = shift,
                 CheckInTime = checkIn.CheckInTime.ToString("dd/MM/yyyy HH:mm:ss"),
                 CheckOutTime = now.ToString("dd/MM/yyyy HH:mm:ss"),
                 Status = status,
-                LateDuration = lateDuration > TimeSpan.Zero ? $"{lateDuration.Hours:D2}:{lateDuration.Minutes:D2}:{lateDuration.Seconds:D2}" : null
+                Overtime = isOvertimeApproved
+                    ? $"Tăng ca được duyệt - {FormatTimeSpan(overtimeHours)}"
+                    : (overtimeHours > 0 ? $"Tăng ca chưa duyệt - {FormatTimeSpan(overtimeHours)}" : "Không tăng ca")
             });
         }
 
+        // Phương thức hỗ trợ để định dạng thời gian
+        private string FormatTimeSpan(decimal hours)
+        {
+            TimeSpan time = TimeSpan.FromHours((double)hours);
+            int hrs = time.Hours;
+            int mins = time.Minutes;
+            int secs = time.Seconds;
+            return $"{hrs:D2}:{mins:D2}:{secs:D2}";
+        }
         [HttpPost("RequestOvertime")]
         public async Task<IActionResult> RequestOvertime([FromBody] OvertimeRequest request)
         {
-            if (!ModelState.IsValid || request?.EmployeeId <= 0 || request.TotalHours <= 0)
+            if (request == null || request.EmployeeId <= 0 || request.Date == null || request.TotalHours <= 0)
+            {
                 return BadRequest(new { Message = "Dữ liệu yêu cầu không hợp lệ." });
+            }
 
             var employee = await _context.Employees.FindAsync(request.EmployeeId);
             if (employee == null)
+            {
                 return NotFound(new { Message = "Không tìm thấy nhân viên." });
+            }
 
-            // Kiểm tra xem nhân viên hiện tại đã có đơn tăng ca được duyệt cho ngày đó chưa
-            var existingEmployeeOvertime = await _context.OvertimeRecords
-                .AnyAsync(o => o.Date == request.Date.Date
-                    && o.IsApproved // Chỉ kiểm tra các đơn đã duyệt
-                    && o.EmployeeId == request.EmployeeId);
+            // Kiểm tra xem đã có yêu cầu tăng ca nào cho ngày này chưa
+            var existingRequest = await _context.OvertimeRecords
+                .FirstOrDefaultAsync(o => o.EmployeeId == request.EmployeeId
+                    && o.Date == request.Date.Date);
 
-            if (existingEmployeeOvertime)
-                return BadRequest(new { Message = "Bạn đã được duyệt tăng ca trong ngày hôm đó." });
-
-            // Kiểm tra xem đã có nhân viên khác được duyệt tăng ca cho ngày đó chưa
-            var existingApprovedOvertime = await _context.OvertimeRecords
-                .AnyAsync(o => o.Date == request.Date.Date
-                    && o.IsApproved // Chỉ kiểm tra các đơn đã duyệt
-                    && o.EmployeeId != request.EmployeeId);
-
-            if (existingApprovedOvertime)
-                return BadRequest(new { Message = "Đã có nhân viên khác được duyệt tăng ca cho ngày này." });
+            if (existingRequest != null)
+            {
+                if (!existingRequest.IsApproved || existingRequest.IsApproved == false)
+                {
+                    return BadRequest(new { Message = "Bạn đã gửi yêu cầu tăng ca cho ngày này và đang chờ xét duyệt. Vui lòng đợi kết quả trước khi gửi yêu cầu mới." });
+                }
+                // Nếu đã được duyệt (true) hoặc từ chối (false nhưng đã xử lý), cho phép gửi mới
+            }
 
             var overtimeRecord = new OvertimeRecord
             {
@@ -203,11 +349,11 @@ namespace RCM.Backend.Controllers
                 StartTime = request.StartTime ?? TimeSpan.Zero,
                 EndTime = TimeSpan.Zero,
                 TotalHours = request.TotalHours,
-                Reason = request.Reason ?? "Yêu cầu tăng ca", // Lý do ban đầu của nhân viên
-                IsApproved = false // Trạng thái "Chưa duyệt"
+                Reason = request.Reason ?? "Yêu cầu tăng ca",
+                IsApproved = false // Chưa được duyệt
             };
 
-            await _context.OvertimeRecords.AddAsync(overtimeRecord);
+            _context.OvertimeRecords.Add(overtimeRecord);
             await _context.SaveChangesAsync();
 
             return Ok(new
@@ -217,175 +363,228 @@ namespace RCM.Backend.Controllers
                 EmployeeName = employee.FullName,
                 Date = overtimeRecord.Date.ToString("dd/MM/yyyy"),
                 TotalHours = overtimeRecord.TotalHours,
-                Reason = overtimeRecord.Reason
+                Reason = overtimeRecord.Reason,
+                RequestTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")
             });
         }
         [HttpGet("AttendanceDetail")]
         public async Task<IActionResult> GetAttendance([FromQuery] int employeeId)
         {
             if (employeeId <= 0)
-                return BadRequest(new { Message = "Invalid Employee ID." });
-
-            var records = await GetAttendanceRecords(employeeId);
-            // Trả về mảng rỗng nếu không có bản ghi, thay vì lỗi 404
-            return Ok(records.Select(FormatAttendanceRecord).ToList());
-        }
-
-        #region Helper Methods
-        private async Task<(string shift, string status, TimeSpan lateDuration, bool isOvertimeApproved)> ProcessCheckInLogic(
-            int employeeId, int workShiftId, DateTime now, TimeSpan currentTime)
-        {
-            string regularShiftName = workShiftId == 1 ? "Ca sáng" : "Ca chiều";
-            TimeSpan regularShiftStart = workShiftId == 1 ? MorningShiftStart : AfternoonShiftStart;
-            TimeSpan regularShiftEnd = workShiftId == 1 ? TimeSpan.FromHours(14) : TimeSpan.FromHours(22);
-
-            if (await _context.AttendanceCheckIns.AnyAsync(a => a.EmployeeId == employeeId
-                && a.AttendanceDate == now.Date
-                && a.Shift == regularShiftName))
-                return (regularShiftName, "Already checked in for this shift", TimeSpan.Zero, false);
-
-            var overtime = await _context.OvertimeRecords
-                .FirstOrDefaultAsync(o => o.EmployeeId == employeeId
-                    && o.Date == now.Date
-                    && o.IsApproved);
-
-            if (overtime != null)
             {
-                if (await _context.AttendanceCheckIns.AnyAsync(a => a.EmployeeId == employeeId
-                    && a.AttendanceDate == now.Date
-                    && a.Shift == "Tăng ca"))
-                    return ("Tăng ca", "Already checked in for this shift", TimeSpan.Zero, false);
-
-                var existingApprovedOvertime = await _context.OvertimeRecords
-                    .AnyAsync(o => o.Date == now.Date
-                        && o.IsApproved
-                        && o.EmployeeId != employeeId);
-
-                if (existingApprovedOvertime)
-                    return (regularShiftName, "Overtime already approved for another employee today", TimeSpan.Zero, false);
-
-                bool isDuringRegularShift = (currentTime >= regularShiftStart && currentTime <= regularShiftEnd);
-                if (isDuringRegularShift)
-                    return (regularShiftName, "Cannot overtime during regular shift", TimeSpan.Zero, false);
-
-                TimeSpan overtimeStart = workShiftId == 1 ? TimeSpan.FromHours(12) : TimeSpan.FromHours(22);
-                TimeSpan overtimeEnd = workShiftId == 1 ? TimeSpan.FromHours(22) : TimeSpan.FromHours(12);
-
-                bool isValidOvertimeTime;
-                if (workShiftId == 2)
-                {
-                    isValidOvertimeTime = currentTime >= TimeSpan.FromHours(22) || currentTime <= TimeSpan.FromHours(12);
-                }
-                else
-                {
-                    isValidOvertimeTime = currentTime >= TimeSpan.FromHours(12) && currentTime <= TimeSpan.FromHours(22);
-                }
-
-                if (!isValidOvertimeTime)
-                    return ("Tăng ca", "Overtime check-in time is not allowed for your shift", TimeSpan.Zero, false);
-
-                TimeSpan overtimeStartTime = overtime.StartTime ?? TimeSpan.Zero;
-                TimeSpan lateDuration = currentTime > overtimeStartTime ? currentTime - overtimeStartTime : TimeSpan.Zero;
-                string status = lateDuration == TimeSpan.Zero ? "On Time" : "Late";
-
-                return ("Tăng ca", status, lateDuration, true);
+                return BadRequest("Invalid Employee ID.");
             }
 
-            TimeSpan regularLateDuration = currentTime > regularShiftStart ? currentTime - regularShiftStart : TimeSpan.Zero;
-            bool isOnTime = regularLateDuration == TimeSpan.Zero;
+            var morningShiftStart = new TimeSpan(6, 0, 0);    // 6:00 AM
+            var afternoonShiftStart = new TimeSpan(13, 0, 0); // 1:00 PM
+            var gracePeriod = new TimeSpan(0, 15, 0);
 
-            return (regularShiftName, isOnTime ? "On Time" : "Late", regularLateDuration, false);
-        }
-
-        private (string status, TimeSpan lateDuration) ProcessCheckOutLogic(AttendanceCheckIn checkIn, DateTime now)
-        {
-            TimeSpan shiftEndTime = checkIn.Shift == "Ca sáng" ? TimeSpan.FromHours(14) :
-                                   checkIn.Shift == "Ca chiều" ? TimeSpan.FromHours(22) :
-                                   TimeSpan.FromHours(24);
-
-            TimeSpan currentTime = now.TimeOfDay;
-            TimeSpan lateDuration = currentTime < shiftEndTime ? shiftEndTime - currentTime : TimeSpan.Zero;
-            string status = lateDuration == TimeSpan.Zero ? "On Time" : "Early";
-
-            return (status, lateDuration);
-        }
-
-        private async Task<AttendanceCheckIn?> GetLatestCheckIn(int employeeId, DateTime date)
-        {
-            return await _context.AttendanceCheckIns
-                .Where(a => a.EmployeeId == employeeId && a.AttendanceDate == date)
-                .OrderByDescending(a => a.CheckInTime)
-                .FirstOrDefaultAsync();
-        }
-
-        private async Task<bool> HasExistingCheckOut(int employeeId, DateTime date, string shift)
-        {
-            return await _context.AttendanceCheckOuts
-                .AnyAsync(a => a.EmployeeId == employeeId && a.AttendanceDate == date && a.Shift == shift);
-        }
-
-        private async Task<List<AttendanceRecord>> GetAttendanceRecords(int employeeId)
-        {
-            var records = await _context.AttendanceCheckIns
+            var attendanceRecords = await _context.AttendanceCheckIns
                 .Where(a => a.EmployeeId == employeeId)
-                .Join(_context.Employees,
-                    ci => ci.EmployeeId,
-                    e => e.EmployeeId,
-                    (ci, e) => new { CheckIn = ci, Employee = e })
                 .GroupJoin(_context.AttendanceCheckOuts,
-                    ci => new { ci.CheckIn.EmployeeId, ci.CheckIn.AttendanceDate, ci.CheckIn.Shift },
+                    ci => new { ci.EmployeeId, ci.AttendanceDate, ci.Shift },
                     co => new { co.EmployeeId, co.AttendanceDate, co.Shift },
-                    (ci, coGroup) => new { ci.CheckIn, ci.Employee, CheckOuts = coGroup })
-                .SelectMany(x => x.CheckOuts.DefaultIfEmpty(), (ci, co) => new AttendanceRecord
+                    (ci, coGroup) => new { CheckIn = ci, CheckOuts = coGroup })
+                .SelectMany(x => x.CheckOuts.DefaultIfEmpty(), (ci, co) => new
                 {
                     AttendanceDate = ci.CheckIn.AttendanceDate,
                     Shift = ci.CheckIn.Shift,
                     CheckInTime = ci.CheckIn.CheckInTime,
-                    CheckOutTime = co != null ? co.CheckOutTime : null,
-                    WorkShiftId = ci.Employee.WorkShiftId
+                    CheckOutTime = co != null ? co.CheckOutTime : (DateTime?)null
                 })
                 .OrderByDescending(a => a.AttendanceDate)
                 .ThenBy(a => a.Shift)
                 .ToListAsync();
 
-            return records;
-        }
+            if (attendanceRecords == null || attendanceRecords.Count == 0)
+            {
+                return NotFound("No attendance records found.");
+            }
 
-        private object FormatAttendanceRecord(AttendanceRecord a)
-        {
-            TimeSpan shiftStart = a.Shift == "Ca sáng" ? MorningShiftStart :
-                                 a.Shift == "Ca chiều" ? AfternoonShiftStart :
-                                 TimeSpan.Zero;
-            TimeSpan lateDuration = a.Shift == "Tăng ca" || a.CheckInTime.TimeOfDay <= shiftStart
-                ? TimeSpan.Zero
-                : a.CheckInTime.TimeOfDay - shiftStart;
-            string status = a.Shift == "Tăng ca" ? "Overtime" : (lateDuration == TimeSpan.Zero ? "On Time" : "Late");
-
-            return new
+            var formattedRecords = attendanceRecords.Select(a => new
             {
                 AttendanceDate = a.AttendanceDate.ToString("dd/MM/yyyy"),
-                Shift = a.Shift,
+                a.Shift,
                 CheckInTime = a.CheckInTime.ToString("dd/MM/yyyy HH:mm:ss"),
-                CheckOutTime = a.CheckOutTime.HasValue ? a.CheckOutTime.Value.ToString("dd/MM/yyyy HH:mm:ss") : null,
-                Status = status,
-                LateDuration = lateDuration > TimeSpan.Zero ? $"{lateDuration.Hours:D2}:{lateDuration.Minutes:D2}:{lateDuration.Seconds:D2}" : null,
-                WorkShiftId = a.WorkShiftId
-            };
-        }
-        #endregion
+                CheckOutTime = a.CheckOutTime?.ToString("dd/MM/yyyy HH:mm:ss"),
+                OnTimeStatus = a.Shift == "Ca sáng"
+                    ? (a.CheckInTime.TimeOfDay <= morningShiftStart + gracePeriod ? "On Time" : "Late")
+                    : (a.CheckInTime.TimeOfDay <= afternoonShiftStart + gracePeriod ? "On Time" : "Late"),
+                LateMinutes = a.Shift == "Ca sáng"
+                    ? (a.CheckInTime.TimeOfDay > morningShiftStart + gracePeriod
+                        ? (int)(a.CheckInTime.TimeOfDay - morningShiftStart).TotalMinutes
+                        : 0)
+                    : (a.CheckInTime.TimeOfDay > afternoonShiftStart + gracePeriod
+                        ? (int)(a.CheckInTime.TimeOfDay - afternoonShiftStart).TotalMinutes
+                        : 0)
+            });
 
-        #region Helper Class
-        private class AttendanceRecord
+            return Ok(formattedRecords);
+        }
+
+        [HttpGet("AttendanceReport/Range")]
+        public async Task<IActionResult> GetAttendanceReportByRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
-            public DateTime AttendanceDate { get; set; }
-            public string Shift { get; set; }
-            public DateTime CheckInTime { get; set; }
-            public DateTime? CheckOutTime { get; set; }
-            public int? WorkShiftId { get; set; }
-        }
-        #endregion
+            startDate = startDate.Date;
+            endDate = endDate.Date;
 
-        #region Request Models
+            if (startDate > endDate)
+                return BadRequest("startDate must be earlier than endDate.");
+
+            var allEmployees = await _context.Employees.ToListAsync();
+            var checkIns = await _context.AttendanceCheckIns
+                .Where(a => a.AttendanceDate >= startDate && a.AttendanceDate <= endDate)
+                .Include(a => a.Employee)
+                .ToListAsync();
+            var checkOuts = await _context.AttendanceCheckOuts
+                .Where(a => a.AttendanceDate >= startDate && a.AttendanceDate <= endDate)
+                .ToListAsync();
+
+            var dateRangeReport = new Dictionary<DateTime, object>();
+
+            for (DateTime currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
+            {
+                var attendedRecords = checkIns
+                    .Where(a => a.AttendanceDate.Date == currentDate)
+                    .Select(a => new
+                    {
+                        a.Employee.EmployeeId,
+                        a.Employee.FullName,
+                        AttendanceDate = a.AttendanceDate.ToString("dd/MM/yyyy"),
+                        a.Employee.Phone,
+                        a.Employee.BirthDate,
+                        a.Shift,
+                        CheckInTime = a.CheckInTime.ToString("dd/MM/yyyy HH:mm:ss"),
+                        CheckOutTime = checkOuts
+                            .FirstOrDefault(co => co.EmployeeId == a.EmployeeId
+                                && co.AttendanceDate.Date == currentDate
+                                && co.Shift == a.Shift)?.CheckOutTime.ToString("dd/MM/yyyy HH:mm:ss"),
+                        Status = "Attended"
+                    })
+                    .ToList();
+
+                var attendedEmployeeShifts = attendedRecords
+                    .Select(a => $"{a.EmployeeId}-{a.Shift}")
+                    .ToHashSet();
+
+                var notAttendedEmployees = allEmployees
+                    .SelectMany(e => new[] { "Ca sáng", "Ca chiều" }
+                        .Where(shift => !attendedEmployeeShifts.Contains($"{e.EmployeeId}-{shift}"))
+                        .Select(shift => new
+                        {
+                            e.EmployeeId,
+                            e.FullName,
+                            e.BirthDate,
+                            e.ProfileImage,
+                            Shift = shift,
+                            CheckInTime = (string)null,
+                            CheckOutTime = (string)null,
+                            Status = "Not Attended"
+                        }))
+                    .ToList();
+
+                dateRangeReport[currentDate] = new
+                {
+                    Date = currentDate.ToString("dd/MM/yyyy"),
+                    AttendedRecords = attendedRecords,
+                    NotAttendedRecords = notAttendedEmployees
+                };
+            }
+
+            return Ok(dateRangeReport);
+        }
+
+        [HttpGet("GetEmployees")]
+        public async Task<IActionResult> GetEmployees()
+        {
+            var employees = await _context.Employees
+                .Select(e => new
+                {
+                    e.EmployeeId,
+                    e.FullName,
+                    BirthDate = e.BirthDate.ToString("dd/MM/yyyy"),
+                    e.Gender,
+                    e.Phone,
+                    e.IdentityNumber,
+                    StartDate = e.StartDate.ToString("dd/MM/yyyy")
+                })
+                .ToListAsync();
+
+            return Ok(employees);
+        }
+
+        [HttpGet("CheckAttendanceStatus")]
+        public async Task<IActionResult> CheckAttendanceStatus([FromQuery] int employeeId, [FromQuery] string shift)
+        {
+            if (employeeId <= 0)
+            {
+                return BadRequest("Invalid Employee ID.");
+            }
+
+            if (shift != "Ca sáng" && shift != "Ca chiều")
+            {
+                return BadRequest("Shift must be 'Ca sáng' or 'Ca chiều'.");
+            }
+
+            var employee = await _context.Employees.FindAsync(employeeId);
+            if (employee == null)
+            {
+                return NotFound("Không tìm thấy nhân viên.");
+            }
+
+            var today = DateTime.Today;
+            var morningShiftStart = new TimeSpan(6, 0, 0);    // 6:00 AM
+            var afternoonShiftStart = new TimeSpan(13, 0, 0); // 1:00 PM
+            var gracePeriod = new TimeSpan(0, 15, 0);
+
+            var checkIn = await _context.AttendanceCheckIns
+                .FirstOrDefaultAsync(a => a.EmployeeId == employeeId
+                    && a.AttendanceDate == today
+                    && a.Shift == shift);
+
+            if (checkIn == null)
+            {
+                return Ok(new
+                {
+                    Status = "Not Checked In",
+                    EmployeeId = employeeId,
+                    EmployeeName = employee.FullName,
+                    Shift = shift,
+                    Message = $"Employee has not checked in for {shift} today."
+                });
+            }
+
+            var checkOut = await _context.AttendanceCheckOuts
+                .FirstOrDefaultAsync(a => a.EmployeeId == employeeId
+                    && a.AttendanceDate == today
+                    && a.Shift == shift);
+
+            var onTimeStatus = checkIn.Shift == "Ca sáng"
+                ? (checkIn.CheckInTime.TimeOfDay <= morningShiftStart + gracePeriod ? "On Time" : "Late")
+                : (checkIn.CheckInTime.TimeOfDay <= afternoonShiftStart + gracePeriod ? "On Time" : "Late");
+
+            var lateMinutes = checkIn.Shift == "Ca sáng"
+                ? (checkIn.CheckInTime.TimeOfDay > morningShiftStart + gracePeriod
+                    ? (int)(checkIn.CheckInTime.TimeOfDay - morningShiftStart).TotalMinutes
+                    : 0)
+                : (checkIn.CheckInTime.TimeOfDay > afternoonShiftStart + gracePeriod
+                    ? (int)(checkIn.CheckInTime.TimeOfDay - afternoonShiftStart).TotalMinutes
+                    : 0);
+
+            return Ok(new
+            {
+                Status = checkOut != null ? "Checked Out" : "Checked In",
+                EmployeeId = employeeId,
+                EmployeeName = employee.FullName,
+                AttendanceDate = checkIn.AttendanceDate.ToString("dd/MM/yyyy"),
+                Shift = checkIn.Shift,
+                CheckInTime = checkIn.CheckInTime.ToString("dd/MM/yyyy HH:mm:ss"),
+                CheckOutTime = checkOut?.CheckOutTime.ToString("dd/MM/yyyy HH:mm:ss"),
+                OnTimeStatus = onTimeStatus,
+                LateMinutes = lateMinutes > 0 ? lateMinutes : (int?)null
+            });
+        }
+     
         public class CheckInRequest
         {
             public int EmployeeId { get; set; }
@@ -402,8 +601,7 @@ namespace RCM.Backend.Controllers
             public DateTime Date { get; set; }
             public TimeSpan? StartTime { get; set; }
             public decimal TotalHours { get; set; }
-            public string? Reason { get; set; }
+            public string Reason { get; set; }
         }
-        #endregion
     }
 }

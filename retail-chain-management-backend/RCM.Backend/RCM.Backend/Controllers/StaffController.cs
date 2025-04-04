@@ -617,26 +617,74 @@ namespace RCM.Backend.Controllers
             }
         }
         [HttpGet("ApprovedOvertimeList")]
-        public async Task<IActionResult> GetApprovedOvertimeList(int month, int year)
+        public async Task<IActionResult> GetApprovedOvertimeList(
+     [FromQuery] int? employeeId,
+     [FromQuery] int month,
+     [FromQuery] int year,
+     [FromQuery] bool? isApproved)
         {
-            var records = await _context.OvertimeRecords
-                .Where(o => o.Date.Month == month && o.Date.Year == year)
+            if (month < 1 || month > 12)
+                return BadRequest("Month must be between 1 and 12.");
+            if (year < 1900 || year > DateTime.Now.Year)
+                return BadRequest($"Year must be between 1900 and {DateTime.Now.Year}.");
+            if (employeeId.HasValue && employeeId <= 0)
+                return BadRequest("Invalid Employee ID.");
+
+            var query = _context.OvertimeRecords
+                .Where(o => o.Date.Month == month && o.Date.Year == year);
+
+            if (employeeId.HasValue)
+                query = query.Where(o => o.EmployeeId == employeeId.Value);
+
+            if (isApproved.HasValue)
+                query = query.Where(o => o.IsApproved == isApproved.Value);
+
+            var overtimeRecords = await query
                 .Join(_context.Employees,
                     o => o.EmployeeId,
                     e => e.EmployeeId,
-                    (o, e) => new
-                    {
-                        OvertimeId = o.Id,
-                        EmployeeName = e.FullName,
-                        Date = o.Date.ToString("dd/MM/yyyy"),
-                        TotalHours = o.TotalHours,
-                        Reason = o.Reason,
-                        IsApproved = o.IsApproved,
-                        IsRejected = o.IsRejected // Thêm trường này
-                    })
+                    (o, e) => new { Overtime = o, Employee = e })
+                .OrderByDescending(o => o.Overtime.Date)
+                .AsNoTracking()
                 .ToListAsync();
 
-            return Ok(new { approvedOvertimeRecords = records });
+            var result = overtimeRecords.Select(o => new
+            {
+                OvertimeId = o.Overtime.Id,
+                EmployeeId = o.Employee.EmployeeId,
+                EmployeeName = o.Employee.FullName,
+                Date = o.Overtime.Date.ToString("dd/MM/yyyy"), // Chuyển thành string sau khi lấy dữ liệu
+                StartTime = o.Overtime.StartTime != TimeSpan.Zero ? o.Overtime.StartTime.ToString(@"hh\:mm") : null,
+                EndTime = o.Overtime.EndTime != TimeSpan.Zero ? o.Overtime.EndTime.ToString(@"hh\:mm") : null,
+                TotalHours = o.Overtime.TotalHours > 0 ? o.Overtime.TotalHours.ToString("F2") : null,
+                Reason = o.Overtime.Reason,
+                IsApproved = o.Overtime.IsApproved ? "Đã duyệt" : "Bị từ chối",
+                CheckInTime = o.Overtime.IsApproved
+    ? _context.AttendanceCheckIns
+        .Where(ci => ci.EmployeeId == o.Employee.EmployeeId && ci.AttendanceDate == o.Overtime.Date && ci.Shift == "Tăng ca")
+        .Select(ci => (DateTime?)ci.CheckInTime) // Chuyển về kiểu nullable DateTime
+        .FirstOrDefault()
+        ?.ToString("dd/MM/yyyy HH:mm:ss") // Áp dụng định dạng chuỗi nếu không null
+    : null,
+
+                CheckOutTime = o.Overtime.IsApproved
+    ? _context.AttendanceCheckOuts
+        .Where(co => co.EmployeeId == o.Employee.EmployeeId && co.AttendanceDate == o.Overtime.Date && co.Shift == "Tăng ca")
+        .Select(co => (DateTime?)co.CheckOutTime)
+        .FirstOrDefault()
+        ?.ToString("dd/MM/yyyy HH:mm:ss")
+    : null,
+
+            }).ToList();
+
+            return Ok(new
+            {
+                Month = month,
+                Year = year,
+                EmployeeId = employeeId,
+                EmployeeName = employeeId.HasValue ? _context.Employees.Find(employeeId.Value)?.FullName : "Tất cả nhân viên",
+                ApprovedOvertimeRecords = result
+            });
         }
 
         [HttpGet("download-template")]

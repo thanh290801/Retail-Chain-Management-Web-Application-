@@ -85,41 +85,40 @@ public class PayrollController : ControllerBase
 
     [HttpPost("getAllPayroll")]
     public async Task<IActionResult> CalculateAndSavePayroll(
-     [FromQuery] string? staffId,
-     [FromQuery] string? search,
-     [FromQuery] int month,
-     [FromQuery] int year)
+      [FromQuery] string? staffId,
+      [FromQuery] string? search,
+      [FromQuery] int month,
+      [FromQuery] int year)
     {
         if (month < 1 || month > 12 || year < 1)
         {
             return BadRequest("Tháng hoặc năm không hợp lệ.");
         }
 
+        Console.WriteLine($"API called with month: {month}, year: {year}, staffId: {staffId}, search: {search}");
+
         var startDate = new DateTime(year, month, 1);
         var endDate = startDate.AddMonths(1).AddDays(-1);
         decimal overtimeRate = 50000; // Đơn giá giờ tăng ca
 
-        // Get shift settings
         var shiftSetting = await _context.ShiftSettings
             .FirstOrDefaultAsync(s => s.Month == month && s.Year == year);
         int totalShiftsInMonth = shiftSetting?.TotalShifts ?? 26;
 
-        // Build employee query
         var employeesQuery = _context.Employees.AsNoTracking();
         if (!string.IsNullOrEmpty(search))
             employeesQuery = employeesQuery.Where(e => e.FullName.Contains(search) || e.Phone.Contains(search));
         if (!string.IsNullOrEmpty(staffId))
             employeesQuery = employeesQuery.Where(e => e.EmployeeId.ToString() == staffId);
-
         var employees = await employeesQuery.ToListAsync();
+        var employeeIds = employees.Select(e => e.EmployeeId).ToList();
+
         if (!employees.Any())
         {
             return Ok(new { Message = "Không tìm thấy nhân viên nào.", Data = new List<object>() });
         }
 
-        var employeeIds = employees.Select(e => e.EmployeeId).ToList();
-
-        // Get attendance data
+        // Lấy dữ liệu chấm công
         var attendanceData = await _context.AttendanceCheckIns
             .Where(ci => employeeIds.Contains(ci.EmployeeId) &&
                          ci.AttendanceDate.Month == month &&
@@ -137,16 +136,6 @@ public class PayrollController : ControllerBase
                 })
             .ToListAsync();
 
-        // Calculate work days and shift details
-        var workDaysDict = attendanceData
-            .GroupBy(x => new { x.EmployeeId, x.AttendanceDate.Date })
-            .Select(g => new { g.Key.EmployeeId, g.Key.Date })
-            .GroupBy(x => x.EmployeeId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Count()
-            );
-
         var shiftDetailsDict = attendanceData
             .GroupBy(x => x.EmployeeId)
             .ToDictionary(
@@ -160,61 +149,70 @@ public class PayrollController : ControllerBase
                 }).ToList()
             );
 
+        var workDaysDict = attendanceData
+            .GroupBy(x => x.EmployeeId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(x => x.AttendanceDate.Date).Distinct().Count()
+            );
+
         var overtimeHoursDict = await GetOvertimeHoursAsync(employeeIds, month, year);
+
         var salaryRecords = new List<object>();
 
+        // Xử lý tính toán lương
         foreach (var employee in employees)
         {
-            var employeeId = employee.EmployeeId;
+            // Giả định EmployeeId trong Employee là int, nhưng trong Salary có thể là string
+            var employeeId = employee.EmployeeId; // int
             int totalWorkDays = workDaysDict.GetValueOrDefault(employeeId, 0);
             decimal totalOvertimeHours = overtimeHoursDict.GetValueOrDefault(employeeId, 0);
-
-            // Handle salary calculations with null checks
-            decimal fixedSalary = employee.FixedSalary ?? 0;
-            decimal salaryPerShift = totalShiftsInMonth > 0 ? fixedSalary / totalShiftsInMonth : 0;
-            decimal baseSalary = salaryPerShift * totalWorkDays;
             decimal overtimePay = totalOvertimeHours * overtimeRate;
+            decimal salaryPerShift = (employee.FixedSalary ?? 0) / totalShiftsInMonth; // totalShiftsInMonth là int
+            decimal baseSalary = salaryPerShift * totalWorkDays;
             decimal finalSalary = baseSalary + overtimePay;
 
-            // Get existing salary record
+            // Truy vấn bản ghi lương hiện có
             var existingSalary = await _context.Salaries
-                .FirstOrDefaultAsync(s => s.EmployeeId == employeeId &&
+                .FirstOrDefaultAsync(s => s.EmployeeId == employeeId && // Chuyển int sang string nếu cần
                                         s.StartDate.HasValue &&
                                         s.StartDate.Value.Month == month &&
                                         s.StartDate.Value.Year == year);
 
-            // Get payment status
+            // Truy vấn lịch sử thanh toán
             var paymentHistory = await _context.SalaryPaymentHistories
-                .FirstOrDefaultAsync(p => p.EmployeeId == employeeId &&
+                .FirstOrDefaultAsync(p => p.EmployeeId == employeeId && // Chuyển int sang string nếu cần
                                         p.PaymentDate.HasValue &&
                                         p.PaymentDate.Value.Month == month &&
                                         p.PaymentDate.Value.Year == year);
 
-            bool isPaid = paymentHistory != null;
-            string paymentStatus = isPaid ? "Đã thanh toán" : "Chưa thanh toán";
+            // Chỉ có hai trạng thái: "Đã thanh toán" hoặc "Chưa thanh toán"
+            string paymentStatus = (paymentHistory != null)
+                ? "Đã thanh toán"
+                : "Chưa thanh toán";
 
-            // Update or create salary record if not paid
+            bool isPaid = paymentHistory != null;
+
+            // Chỉ cập nhật lương nếu chưa thanh toán
             if (!isPaid)
             {
                 if (existingSalary != null)
                 {
-                    existingSalary.FixedSalary = (int)fixedSalary;
-                    existingSalary.BonusSalary = (int)overtimePay;
-                    existingSalary.FinalSalary = (int)finalSalary;
+                    existingSalary.FixedSalary = employee.FixedSalary;
+                    existingSalary.BonusSalary = (int)overtimePay; // Ép kiểu về int nếu BonusSalary là int
+                    existingSalary.FinalSalary = (int)finalSalary; // Ép kiểu về int nếu FinalSalary là int
                     existingSalary.WorkingDays = totalWorkDays;
-                    existingSalary.BonusHours = (int)totalOvertimeHours;
-                    existingSalary.SalaryPerShift = (int)salaryPerShift;
-                    existingSalary.StartDate = startDate;
-                    existingSalary.EndDate = endDate;
+                    existingSalary.BonusHours = (int)totalOvertimeHours; // Ép kiểu về int nếu BonusHours là int
+                    existingSalary.SalaryPerShift = (int)salaryPerShift; // Ép kiểu về int nếu SalaryPerShift là int
                     existingSalary.UpdateAt = DateTime.Now;
                     existingSalary.IsCalculated = true;
                 }
                 else
                 {
-                    _context.Salaries.Add(new Salary
+                    var salaryRecord = new Salary
                     {
-                        EmployeeId = employeeId,
-                        FixedSalary = (int)fixedSalary,
+                        EmployeeId = employeeId, // Chuyển int sang string để khớp với model Salary
+                        FixedSalary = employee.FixedSalary,
                         StartDate = startDate,
                         EndDate = endDate,
                         BonusSalary = (int)overtimePay,
@@ -224,17 +222,18 @@ public class PayrollController : ControllerBase
                         SalaryPerShift = (int)salaryPerShift,
                         UpdateAt = DateTime.Now,
                         IsCalculated = true
-                    });
+                    };
+                    _context.Salaries.Add(salaryRecord);
                 }
             }
 
-            // Prepare response data
+            // Thêm dữ liệu vào salaryRecords để trả về
             salaryRecords.Add(new
             {
-                EmployeeId = employeeId,
+                EmployeeId = employeeId,// Chuyển sang string cho đồng nhất
                 EmployeeName = employee.FullName,
                 Phone = employee.Phone,
-                FixedSalary = fixedSalary,
+                FixedSalary = employee.FixedSalary ?? 0,
                 SalaryPerShift = (int)salaryPerShift,
                 TotalWorkDays = totalWorkDays,
                 TotalShiftInMonth = totalShiftsInMonth,
@@ -244,13 +243,14 @@ public class PayrollController : ControllerBase
                 Shifts = shiftDetailsDict.GetValueOrDefault(employeeId, new List<ShiftDetail>()),
                 IdentityNumber = employee.IdentityNumber,
                 Hometown = employee.Hometown,
-                UpdateAt = existingSalary?.UpdateAt ?? DateTime.Now,
-                PaymentStatus = paymentStatus
+                UpdateAt =employee.UpdatedAt,
+                PaymentStatus = paymentStatus // Chỉ trả về "Đã thanh toán" hoặc "Chưa thanh toán"
             });
         }
 
         await _context.SaveChangesAsync();
-        return Ok(salaryRecords);
+
+        return Ok( salaryRecords );
     }
     private async Task<Dictionary<int, decimal>> GetOvertimeHoursAsync(List<int> employeeIds, int month, int year)
     {
@@ -769,56 +769,49 @@ public class PayrollController : ControllerBase
         return Ok(new { Message = "Yêu cầu làm thêm giờ đã được gửi, chờ admin phê duyệt." });
     }
 
-    [HttpPut("reject-overtime/{id}")]
-    public async Task<IActionResult> RejectOvertime(int id)
-    {
-        var overtimeRecord = await _context.OvertimeRecords.FindAsync(id);
-        if (overtimeRecord == null)
-        {
-            return NotFound(new { Message = "Không tìm thấy yêu cầu tăng ca." });
-        }
-
-        if (overtimeRecord.IsApproved)
-        {
-            return BadRequest(new { Message = "Yêu cầu tăng ca này đã được duyệt, không thể từ chối." });
-        }
-
-        if (overtimeRecord.IsRejected)
-        {
-            return BadRequest(new { Message = "Yêu cầu tăng ca này đã bị từ chối trước đó." });
-        }
-
-        overtimeRecord.IsApproved = false;
-        overtimeRecord.IsRejected = true; // Đánh dấu bị từ chối
-        await _context.SaveChangesAsync();
-
-        return Ok(new { Message = "Yêu cầu tăng ca đã bị từ chối." });
-    }
     [HttpPut("approve-overtime/{id}")]
     public async Task<IActionResult> ApproveOvertime(int id)
     {
         var overtimeRecord = await _context.OvertimeRecords.FindAsync(id);
         if (overtimeRecord == null)
         {
-            return NotFound(new { Message = "Không tìm thấy yêu cầu tăng ca." });
+            return NotFound("Không tìm thấy yêu cầu làm thêm giờ.");
         }
 
         if (overtimeRecord.IsApproved)
         {
-            return BadRequest(new { Message = "Yêu cầu tăng ca này đã được duyệt trước đó." });
-        }
-
-        if (overtimeRecord.IsRejected)
-        {
-            return BadRequest(new { Message = "Yêu cầu tăng ca này đã bị từ chối trước đó." });
+            return BadRequest("Yêu cầu này đã được phê duyệt trước đó.");
         }
 
         overtimeRecord.IsApproved = true;
-        overtimeRecord.IsRejected = false; // Đảm bảo không bị từ chối
         await _context.SaveChangesAsync();
 
-        return Ok(new { Message = "Yêu cầu tăng ca đã được duyệt thành công." });
+        return Ok(new { Message = "Yêu cầu làm thêm giờ đã được phê duyệt." });
     }
+    [HttpPut("reject-overtime/{id}")]
+    public async Task<IActionResult> RejectOvertime(int id)
+    {
+        var overtimeRecord = await _context.OvertimeRecords.FindAsync(id);
+        if (overtimeRecord == null)
+        {
+            return NotFound("Không tìm thấy yêu cầu làm thêm giờ.");
+        }
+
+        // Nếu yêu cầu đã được phê duyệt thì không thể từ chối
+        if (overtimeRecord.IsApproved)
+        {
+            return BadRequest("Yêu cầu này đã được phê duyệt trước đó.");
+        }
+
+        // Đánh dấu yêu cầu là không được phê duyệt (từ chối)
+        overtimeRecord.IsApproved = false;
+
+        // Lưu thay đổi vào cơ sở dữ liệu
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = "Yêu cầu làm thêm giờ đã bị từ chối." });
+    }
+
 
     // API mới: Thanh toán lương
     [HttpPost("pay-salary")]
