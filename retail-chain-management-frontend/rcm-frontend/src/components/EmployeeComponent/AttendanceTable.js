@@ -75,24 +75,7 @@ const AttendanceTable = () => {
         console.log("Bản ghi đầu tiên:", result[0]);
         console.log("WorkShiftId:", result[0].workShiftId);
         setWorkShiftId(result[0].workShiftId);
-      } else {
-        console.log("Không có dữ liệu chấm công, lấy workShiftId từ API Employee...");
-        const employeeResponse = await fetch(
-          `${api_url}/Employee/GetEmployee?employeeId=${employeeId}`
-        );
-        if (!employeeResponse.ok) {
-          throw new Error("Không thể tải thông tin nhân viên");
-        }
-        const employeeData = await employeeResponse.json();
-        if (employeeData && employeeData.workShiftId) {
-          console.log("WorkShiftId từ Employee:", employeeData.workShiftId);
-          setWorkShiftId(employeeData.workShiftId);
-        } else {
-          console.log("Không tìm thấy workShiftId trong thông tin nhân viên.");
-          setWorkShiftId(null);
-        }
-      }
-
+      } 
       calculateWorkDaysAndLates(result);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu chấm công:", error);
@@ -432,7 +415,7 @@ const AttendanceTable = () => {
         </h3>
         <h3 className="text-lg font-bold mb-4">Số lần đi muộn: {lateCount}</h3>
         <h3 className="text-lg font-bold mb-4">
-          Tổng số giờ tăng ca: {totalOvertimeHours.toFixed(2)} giờ
+          Tổng số giờ đã đề xuất tăng ca: {totalOvertimeHours.toFixed(2)} giờ
         </h3>
         {isOwner && (
           <div className="flex justify-between w-full my-4">

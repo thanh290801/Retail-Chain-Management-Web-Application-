@@ -61,7 +61,11 @@ builder.Services.AddControllers()
     {
         options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; // Xử lý vòng lặp tham chiếu
     });
-
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole(); // Hiển thị log trên console
+    logging.SetMinimumLevel(LogLevel.Information);
+});
 builder.Services.AddHostedService<AutoPayrollService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

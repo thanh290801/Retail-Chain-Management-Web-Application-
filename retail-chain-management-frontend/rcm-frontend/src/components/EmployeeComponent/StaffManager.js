@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Header from "../../headerComponent/header";
 import { useNavigate } from "react-router-dom";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // Thêm icon từ react-icons
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const shifts = [
   { id: 1, name: "Ca sáng" },
@@ -29,7 +29,10 @@ export default function StaffManager() {
   const [profileImages, setProfileImages] = useState({});
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showPassword, setShowPassword] = useState(false); // State để hiển thị mật khẩu
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false); // State cho modal setup
+  const [staffToSetup, setStaffToSetup] = useState(null); // Nhân viên được chọn để setup
+
   const api_url = process.env.REACT_APP_API_URL;
   const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
@@ -38,6 +41,12 @@ export default function StaffManager() {
       fixedSalary: "",
     },
   });
+  const {
+    register: registerSetup,
+    handleSubmit: handleSetupSubmit,
+    setValue: setSetupValue,
+    watch: watchSetup,
+  } = useForm(); // Form cho modal setup
   const navigate = useNavigate();
 
   const goToSalaryCal = (staffId) => {
@@ -102,14 +111,14 @@ export default function StaffManager() {
       await axios.put(`${api_url}/Staff/update-employee-Active/${staffToChangeStatus}`, {
         isActive: !currentStatus,
       });
-      toast.success("Cập nhật trạng thái nhân viên thành công!", { 
-        position: "top-right" 
+      toast.success("Cập nhật trạng thái nhân viên thành công!", {
+        position: "top-right",
       });
       fetchStaff();
       setIsStatusModalOpen(false);
     } catch (error) {
-      toast.error("Lỗi khi cập nhật trạng thái!", { 
-        position: "top-right" 
+      toast.error("Lỗi khi cập nhật trạng thái!", {
+        position: "top-right",
       });
     }
   };
@@ -119,9 +128,8 @@ export default function StaffManager() {
       const response = await axios.get(`${api_url}/Staff/${id}`);
       if (response.data) {
         setSelectedStaff(response.data);
-        console.log(response.data);
         setIsDetailModalOpen(true);
-        setShowPassword(false); // Reset trạng thái hiển thị mật khẩu khi mở modal
+        setShowPassword(false);
       } else {
         toast.error("Không tìm thấy nhân viên!");
       }
@@ -133,14 +141,13 @@ export default function StaffManager() {
 
   const fetchProfileImage = async (employId) => {
     try {
-      const response = await axios.get(`https://localhost:5000/api/Staff/staff/image/${employId}`, {
-        responseType: 'blob'
-      });
-      const imageUrl = URL.createObjectURL(response.data);
-      return imageUrl;
+      const response = await axios.get(
+        `https://localhost:5000/api/Staff/staff/image/${employId}`,
+        { responseType: "blob" }
+      );
+      return URL.createObjectURL(response.data);
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        console.error(`Không tìm thấy ảnh cho nhân viên ID: ${employId}`);
         return "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png";
       } else {
         console.error("Lỗi khi lấy ảnh hồ sơ:", error);
@@ -151,7 +158,7 @@ export default function StaffManager() {
 
   const onSubmit = async (data) => {
     const formData = new FormData();
-    formData.append("fullName", data.fullName);    
+    formData.append("fullName", data.fullName);
     formData.append("username", data.username);
     formData.append("passwordHash", data.passwordHash);
     formData.append("role", "Staff");
@@ -164,16 +171,14 @@ export default function StaffManager() {
     formData.append("branchId", data.branchId);
     formData.append("fixedSalary", Number(data.fixedSalary));
     formData.append("workShiftId", data.workShiftId);
-    
+
     if (profileImage) {
       formData.append("avatar", profileImage);
     }
-  
+
     try {
       await axios.post(`${api_url}/Staff/add-employee`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Thêm nhân viên thành công!", {
         position: "top-right",
@@ -181,7 +186,8 @@ export default function StaffManager() {
       closeModal();
       fetchStaff();
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Tên đang nhập đã tồn tại !";
+      const errorMessage =
+        error.response?.data?.message || "Tên đăng nhập đã tồn tại!";
       toast.error(errorMessage, { position: "top-right" });
     }
   };
@@ -197,8 +203,10 @@ export default function StaffManager() {
     setIsModalOpen(false);
     setIsDetailModalOpen(false);
     setIsStatusModalOpen(false);
+    setIsSetupModalOpen(false); // Đóng modal setup
     setStep(1);
     setSelectedStaff(null);
+    setStaffToSetup(null);
     setProfileImage(null);
     reset();
   };
@@ -212,11 +220,21 @@ export default function StaffManager() {
     }
   };
 
+  const handleSetupInputChange = (field, e) => {
+    let rawValue = e.target.value.replace(/\D/g, "");
+    if (rawValue === "") {
+      setSetupValue(field, "");
+    } else {
+      setSetupValue(field, parseInt(rawValue, 10));
+    }
+  };
+
   const updateShift = async (staffId, workShiftId) => {
     try {
-      const response = await axios.put(`${api_url}/Staff/update-employee-workshift/${staffId}`, {
-        workShiftId: workShiftId,
-      });
+      const response = await axios.put(
+        `${api_url}/Staff/update-employee-workshift/${staffId}`,
+        { workShiftId }
+      );
       if (response.status === 200) {
         toast.success(`Cập nhật ca làm việc thành công cho nhân viên`);
       }
@@ -266,9 +284,7 @@ export default function StaffManager() {
     try {
       const response = await axios.get(
         `${api_url}/Staff/export?format=${format}`,
-        {
-          responseType: "blob",
-        }
+        { responseType: "blob" }
       );
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -282,11 +298,48 @@ export default function StaffManager() {
     }
   };
 
+  const openSetupModal = (staffId, currentFixedSalary, currentOvertimeRate) => {
+    setStaffToSetup(staffId);
+    setSetupValue("fixedSalary", currentFixedSalary || "");
+    setSetupValue("overtimeRate", currentOvertimeRate || "");
+    setIsSetupModalOpen(true);
+  };
+
+  const onSetupSubmit = async (data) => {
+    try {
+      // Gọi API setEmployeeSalary
+      if (data.fixedSalary !== "") {
+        await axios.post(`${api_url}/Payroll/setEmployeeSalary`, {
+          employeeId: staffToSetup,
+          fixedSalary: Number(data.fixedSalary),
+        });
+      }
+
+      // Gọi API setEmployeeOvertimeRate
+      if (data.overtimeRate !== "") {
+        await axios.post(`${api_url}/Payroll/setEmployeeOvertimeRate`, {
+          employeeId: staffToSetup,
+          overtimeRate: Number(data.overtimeRate),
+        });
+      }
+
+      toast.success("Thiết lập lương và tỷ lệ tăng ca thành công!", {
+        position: "top-right",
+      });
+      closeModal();
+      fetchStaff();
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Lỗi khi thiết lập lương!";
+      toast.error(errorMessage, { position: "top-right" });
+    }
+  };
+
   return (
     <>
       <Header />
       <div className="p-10 h-screen bg-gray-100">
-        <div className=" mx-auto flex flex-col xl:flex-row justify-between items-center mb-4 space-y-2 xl:space-y-0">
+        <div className="mx-auto flex flex-col xl:flex-row justify-between items-center mb-4 space-y-2 xl:space-y-0">
           <div className="flex flex-col lg:flex-row gap-2 w-full lg:w-1/2">
             <input
               type="text"
@@ -303,19 +356,6 @@ export default function StaffManager() {
             >
               Thêm nhân viên
             </button>
-            {/* <input
-              type="file"
-              accept=".xlsx, .xls, .csv"
-              className="hidden"
-              id="fileInput"
-              onChange={handleFileChange}
-            />
-            <button
-              className="bg-blue-500 text-white px-4 py-2 rounded min-w-[120px]"
-              onClick={() => document.getElementById("fileInput").click()}
-            >
-              Nhập File
-            </button> */}
             <button
               className="bg-green-500 text-white px-4 py-2 rounded min-w-[120px]"
               onClick={() => exportFile("xlsx")}
@@ -347,13 +387,17 @@ export default function StaffManager() {
                   <td className="p-2 text-center">{staff.id}</td>
                   <td className="p-2 flex justify-center">
                     <img
-                      src={profileImages[staff.id] || "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png"}
+                      src={
+                        profileImages[staff.id] ||
+                        "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png"
+                      }
                       alt="Ảnh hồ sơ"
                       width="50"
                       height="50"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png";
+                        e.target.src =
+                          "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png";
                       }}
                     />
                   </td>
@@ -398,24 +442,33 @@ export default function StaffManager() {
                       <span className="text-red-500">Đã nghỉ việc</span>
                     )}
                   </td>
-                  <td className="p-2 text-center">
+                  <td className="p-2 text-center flex justify-center gap-2">
                     <button
                       className={`${
-                        staff.activeStatus ? 'bg-red-500' : 'bg-blue-500'
+                        staff.activeStatus ? "bg-red-500" : "bg-blue-500"
                       } text-white px-2 py-1 rounded`}
                       onClick={(e) => {
                         e.stopPropagation();
                         openStatusModal(staff.id, staff.activeStatus);
                       }}
                     >
-                      {staff.activeStatus ? 'Nghỉ việc' : 'Kích hoạt'}
+                      {staff.activeStatus ? "Nghỉ việc" : "Kích hoạt"}
+                    </button>
+                    <button
+                      className="bg-yellow-500 text-white px-2 py-1 rounded"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openSetupModal(staff.id, staff.fixedSalary, staff.overtimeRate);
+                      }}
+                    >
+                      Setup
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center p-4">
+                <td colSpan="11" className="text-center p-4">
                   Không có dữ liệu
                 </td>
               </tr>
@@ -441,6 +494,8 @@ export default function StaffManager() {
             Sau
           </button>
         </div>
+
+        {/* Modal Thêm nhân viên */}
         {isModalOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
@@ -601,6 +656,8 @@ export default function StaffManager() {
             </div>
           </div>
         )}
+
+        {/* Modal Chi tiết nhân viên */}
         {isDetailModalOpen && selectedStaff && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
@@ -655,10 +712,30 @@ export default function StaffManager() {
                 </p>
                 <p className="font-semibold text-xl">Lương tháng:</p>
                 <p className="text-xl">
-                  {selectedStaff.fixedSalary.toLocaleString("vi-VN")} VNĐ
+                  {selectedStaff.fixedSalary
+                    ? selectedStaff.fixedSalary.toLocaleString("vi-VN") + " VNĐ"
+                    : "Chưa thiết lập"}
+                </p>
+                <p className="font-semibold text-xl">Tỷ lệ tăng ca:</p>
+                <p className="text-xl">
+                  {selectedStaff.overtimeRate
+                    ? selectedStaff.overtimeRate.toLocaleString("vi-VN") + " VNĐ/giờ"
+                    : "Chưa thiết lập"}
                 </p>
               </div>
-              <div className="flex justify-center mt-6">
+              <div className="flex justify-center mt-6 gap-4">
+                <button
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                  onClick={() =>
+                    openSetupModal(
+                      selectedStaff.id,
+                      selectedStaff.fixedSalary,
+                      selectedStaff.overtimeRate
+                    )
+                  }
+                >
+                  Setup lương
+                </button>
                 <button
                   className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                   onClick={closeModal}
@@ -669,6 +746,76 @@ export default function StaffManager() {
             </div>
           </div>
         )}
+
+        {/* Modal Setup lương và tỷ lệ tăng ca */}
+        {isSetupModalOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+            onClick={closeModal}
+          >
+            <div
+              className="bg-white p-6 rounded-lg w-1/3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-lg font-bold mb-4">Thiết lập lương cho nhân viên</h2>
+              <form onSubmit={handleSetupSubmit(onSetupSubmit)}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-medium">Lương cố định (VNĐ)</label>
+                    <input
+                      type="text"
+                      value={
+                        watchSetup("fixedSalary") !== ""
+                          ? new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }).format(watchSetup("fixedSalary"))
+                          : ""
+                      }
+                      onChange={(e) => handleSetupInputChange("fixedSalary", e)}
+                      className="w-full p-2 border rounded"
+                      placeholder="Nhập lương cố định"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium">Tỷ lệ tăng ca (VNĐ/giờ)</label>
+                    <input
+                      type="text"
+                      value={
+                        watchSetup("overtimeRate") !== ""
+                          ? new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }).format(watchSetup("overtimeRate"))
+                          : ""
+                      }
+                      onChange={(e) => handleSetupInputChange("overtimeRate", e)}
+                      className="w-full p-2 border rounded"
+                      placeholder="Nhập tỷ lệ tăng ca"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between mt-6">
+                  <button
+                    type="button"
+                    className="bg-gray-400 text-white px-4 py-2 rounded"
+                    onClick={closeModal}
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-green-500 text-white px-4 py-2 rounded"
+                  >
+                    Lưu
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Thay đổi trạng thái */}
         {isStatusModalOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
@@ -679,14 +826,15 @@ export default function StaffManager() {
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="text-lg font-bold mb-4">
-                Bạn có chắc chắn muốn {currentStatus ? 'cho nhân viên nghỉ việc' : 'kích hoạt lại nhân viên'} không?
+                Bạn có chắc chắn muốn{" "}
+                {currentStatus ? "cho nhân viên nghỉ việc" : "kích hoạt lại nhân viên"} không?
               </h2>
               <div className="flex justify-between">
                 <button
-                  className={`${currentStatus ? 'bg-red-500' : 'bg-blue-500'} text-white px-4 py-2 rounded`}
+                  className={`${currentStatus ? "bg-red-500" : "bg-blue-500"} text-white px-4 py-2 rounded`}
                   onClick={handleStatusChange}
                 >
-                  {currentStatus ? 'Nghỉ việc' : 'Kích hoạt'}
+                  {currentStatus ? "Nghỉ việc" : "Kích hoạt"}
                 </button>
                 <button
                   className="bg-gray-400 text-white px-4 py-2 rounded"

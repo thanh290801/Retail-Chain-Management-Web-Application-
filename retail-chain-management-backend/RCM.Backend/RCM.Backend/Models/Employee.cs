@@ -41,6 +41,7 @@ namespace RCM.Backend.Models
         public bool? IsCheckedIn { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public decimal? OvertimeRate { get; set; }
 
         public virtual Account? Account { get; set; }
         public virtual Warehouse? Branch { get; set; }
