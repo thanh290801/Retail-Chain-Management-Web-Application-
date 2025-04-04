@@ -38,12 +38,18 @@ const AddProductComponent = ({ onSuccess, onCancel }) => {
         const file = e.target.files[0];
         if (!file) return;
 
+        const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+        if (!allowedTypes.includes(file.type)) {
+            alert("Chỉ cho phép các file ảnh định dạng .png, .jpg hoặc .jpeg");
+            return;
+        }
+
         const formData = new FormData();
         formData.append('image', file);
 
         try {
             setUploading(true);
-            const res = await fetch('https://localhost:5000/api/upload', {
+            const res = await fetch('https://localhost:5000/api/upload/image', {
                 method: 'POST',
                 body: formData,
             });
@@ -69,7 +75,7 @@ const AddProductComponent = ({ onSuccess, onCancel }) => {
             alert("Mã vạch đã tồn tại, vui lòng chọn mã khác.");
             return;
         }
-
+    
         if (window.confirm('Bạn có chắc chắn muốn lưu sản phẩm này không?')) {
             try {
                 const res = await fetch('https://localhost:5000/api/products', {
@@ -78,9 +84,8 @@ const AddProductComponent = ({ onSuccess, onCancel }) => {
                     body: JSON.stringify({ ...product, isEnabled: true })
                 });
                 if (res.ok) {
-                    const newProduct = await res.json();
                     alert('Sản phẩm đã được thêm thành công!');
-                    onSuccess(newProduct);
+                    if (onSuccess) onSuccess(); // ✅ Gọi callback reload
                 } else {
                     alert('Có lỗi xảy ra khi thêm sản phẩm!');
                 }
@@ -90,7 +95,7 @@ const AddProductComponent = ({ onSuccess, onCancel }) => {
             }
         }
     };
-
+    
     const handleCancel = () => {
         if (window.confirm('Bạn có chắc chắn muốn hủy thêm sản phẩm không?')) {
             onCancel();
@@ -101,7 +106,6 @@ const AddProductComponent = ({ onSuccess, onCancel }) => {
         <div className="p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">➕ Thêm Sản Phẩm</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Các trường thông tin khác giữ nguyên */}
                 <div>
                     <label className="block font-medium">Tên sản phẩm:</label>
                     <input type="text" name="name" value={product.name} onChange={handleChange} className="w-full p-2 border rounded" required />
@@ -122,6 +126,7 @@ const AddProductComponent = ({ onSuccess, onCancel }) => {
                         <option value="Hộp">Hộp</option>
                         <option value="Gói">Gói</option>
                         <option value="Dây">Dây</option>
+                        <option value="cái">cái</option>
                     </select>
                 </div>
                 <div>
@@ -137,13 +142,12 @@ const AddProductComponent = ({ onSuccess, onCancel }) => {
                     <input type="text" name="category" value={product.category} onChange={handleChange} className="w-full p-2 border rounded" />
                 </div>
 
-                {/* Upload ảnh thực tế */}
                 <div>
-                    <label className="block font-medium">Ảnh sản phẩm:</label>
-                    <input 
-                        type="file" 
-                        accept="image/*" 
-                        className="w-full p-2 border rounded" 
+                    <label className="block font-medium">Ảnh sản phẩm (.png/.jpg):</label>
+                    <input
+                        type="file"
+                        accept=".png,.jpg,.jpeg"
+                        className="w-full p-2 border rounded"
                         onChange={handleImageUpload}
                     />
                     {uploading && <p className="text-blue-500 mt-1">Đang tải ảnh lên...</p>}
@@ -155,12 +159,11 @@ const AddProductComponent = ({ onSuccess, onCancel }) => {
                     )}
                 </div>
 
-                {/* Hành động */}
                 <div className="flex justify-end space-x-4">
                     <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-500 text-white rounded">Hủy</button>
-                    <button 
-                        type="submit" 
-                        className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50" 
+                    <button
+                        type="submit"
+                        className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
                         disabled={barcodeExists || uploading}
                     >
                         Lưu

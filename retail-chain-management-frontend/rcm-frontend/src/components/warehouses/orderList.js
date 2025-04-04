@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Table, Button, Form, Pagination } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import StaffHeaderComponent from "../staffHomeConponent/staffHeader";
 
 const API_URL = "https://localhost:5000/api/orders";
 const SUPPLIER_API_URL = "https://localhost:5000/api/supplier"; // ✅ API lấy danh sách nhà cung cấp
@@ -91,7 +92,9 @@ export function OrderLists() {
     const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
     return (
-        <div className="container mt-4">
+        <div>
+            <StaffHeaderComponent/>
+            <div className="container mt-4">
             <h2>Danh Sách Đơn Hàng</h2>
 
             {/* 🔍 Bộ lọc */}
@@ -167,6 +170,7 @@ export function OrderLists() {
                     <Pagination.Next onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} />
                 </Pagination>
             )}
+        </div>
         </div>
     );
 }

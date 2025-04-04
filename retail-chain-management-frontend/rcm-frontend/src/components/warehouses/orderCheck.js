@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Table, Button, Form, Pagination } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
+import StaffHeaderComponent from "../staffHomeConponent/staffHeader";
 
 const API_URL = "https://localhost:5000/api/orders";
 
@@ -107,7 +108,9 @@ const OrderCheck = () => {
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
     return (
-        <div className="container mt-4">
+        <div>
+            <StaffHeaderComponent/>
+            <div className="container mt-4">
             <h2>Chi Tiết Đơn Hàng #{order.orderId}</h2>
             <h4>Nhà cung cấp: {order.supplierName || "Không có nhà cung cấp"}</h4>
 
@@ -200,6 +203,7 @@ const OrderCheck = () => {
                     )) : <tr><td colSpan="4">Không có Batch nào</td></tr>}
                 </tbody>
             </Table>
+        </div>
         </div>
     );
 };

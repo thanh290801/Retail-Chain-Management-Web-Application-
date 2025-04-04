@@ -1,17 +1,18 @@
 ﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const ProductEdit = () => {
-    const { id } = useParams();
+const ProductEdit = ({ id, onClose, onSuccess }) => {
     const navigate = useNavigate();
-
     const [product, setProduct] = useState({});
     const [originalBarcode, setOriginalBarcode] = useState("");
     const [barcodeError, setBarcodeError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
+    const [imageError, setImageError] = useState("");
 
     useEffect(() => {
+        if (!id) return;
         axios.get(`https://localhost:5000/api/products/${id}`)
             .then((res) => {
                 setProduct(res.data);
@@ -43,12 +44,48 @@ const ProductEdit = () => {
         setProduct(prev => ({ ...prev, [field]: value }));
     };
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
+        if (!allowedTypes.includes(file.type)) {
+            setImageError("Chỉ chấp nhận ảnh định dạng .png, .jpg hoặc .jpeg");
+            return;
+        }
+
+        setImageError("");
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            setUploading(true);
+            const res = await fetch("https://localhost:5000/api/upload/image", {
+                method: "POST",
+                body: formData
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setProduct(prev => ({ ...prev, imageUrl: data.imageUrl }));
+                alert("Tải ảnh lên thành công!");
+            } else {
+                alert("Lỗi khi tải ảnh.");
+            }
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("Lỗi kết nối khi upload.");
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSubmit = () => {
         if (barcodeError) {
             alert("Không thể lưu. Mã barcode bị trùng.");
             return;
         }
-
+    
         axios.put(`https://localhost:5000/api/products/${id}`, {
             name: product.name,
             barcode: product.barcode,
@@ -60,21 +97,20 @@ const ProductEdit = () => {
         })
             .then(() => {
                 alert("Cập nhật sản phẩm thành công!");
-                navigate(-1);
+                if (onClose) onClose();
+                if (onSuccess) onSuccess(); // ✅ Reload danh sách
             })
             .catch((err) => {
                 console.error("Lỗi khi cập nhật sản phẩm:", err.response?.data || err.message);
                 alert("Cập nhật sản phẩm thất bại.");
             });
-
     };
-
-    if (isLoading) return <p>Đang tải...</p>;
+    
+    if (isLoading) return <p className="p-4">Đang tải...</p>;
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
+        <div className="max-w-4xl p-6 overflow-y-auto max-h-screen">
             <h2 className="text-xl font-bold mb-4">📝 Chỉnh sửa sản phẩm</h2>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block mb-1 font-medium">Tên sản phẩm</label>
@@ -95,17 +131,13 @@ const ProductEdit = () => {
                     />
                     {barcodeError && <p className="text-red-500 text-sm mt-1">{barcodeError}</p>}
                 </div>
-
                 <div>
                     <label className="block mb-1 font-medium">Đơn vị</label>
-                    <input
-                        type="text"
-                        className="border rounded px-3 py-2 w-full"
+                    <select
                         value={product.unit || ""}
                         onChange={(e) => handleChange("unit", e.target.value)}
-                        disabled
-                    />
-                    <select name="unit" value={product.unit} onChange={(e) => handleChange("unit", e.target.value)} className="w-full p-2 border rounded">
+                        className="w-full p-2 border rounded"
+                    >
                         <option value="">Chọn đơn vị</option>
                         <option value="Thùng">Thùng</option>
                         <option value="Lon">Lon</option>
@@ -114,10 +146,11 @@ const ProductEdit = () => {
                         <option value="Hộp">Hộp</option>
                         <option value="Gói">Gói</option>
                         <option value="Dây">Dây</option>
+                        <option value="cái">Cái</option>
                     </select>
                 </div>
                 <div>
-                    <label className="block mb-1 font-medium">Nhóm hàng (category)</label>
+                    <label className="block mb-1 font-medium">Nhóm hàng</label>
                     <input
                         type="text"
                         className="border rounded px-3 py-2 w-full"
@@ -125,7 +158,6 @@ const ProductEdit = () => {
                         onChange={(e) => handleChange("category", e.target.value)}
                     />
                 </div>
-
                 <div>
                     <label className="block mb-1 font-medium">Khối lượng (gram)</label>
                     <input
@@ -146,13 +178,15 @@ const ProductEdit = () => {
                 </div>
 
                 <div className="col-span-2">
-                    <label className="block mb-1 font-medium">Link ảnh</label>
+                    <label className="block mb-1 font-medium">Tải ảnh sản phẩm (.png/.jpg):</label>
                     <input
-                        type="text"
-                        className="border rounded px-3 py-2 w-full"
-                        value={product.imageUrl || ""}
-                        onChange={(e) => handleChange("imageUrl", e.target.value)}
+                        type="file"
+                        accept=".png,.jpg,.jpeg"
+                        className="w-full p-2 border rounded"
+                        onChange={handleImageUpload}
                     />
+                    {uploading && <p className="text-blue-500 mt-1">Đang tải ảnh...</p>}
+                    {imageError && <p className="text-red-500 mt-1">{imageError}</p>}
                 </div>
             </div>
 
@@ -165,13 +199,7 @@ const ProductEdit = () => {
                 />
             )}
 
-            <div className="mt-6 flex justify-between items-center">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="text-blue-600 hover:underline"
-                >
-                    ← Quay lại
-                </button>
+            <div className="mt-6 flex justify-end">
                 <button
                     onClick={handleSubmit}
                     className="bg-green-600 text-white px-4 py-2 rounded"
@@ -179,7 +207,6 @@ const ProductEdit = () => {
                     💾 Lưu thay đổi
                 </button>
             </div>
-            
         </div>
     );
 };

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import StaffHeaderComponent from '../staffHomeConponent/staffHeader';
 
 const ITEMS_PER_PAGE = 10;
 const PRODUCTS_PER_PAGE = 5;
@@ -80,7 +81,9 @@ const WarehouseTransferConfirmation = () => {
   const paginatedProducts = productList.slice((productPage - 1) * PRODUCTS_PER_PAGE, productPage * PRODUCTS_PER_PAGE);
 
   return (
-    <div className="container mx-auto p-4">
+    <div>
+      <StaffHeaderComponent/>
+      <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Xác Nhận Điều Chuyển Kho</h2>
 
       {/* Bảng danh sách điều chuyển */}
@@ -189,6 +192,7 @@ const WarehouseTransferConfirmation = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

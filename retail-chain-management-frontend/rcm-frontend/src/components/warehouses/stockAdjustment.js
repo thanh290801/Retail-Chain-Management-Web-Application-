@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import StaffHeaderComponent from "../staffHomeConponent/staffHeader";
 
 const StockAdjustment = () => {
     const { stockadjustmentId } = useParams();
@@ -79,13 +80,15 @@ const StockAdjustment = () => {
         })
         .then(() => {
             alert("✅ Đã cập nhật phiếu điều chỉnh!");
-            navigate("/productstock");
+            navigate("/staffHome");
         })
         .catch(error => console.error("❌ Lỗi khi cập nhật phiếu điều chỉnh:", error));
     };
     
     return (
-        <div className="p-6 bg-white rounded-lg shadow-md">
+        <div>
+            <StaffHeaderComponent/>
+            <div className="p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">📋 Phiếu Điều Chỉnh Số Lượng</h2>
             <table className="w-full bg-white shadow-md rounded mt-4">
                 <thead className="bg-gray-100">
@@ -139,6 +142,7 @@ const StockAdjustment = () => {
             >
                 ✅ Lưu Điều Chỉnh
             </button>
+        </div>
         </div>
     );
 };

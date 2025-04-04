@@ -1,55 +1,60 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Header from '../../headerComponent/header';
 import AddProductComponent from './addProduct';
+import ProductEdit from '../Supplier_Order/ProductEdit';
 
 const ProductListComponent = () => {
     const [products, setProducts] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [showModal, setShowModal] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [selectedProductId, setSelectedProductId] = useState(null);
     const productsPerPage = 10;
-    const navigate = useNavigate();
 
-    // Khóa scroll background khi modal mở
-    useEffect(() => {
-        if (showModal) {
-            document.body.classList.add('overflow-hidden');
-        } else {
-            document.body.classList.remove('overflow-hidden');
-        }
-
-        return () => {
-            document.body.classList.remove('overflow-hidden');
-        };
-    }, [showModal]);
-
-    useEffect(() => {
+    const fetchProducts = () => {
         fetch('https://localhost:5000/api/products')
             .then(response => response.json())
             .then(data => setProducts(data))
             .catch(error => console.error('Error fetching products:', error));
+    };
+
+    useEffect(() => {
+        fetchProducts();
     }, []);
+
+    useEffect(() => {
+        if (showAddModal || selectedProductId !== null) {
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
+        }
+
+        return () => {
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
+        };
+    }, [showAddModal, selectedProductId]);
 
     const toggleProductStatus = async (product) => {
         if (product.has_pending_orders) {
             alert(`Sản phẩm "${product.name}" đang có giao dịch xử lý, không thể ẩn!`);
             return;
         }
+
         const confirmMessage = product.isEnabled
             ? "Bạn có chắc chắn muốn ẩn sản phẩm này?"
             : "Bạn có chắc chắn muốn hiển thị sản phẩm này?";
+
         if (window.confirm(confirmMessage)) {
             try {
                 const response = await fetch(`https://localhost:5000/api/products/${product.productsId}/toggle-status`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                 });
+
                 if (response.ok) {
-                    setProducts(products.map(p =>
-                        p.productsId === product.productsId
-                            ? { ...p, isEnabled: !p.isEnabled }
-                            : p
-                    ));
+                    fetchProducts(); // ✅ reload sau khi đổi trạng thái
                     alert("Cập nhật trạng thái sản phẩm thành công!");
                 } else {
                     alert("Có lỗi xảy ra khi cập nhật trạng thái sản phẩm!");
@@ -61,22 +66,24 @@ const ProductListComponent = () => {
         }
     };
 
-    const handleProductClick = (productsId) => {
-        navigate(`/listallproduct/${productsId}`);
-    };
-
     const indexOfLastProduct = currentPage * productsPerPage;
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
     const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
     const totalPages = Math.ceil(products.length / productsPerPage);
 
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
+    const handleAddProductSuccess = () => {
+        setShowAddModal(false);
+        fetchProducts(); // ✅ reload khi thêm xong
     };
 
-    const handleAddProductSuccess = (newProduct) => {
-        setProducts([newProduct, ...products]);
-        setShowModal(false);
+    const handleEditProductSuccess = () => {
+        setSelectedProductId(null);
+        fetchProducts(); // ✅ reload khi chỉnh sửa xong
+    };
+
+    const modalStyle = {
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        backdropFilter: 'blur(6px)',
     };
 
     return (
@@ -87,38 +94,59 @@ const ProductListComponent = () => {
                     <h2 className="text-xl font-semibold">📦 Danh Sách Sản Phẩm</h2>
                     <button
                         className="bg-green-500 text-white px-4 py-2 rounded"
-                        onClick={() => setShowModal(true)}
+                        onClick={() => setShowAddModal(true)}
                     >
                         + Thêm sản phẩm
                     </button>
                 </div>
 
                 {/* Modal thêm sản phẩm */}
-                {showModal && (
+                {showAddModal && (
                     <div
-                        className="fixed inset-0 z-50 bg-white bg-opacity-50 overflow-y-auto"
-                        onClick={() => setShowModal(false)}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        style={modalStyle}
+                        onClick={() => setShowAddModal(false)}
                     >
-                        <div className="min-h-screen flex items-center justify-center px-4 py-8">
-                            <div
-                                className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6"
-                                onClick={(e) => e.stopPropagation()}
+                        <div
+                            className="bg-white rounded-lg p-6 w-full max-w-2xl relative max-h-screen overflow-y-auto"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                className="absolute top-2 right-4 text-xl text-gray-500 hover:text-red-600"
+                                onClick={() => setShowAddModal(false)}
                             >
-                                <div className="flex justify-between items-center mb-4 sticky top-0 bg-white z-10">
-                                    <h2 className="text-xl font-bold">➕ Thêm sản phẩm mới</h2>
-                                    <button
-                                        className="text-gray-500 hover:text-red-600 text-xl"
-                                        onClick={() => setShowModal(false)}
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
+                                ✕
+                            </button>
+                            <AddProductComponent
+                                onSuccess={handleAddProductSuccess}
+                                onCancel={() => setShowAddModal(false)}
+                            />
+                        </div>
+                    </div>
+                )}
 
-                                <AddProductComponent
-                                    onSuccess={handleAddProductSuccess}
-                                    onCancel={() => setShowModal(false)}
-                                />
-                            </div>
+                {/* Modal chỉnh sửa sản phẩm */}
+                {selectedProductId !== null && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        style={modalStyle}
+                        onClick={() => setSelectedProductId(null)}
+                    >
+                        <div
+                            className="bg-white rounded-lg p-6 w-full max-w-4xl relative max-h-screen overflow-y-auto"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                className="absolute top-2 right-4 text-xl text-gray-500 hover:text-red-600"
+                                onClick={() => setSelectedProductId(null)}
+                            >
+                                ✕
+                            </button>
+                            <ProductEdit
+                                id={selectedProductId}
+                                isModal
+                                onSuccess={handleEditProductSuccess} // ✅ callback khi sửa xong
+                            />
                         </div>
                     </div>
                 )}
@@ -142,28 +170,28 @@ const ProductListComponent = () => {
                         {currentProducts.map((product) => (
                             <tr
                                 key={product.productsId}
-                                onClick={() => handleProductClick(product.productsId)}
+                                onClick={() => setSelectedProductId(product.productsId)}
                                 className="cursor-pointer hover:bg-gray-100"
                             >
                                 <td className="p-2">{product.productsId}</td>
                                 <td className="p-2">{product.name}</td>
                                 <td className="p-2">{product.barcode}</td>
                                 <td className="p-2">{product.unit}</td>
-                                <td className="p-2">{product.weight !== null ? product.weight : 'N/A'}</td>
-                                <td className="p-2">{product.volume !== null ? product.volume : 'N/A'}</td>
+                                <td className="p-2">{product.weight ?? 'N/A'}</td>
+                                <td className="p-2">{product.volume ?? 'N/A'}</td>
                                 <td className="p-2">
                                     {product.imageUrl ? (
                                         <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover" />
-                                    ) : ('Không có ảnh')}
+                                    ) : 'Không có ảnh'}
                                 </td>
                                 <td className="p-2">{product.category}</td>
-                                <td className="p-2">{product.isEnabled ? 'Hiển thị' : 'Ẩn'}</td>
+                                <td className="p-2">{product.isEnabled ? 'Đang bán' : 'Đã ngừng bán'}</td>
                                 <td className="p-2 space-x-2" onClick={(e) => e.stopPropagation()}>
                                     <button
                                         className={`px-3 py-1 rounded ${product.isEnabled ? 'bg-red-500' : 'bg-blue-500'} text-white`}
                                         onClick={() => toggleProductStatus(product)}
                                     >
-                                        {product.isEnabled ? 'Ẩn' : 'Hiển thị'}
+                                        {product.isEnabled ? 'Ngưng bán' : 'Mở bán'}
                                     </button>
                                 </td>
                             </tr>
@@ -171,12 +199,11 @@ const ProductListComponent = () => {
                     </tbody>
                 </table>
 
-                {/* Pagination */}
                 <div className="mt-4 flex justify-center space-x-2">
                     {Array.from({ length: totalPages }, (_, index) => (
                         <button
                             key={index + 1}
-                            onClick={() => handlePageChange(index + 1)}
+                            onClick={() => setCurrentPage(index + 1)}
                             className={`px-4 py-2 rounded ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
                         >
                             {index + 1}

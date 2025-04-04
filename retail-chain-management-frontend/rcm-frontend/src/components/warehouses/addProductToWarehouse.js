@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const AddProductToWarehouseForm = ({ warehouseId, onClose }) => {
+const AddProductToWarehouseForm = ({ warehouseId, onClose, onProductAdded }) => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -35,7 +35,7 @@ const AddProductToWarehouseForm = ({ warehouseId, onClose }) => {
     const productDtos = selectedProducts.map((productId) => ({
       ProductId: productId,
       PurchasePrice: parseFloat(priceData[productId]?.PurchasePrice || 0),
-      RetailPrice: parseFloat(priceData[productId]?.RetailPrice || 0)
+      RetailPrice: parseFloat(priceData[productId]?.RetailPrice || 0),
     }));
 
     axios
@@ -44,7 +44,7 @@ const AddProductToWarehouseForm = ({ warehouseId, onClose }) => {
         alert("✅ Thêm sản phẩm vào kho thành công!");
         setSelectedProducts([]);
         setPriceData({});
-        onClose();
+        if (onProductAdded) onProductAdded(); // ✅ Gọi callback khi thêm xong
       })
       .catch((error) => {
         console.error("❌ Lỗi khi thêm sản phẩm:", error);

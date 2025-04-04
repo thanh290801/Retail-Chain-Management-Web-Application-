@@ -143,6 +143,19 @@ const ProductStockForOwner = () => {
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
     const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+    // Thêm trong ProductStockForOwner:
+const fetchProducts = () => {
+    if (selectedWarehouse) {
+        fetch(`https://localhost:5000/api/warehouse/${selectedWarehouse}/products`)
+            .then(response => response.json())
+            .then(data => setProducts(data))
+            .catch(error => console.error("Error fetching stock:", error));
+    }
+};
+
+useEffect(() => {
+    fetchProducts();
+}, [selectedWarehouse]);
 
     return (
         <div>
@@ -267,7 +280,14 @@ const ProductStockForOwner = () => {
                                     <h3 className="text-xl font-semibold">➕ Thêm sản phẩm vào kho</h3>
                                     <button onClick={() => setIsAddProductModalOpen(false)} className="text-gray-600 hover:text-red-500 text-2xl">✕</button>
                                 </div>
-                                <AddProductsToWarehouse warehouseId={selectedWarehouse} onClose={() => setIsAddProductModalOpen(false)} />
+                                <AddProductsToWarehouse
+    warehouseId={selectedWarehouse}
+    onClose={() => setIsAddProductModalOpen(false)}
+    onProductAdded={() => {
+        fetchProducts(); // ✅ Reload danh sách sản phẩm
+        setIsAddProductModalOpen(false); // ✅ Đóng modal sau khi thêm
+    }}
+/>
                             </div>
                         </div>
                     </div>

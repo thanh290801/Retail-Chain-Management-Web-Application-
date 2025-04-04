@@ -18,26 +18,27 @@ namespace YourNamespace.Controllers
             _env = env;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> UploadImage([FromForm] IFormFile image)
+        // Dùng DTO thay vì truyền trực tiếp IFormFile
+        [HttpPost("image")]
+        public async Task<IActionResult> UploadImage([FromForm] UploadImageDto model)
         {
-            if (image == null || image.Length == 0)
+            if (model.Image == null || model.Image.Length == 0)
                 return BadRequest(new { message = "Ảnh không hợp lệ!" });
 
             try
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+                var uploadsFolder = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads");
 
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                var fileExtension = Path.GetExtension(image.FileName);
+                var fileExtension = Path.GetExtension(model.Image.FileName);
                 var fileName = $"{Guid.NewGuid()}{fileExtension}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    await image.CopyToAsync(stream);
+                    await model.Image.CopyToAsync(stream);
                 }
 
                 var imageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
@@ -49,5 +50,11 @@ namespace YourNamespace.Controllers
                 return StatusCode(500, new { message = "Lỗi khi upload ảnh!", error = ex.Message });
             }
         }
+    }
+
+    public class UploadImageDto
+    {
+        [FromForm(Name = "image")]
+        public IFormFile Image { get; set; }
     }
 }

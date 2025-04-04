@@ -90,6 +90,36 @@ namespace RCM.Backend.Controllers.Supplier_Order
 
             return Ok(new { message = "Giá nhập đã được cập nhật thành công!", updatedPrice = stockItem.PurchasePrice });
         }
+        [HttpPut("UpdatePurchasePrice")]
+    public async Task<IActionResult> UpdatePrice([FromBody] UpdatePriceDto dto)
+    {
+        if (dto.WarehouseId <= 0 || dto.ProductId <= 0 || dto.NewPrice < 0)
+            return BadRequest("Thông tin không hợp lệ.");
 
+        var stockLevel = await _context.StockLevels
+            .FirstOrDefaultAsync(s => s.WarehouseId == dto.WarehouseId && s.ProductId == dto.ProductId);
+
+        if (stockLevel == null)
+            return NotFound("Không tìm thấy sản phẩm trong kho này.");
+
+        stockLevel.PurchasePrice = dto.NewPrice;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Ok("Đã cập nhật giá nhập thành công.");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Lỗi hệ thống: {ex.Message}");
+        }
     }
+    }
+    public class UpdatePriceDto
+{
+    public int WarehouseId { get; set; }
+    public int ProductId { get; set; }
+    public decimal NewPrice { get; set; }
+}
+
 }
