@@ -340,8 +340,8 @@ namespace RCM.Backend.Controllers
                 return NotFound(new { Message = "Không tìm thấy nhân viên." });
 
             // Kiểm tra lịch sử thanh toán lương
-            var hasPaidSalaries = await _context.SalaryPaymentHistories
-                .AnyAsync(p => p.EmployeeId == request.EmployeeId && !p.IsDeleted);
+           var hasPaidSalaries = await _context.SalaryPaymentHistories
+    .AnyAsync(p => p.EmployeeId == request.EmployeeId && p.IsDeleted != true);
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
