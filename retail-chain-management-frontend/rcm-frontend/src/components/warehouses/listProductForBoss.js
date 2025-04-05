@@ -10,13 +10,13 @@ import AddProductsToWarehouse from "./addProductToWarehouse";
 
 const ProductStockForOwner = () => {
     const navigate = useNavigate();
-
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 10;
 
     const [warehouses, setWarehouses] = useState([]);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [products, setProducts] = useState([]);
+    const [visibleProducts, setVisibleProducts] = useState([]); // ✅ Tách riêng dữ liệu hiển thị
     const [isEditingPrice, setIsEditingPrice] = useState(false);
     const [updatedPrices, setUpdatedPrices] = useState({});
     const [searchTerm, setSearchTerm] = useState("");
@@ -42,12 +42,8 @@ const ProductStockForOwner = () => {
                 .then(response => response.json())
                 .then(data => {
                     setProducts(data);
-
-                    const hasLoss = data.some(product => {
-                        const purchase = parseFloat(product.purchasePrice || 0);
-                        const retail = parseFloat(product.retailPrice || 0);
-                        return retail <= purchase;
-                    });
+                    setVisibleProducts(data); // ✅ luôn giữ danh sách gốc để render
+                    const hasLoss = data.some(product => parseFloat(product.retailPrice) <= parseFloat(product.purchasePrice));
                     setHasLossProducts(hasLoss);
                 })
                 .catch(error => console.error("Error fetching stock:", error));
@@ -66,6 +62,16 @@ const ProductStockForOwner = () => {
         }
         return () => document.body.classList.remove("overflow-hidden");
     }, [isAddProductModalOpen, isCreatePromotionModalOpen]);
+
+    const handleToggleShowLoss = (checked) => {
+        setShowOnlyLossProducts(checked);
+        if (checked) {
+            const filtered = products.filter(p => parseFloat(p.retailPrice) <= parseFloat(p.purchasePrice));
+            setVisibleProducts(filtered);
+        } else {
+            setVisibleProducts(products);
+        }
+    };
 
     const handlePriceChange = (productId, field, value) => {
         setUpdatedPrices(prev => ({
@@ -136,7 +142,7 @@ const ProductStockForOwner = () => {
     };
 
     const handleSelectAll = (e) => {
-        setSelectedProducts(e.target.checked ? filteredProducts : []);
+        setSelectedProducts(e.target.checked ? currentProducts : []);
     };
 
     const handleCreatePromotion = () => {
@@ -151,33 +157,16 @@ const ProductStockForOwner = () => {
         setIsCreatePromotionModalOpen(false);
     };
 
-    const filteredProducts = Array.isArray(products)
-    ? products.filter(product => {
-        // Nếu chưa có updatedPrices thì fallback về product.purchasePrice / product.retailPrice
-        const updated = updatedPrices[product.productsId] || {};
-        const purchasePrice = parseFloat(updated.NewPurchasePrice ?? product.purchasePrice);
-        const retailPrice = parseFloat(updated.NewRetailPrice ?? product.retailPrice);
-        const nameMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const isLoss = retailPrice <= purchasePrice;
-
-        return nameMatch && (!showOnlyLossProducts || isLoss);
-    })
-    : [];
-
     const indexOfLastProduct = currentPage * productsPerPage;
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-
-    const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+    const currentProducts = visibleProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(visibleProducts.length / productsPerPage);
 
     return (
         <div>
             <Header />
             <ToastContainer />
             <div className="p-6 bg-white rounded-lg shadow-md">
-
-                {/* Thanh công cụ */}
                 <div className="mb-4 flex flex-wrap gap-4 justify-between items-center">
                     <select
                         className="p-2 border rounded"
@@ -223,21 +212,22 @@ const ProductStockForOwner = () => {
                         ➕ Thêm sản phẩm vào kho
                     </button>
                 </div>
+
                 <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={showOnlyLossProducts}
-                            onChange={(e) => setShowOnlyLossProducts(e.target.checked)}
-                        />
-                        <label>Chỉ hiển thị sản phẩm lỗ</label>
-                    </div>       
+                    <input
+                        type="checkbox"
+                        checked={showOnlyLossProducts}
+                        onChange={(e) => handleToggleShowLoss(e.target.checked)}
+                    />
+                    <label>Chỉ hiển thị sản phẩm lỗ</label>
+                </div>
+
                 {hasLossProducts && (
                     <div className="bg-yellow-200 text-yellow-800 font-medium p-3 rounded mb-4">
                         ⚠️ Có sản phẩm đang bán thấp hơn giá nhập! Vui lòng kiểm tra lại.
                     </div>
                 )}
 
-                {/* Bảng sản phẩm */}
                 <table className="w-full bg-white shadow-md rounded text-center">
                     <thead className="bg-gray-100">
                         <tr>
@@ -260,11 +250,8 @@ const ProductStockForOwner = () => {
                             const isLoss = purchasePrice > retailPrice;
 
                             let rowClass = "";
-                            if (isLoss) {
-                                rowClass = "bg-yellow-100";
-                            } else if (isLowStock) {
-                                rowClass = "bg-red-100";
-                            }
+                            if (isLoss) rowClass = "bg-yellow-100";
+                            else if (isLowStock) rowClass = "bg-red-100";
 
                             return (
                                 <tr key={product.productsId} className={rowClass}>
@@ -308,12 +295,11 @@ const ProductStockForOwner = () => {
                     </tbody>
                 </table>
 
-                {/* Phân trang */}
                 <div className="flex justify-center mt-4">
                     {[...Array(totalPages)].map((_, index) => (
                         <button
                             key={index + 1}
-                            onClick={() => handlePageChange(index + 1)}
+                            onClick={() => setCurrentPage(index + 1)}
                             className={`px-4 py-2 mx-1 rounded ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
                         >
                             {index + 1}
@@ -321,7 +307,6 @@ const ProductStockForOwner = () => {
                     ))}
                 </div>
 
-                {/* Modal khuyến mãi */}
                 {isCreatePromotionModalOpen && (
                     <PromotionCreate
                         onClose={() => setIsCreatePromotionModalOpen(false)}
@@ -331,7 +316,6 @@ const ProductStockForOwner = () => {
                     />
                 )}
 
-                {/* Modal thêm sản phẩm */}
                 {isAddProductModalOpen && (
                     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 overflow-y-auto" onClick={() => setIsAddProductModalOpen(false)}>
                         <div className="min-h-screen flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
