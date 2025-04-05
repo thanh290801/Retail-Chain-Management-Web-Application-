@@ -30,8 +30,8 @@ export default function StaffManager() {
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
-  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false); // State cho modal setup
-  const [staffToSetup, setStaffToSetup] = useState(null); // Nhân viên được chọn để setup
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [staffToSetup, setStaffToSetup] = useState(null);
 
   const api_url = process.env.REACT_APP_API_URL;
   const { register, handleSubmit, reset, setValue, watch } = useForm({
@@ -46,7 +46,7 @@ export default function StaffManager() {
     handleSubmit: handleSetupSubmit,
     setValue: setSetupValue,
     watch: watchSetup,
-  } = useForm(); // Form cho modal setup
+  } = useForm();
   const navigate = useNavigate();
 
   const goToSalaryCal = (staffId) => {
@@ -108,9 +108,12 @@ export default function StaffManager() {
 
   const handleStatusChange = async () => {
     try {
-      await axios.put(`${api_url}/Staff/update-employee-Active/${staffToChangeStatus}`, {
-        isActive: !currentStatus,
-      });
+      await axios.put(
+        `${api_url}/Staff/update-employee-Active/${staffToChangeStatus}`,
+        {
+          isActive: !currentStatus,
+        }
+      );
       toast.success("Cập nhật trạng thái nhân viên thành công!", {
         position: "top-right",
       });
@@ -203,7 +206,7 @@ export default function StaffManager() {
     setIsModalOpen(false);
     setIsDetailModalOpen(false);
     setIsStatusModalOpen(false);
-    setIsSetupModalOpen(false); // Đóng modal setup
+    setIsSetupModalOpen(false);
     setStep(1);
     setSelectedStaff(null);
     setStaffToSetup(null);
@@ -271,7 +274,7 @@ export default function StaffManager() {
     formData.append("file", file);
     try {
       await axios.post(`${api_url}/Staff/import`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { "Content-Type": "multipart/form-data VERIFY_SIGNATURE" },
       });
       toast.success("Nhập file thành công!", { position: "top-right" });
       fetchStaff();
@@ -323,7 +326,7 @@ export default function StaffManager() {
         });
       }
 
-      toast.success("Thiết lập lương và tỷ lệ tăng ca thành công!", {
+      toast.success("Thiết lập lương và số tiền tăng ca thành công!", {
         position: "top-right",
       });
       closeModal();
@@ -455,13 +458,20 @@ export default function StaffManager() {
                       {staff.activeStatus ? "Nghỉ việc" : "Kích hoạt"}
                     </button>
                     <button
-                      className="bg-yellow-500 text-white px-2 py-1 rounded"
+                      className={`${
+                        staff.activeStatus ? "bg-yellow-500" : "bg-gray-400"
+                      } text-white px-2 py-1 rounded disabled:cursor-not-allowed`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        openSetupModal(staff.id, staff.fixedSalary, staff.overtimeRate);
+                        openSetupModal(
+                          staff.id,
+                          staff.fixedSalary,
+                          staff.overtimeRate
+                        );
                       }}
+                      disabled={!staff.activeStatus}
                     >
-                      Setup
+                      SetUp lương
                     </button>
                   </td>
                 </tr>
@@ -675,13 +685,17 @@ export default function StaffManager() {
                 <p className="text-xl">{selectedStaff.fullName}</p>
                 <p className="font-semibold text-xl">Ngày sinh:</p>
                 <p className="text-xl">
-                  {new Date(selectedStaff.birthDate).toLocaleDateString("vi-VN")}
+                  {new Date(selectedStaff.birthDate).toLocaleDateString(
+                    "vi-VN"
+                  )}
                 </p>
                 <p className="font-semibold text-xl">Tên đăng nhập:</p>
                 <p className="text-xl">{selectedStaff.username}</p>
                 <p className="font-semibold text-xl">Mật khẩu:</p>
                 <div className="flex items-center text-xl">
-                  <p>{showPassword ? selectedStaff.passwordHash : "••••••••"}</p>
+                  <p>
+                    {showPassword ? selectedStaff.passwordHash : "••••••••"}
+                  </p>
                   <button
                     type="button"
                     className="ml-2 text-gray-500"
@@ -698,7 +712,9 @@ export default function StaffManager() {
                 <p className="text-xl">{selectedStaff.phoneNumber}</p>
                 <p className="font-semibold text-xl">Ngày bắt đầu:</p>
                 <p className="text-xl">
-                  {new Date(selectedStaff.startDate).toLocaleDateString("vi-VN")}
+                  {new Date(selectedStaff.startDate).toLocaleDateString(
+                    "vi-VN"
+                  )}
                 </p>
                 <p className="font-semibold text-xl">Số CMND/CCCD:</p>
                 <p className="text-xl">{selectedStaff.identityNumber}</p>
@@ -716,16 +732,19 @@ export default function StaffManager() {
                     ? selectedStaff.fixedSalary.toLocaleString("vi-VN") + " VNĐ"
                     : "Chưa thiết lập"}
                 </p>
-                <p className="font-semibold text-xl">Tỷ lệ tăng ca:</p>
+                <p className="font-semibold text-xl">
+                  Số tiền tăng ca theo giờ:
+                </p>
                 <p className="text-xl">
                   {selectedStaff.overtimeRate
-                    ? selectedStaff.overtimeRate.toLocaleString("vi-VN") + " VNĐ/giờ"
+                    ? selectedStaff.overtimeRate.toLocaleString("vi-VN") +
+                      " VNĐ/giờ"
                     : "Chưa thiết lập"}
                 </p>
               </div>
               <div className="flex justify-center mt-6 gap-4">
                 <button
-                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() =>
                     openSetupModal(
                       selectedStaff.id,
@@ -733,8 +752,9 @@ export default function StaffManager() {
                       selectedStaff.overtimeRate
                     )
                   }
+                  disabled={!selectedStaff.activeStatus}
                 >
-                  Setup lương
+                  SetUp lương
                 </button>
                 <button
                   className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
@@ -747,7 +767,7 @@ export default function StaffManager() {
           </div>
         )}
 
-        {/* Modal Setup lương và tỷ lệ tăng ca */}
+        {/* Modal Setup lương và số tiền tăng ca */}
         {isSetupModalOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
@@ -757,11 +777,15 @@ export default function StaffManager() {
               className="bg-white p-6 rounded-lg w-1/3"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-lg font-bold mb-4">Thiết lập lương cho nhân viên</h2>
+              <h2 className="text-lg font-bold mb-4">
+                Thiết lập lương cho nhân viên
+              </h2>
               <form onSubmit={handleSetupSubmit(onSetupSubmit)}>
                 <div className="space-y-4">
                   <div>
-                    <label className="block font-medium">Lương cố định (VNĐ)</label>
+                    <label className="block font-medium">
+                      Lương cố định (VNĐ)
+                    </label>
                     <input
                       type="text"
                       value={
@@ -778,7 +802,9 @@ export default function StaffManager() {
                     />
                   </div>
                   <div>
-                    <label className="block font-medium">Tỷ lệ tăng ca (VNĐ/giờ)</label>
+                    <label className="block font-medium">
+                      Số tiền tăng ca theo giờ (VNĐ/giờ)
+                    </label>
                     <input
                       type="text"
                       value={
@@ -789,9 +815,11 @@ export default function StaffManager() {
                             }).format(watchSetup("overtimeRate"))
                           : ""
                       }
-                      onChange={(e) => handleSetupInputChange("overtimeRate", e)}
+                      onChange={(e) =>
+                        handleSetupInputChange("overtimeRate", e)
+                      }
                       className="w-full p-2 border rounded"
-                      placeholder="Nhập tỷ lệ tăng ca"
+                      placeholder="Nhập số tiền tăng ca theo giờ"
                     />
                   </div>
                 </div>
@@ -827,11 +855,16 @@ export default function StaffManager() {
             >
               <h2 className="text-lg font-bold mb-4">
                 Bạn có chắc chắn muốn{" "}
-                {currentStatus ? "cho nhân viên nghỉ việc" : "kích hoạt lại nhân viên"} không?
+                {currentStatus
+                  ? "cho nhân viên nghỉ việc"
+                  : "kích hoạt lại nhân viên"}{" "}
+                không?
               </h2>
               <div className="flex justify-between">
                 <button
-                  className={`${currentStatus ? "bg-red-500" : "bg-blue-500"} text-white px-4 py-2 rounded`}
+                  className={`${
+                    currentStatus ? "bg-red-500" : "bg-blue-500"
+                  } text-white px-4 py-2 rounded`}
                   onClick={handleStatusChange}
                 >
                   {currentStatus ? "Nghỉ việc" : "Kích hoạt"}

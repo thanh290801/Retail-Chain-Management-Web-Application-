@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace YourNamespace.Controllers
+namespace RCM.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -19,7 +19,7 @@ namespace YourNamespace.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UploadImage([FromForm] IFormFile image)
+        public async Task<IActionResult> UploadImage(IFormFile image)
         {
             if (image == null || image.Length == 0)
                 return BadRequest(new { message = "Ảnh không hợp lệ!" });
