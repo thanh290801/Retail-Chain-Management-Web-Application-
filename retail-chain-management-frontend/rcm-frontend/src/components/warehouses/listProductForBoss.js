@@ -65,7 +65,7 @@ const ProductStockForOwner = () => {
         const token = localStorage.getItem("token");
         const decodedToken = jwtDecode(token);
         const accountId = decodedToken?.AccountId;
-
+    
         const priceUpdates = Object.entries(updatedPrices).flatMap(([productId, priceData]) =>
             Object.entries(priceData).map(([priceType, newPrice]) => ({
                 ProductId: parseInt(productId),
@@ -75,21 +75,28 @@ const ProductStockForOwner = () => {
                 ChangedBy: accountId
             }))
         );
-
+    
         fetch("https://localhost:5000/api/products/update-price", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(priceUpdates)
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error("Lỗi khi cập nhật giá");
+                return response.json();
+            })
             .then(() => {
                 toast.success("✅ Cập nhật giá thành công!");
                 setIsEditingPrice(false);
                 setUpdatedPrices({});
+                fetchProducts(); // ✅ Gọi lại hàm để fetch lại dữ liệu
             })
-            .catch(error => console.error("Error updating prices:", error));
+            .catch(error => {
+                console.error("Error updating prices:", error);
+                toast.error("❌ Cập nhật giá thất bại.");
+            });
     };
-
+    
     const handleToggleStatus = (productId, currentStatus) => {
         const confirmMessage = currentStatus
             ? "Bạn có chắc chắn muốn vô hiệu hóa sản phẩm này?"

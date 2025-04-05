@@ -86,17 +86,13 @@ public async Task<ActionResult<OrderDetailDto>> GetPurchaseOrder(int id, [FromQu
             Unit = poi.Product?.Unit ?? "-",
             OrderedQuantity = poi.QuantityOrdered,
             ReceivedQuantity = poi.QuantityReceived,
-            PurchasePrice = _context.StockLevels
-                .Where(sl => sl.ProductId == poi.ProductId && sl.WarehouseId == purchaseOrder.WarehousesId)
-                .Select(sl => sl.PurchasePrice)
-                .FirstOrDefault() ?? 0
+            PurchasePrice = poi.PurchasePrice ?? 0 // ✅ lấy trực tiếp từ purchase_order_items
         }).ToList(),
         Batches = purchaseOrder.Batches.Select(b => new BatchDto
         {
             BatchId = b.BatchesId,
             ReceivedDate = b.ReceivedDate,
-           TotalPrice = b.BatchPrices ?? 0m,
-
+            TotalPrice = b.BatchPrices ?? 0m,
             Status = b.Status
         }).ToList()
     };

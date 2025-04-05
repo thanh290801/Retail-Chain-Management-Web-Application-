@@ -105,71 +105,71 @@ public async Task<IActionResult> GetPurchaseOrders()
 
 
 
-        // 📌 Tạo đơn đặt hàng mới
-        [HttpPost("Create")]
-        public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderDto orderDto)
+       // 📌 Tạo đơn đặt hàng mới
+[HttpPost("Create")]
+public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderDto orderDto)
+{
+    if (orderDto == null || orderDto.Items == null || !orderDto.Items.Any())
+    {
+        return BadRequest("Dữ liệu đơn hàng không hợp lệ.");
+    }
+
+    using (var transaction = await _context.Database.BeginTransactionAsync())
+    {
+        try
         {
-            if (orderDto == null || orderDto.Items == null || !orderDto.Items.Any())
+            var vietnamTime = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
+            );
+
+            // 1. Lưu vào purchase_orders
+            var order = new PurchaseOrder
             {
-                return BadRequest("Dữ liệu đơn hàng không hợp lệ.");
-            }
+                SupplierId = orderDto.SupplierId,
+                WarehousesId = orderDto.BranchId,
+                OrderDate = vietnamTime,
+                Status = "Chưa nhận hàng",
+                Notes = orderDto.Notes
+            };
+            _context.PurchaseOrders.Add(order);
+            await _context.SaveChangesAsync();
 
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            // 2. Lưu vào purchase_order_items, bao gồm purchase_price
+            foreach (var item in orderDto.Items)
             {
-                try
+                _context.PurchaseOrderItems.Add(new PurchaseOrderItem
                 {
-                    var vietnamTime = TimeZoneInfo.ConvertTimeFromUtc(
-                        DateTime.UtcNow,
-                        TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")
-                    );
-
-                    // 1. Lưu vào purchase_orders
-                    var order = new PurchaseOrder
-                    {
-                        SupplierId = orderDto.SupplierId,
-                        WarehousesId = orderDto.BranchId,
-                        OrderDate = vietnamTime,
-                        Status = "Chưa nhận hàng",
-                        Notes = orderDto.Notes
-                    };
-                    _context.PurchaseOrders.Add(order);
-                    await _context.SaveChangesAsync();
-
-                    // 2. Lưu vào purchase_order_items
-                    foreach (var item in orderDto.Items)
-                    {
-                        _context.PurchaseOrderItems.Add(new PurchaseOrderItem
-                        {
-                            PurchaseOrderId = order.PurchaseOrdersId,
-                            ProductId = item.ProductId,
-                            QuantityOrdered = item.QuantityOrdered,
-                            QuantityReceived = 0
-                        });
-                    }
-                    await _context.SaveChangesAsync();
-
-                    // 3. Lưu vào Purchase_Costs
-                    var totalCost = orderDto.Items.Sum(i => i.QuantityOrdered * i.Price);
-                    _context.PurchaseCosts.Add(new PurchaseCost
-                    {
-                        PurchaseOrderId = order.PurchaseOrdersId,
-                        TotalCost = totalCost,
-                        BranchId = orderDto.BranchId,
-                        RecordedDate = vietnamTime
-                    });
-                    await _context.SaveChangesAsync();
-
-                    await transaction.CommitAsync();
-                    return Ok(new { OrderId = order.PurchaseOrdersId });
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    return StatusCode(500, "Lỗi khi tạo đơn hàng: " + ex.Message);
-                }
+                    PurchaseOrderId = order.PurchaseOrdersId,
+                    ProductId = item.ProductId,
+                    QuantityOrdered = item.QuantityOrdered,
+                    QuantityReceived = 0,
+                    PurchasePrice = item.Price // thêm dòng này
+                });
             }
+            await _context.SaveChangesAsync();
+
+            // 3. Lưu vào Purchase_Costs
+            var totalCost = orderDto.Items.Sum(i => i.QuantityOrdered * i.Price);
+            _context.PurchaseCosts.Add(new PurchaseCost
+            {
+                PurchaseOrderId = order.PurchaseOrdersId,
+                TotalCost = totalCost,
+                BranchId = orderDto.BranchId,
+                RecordedDate = vietnamTime
+            });
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+            return Ok(new { OrderId = order.PurchaseOrdersId });
         }
-    
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, "Lỗi khi tạo đơn hàng: " + ex.Message);
+        }
+    }
+}
 
         [HttpGet("{orderId}/details")]
 public async Task<IActionResult> GetPurchaseOrderDetails(int orderId)
@@ -189,7 +189,7 @@ public async Task<IActionResult> GetPurchaseOrderDetails(int orderId)
     var branch = await _context.Warehouses
         .FirstOrDefaultAsync(w => w.WarehousesId == cost.BranchId);
 
-    // Lấy danh sách item
+    // Lấy danh sách item từ purchase_order_items
     var itemEntities = await _context.PurchaseOrderItems
         .Where(i => i.PurchaseOrderId == orderId)
         .ToListAsync();
@@ -200,20 +200,15 @@ public async Task<IActionResult> GetPurchaseOrderDetails(int orderId)
         .Where(p => productIds.Contains(p.ProductsId))
         .ToDictionaryAsync(p => p.ProductsId);
 
-    var stockDict = await _context.StockLevels
-        .Where(s => productIds.Contains(s.ProductId) && s.WarehouseId == cost.BranchId)
-        .ToDictionaryAsync(s => s.ProductId);
-
-    // ✅ Thêm QuantityOrdered vào kết quả trả về
+    // ❌ Bỏ phần lấy từ stock_levels vì không cần nữa
+    // ✅ Lấy purchase_price trực tiếp từ itemEntities
     var items = itemEntities.Select(i => new ProductItemDto
     {
         ProductId = i.ProductId,
         ProductName = productDict.ContainsKey(i.ProductId) ? productDict[i.ProductId].Name : null,
         QuantityOrdered = i.QuantityOrdered,
-        QuantityReceived = i.QuantityReceived ?? 0, // ✅ Thêm dòng này
-        PurchasePrice = stockDict.ContainsKey(i.ProductId) && stockDict[i.ProductId].PurchasePrice.HasValue
-                        ? (decimal)stockDict[i.ProductId].PurchasePrice
-                        : 0
+        QuantityReceived = i.QuantityReceived ?? 0,
+        PurchasePrice = i.PurchasePrice ?? 0 // ✅ Lấy từ chính item
     }).ToList();
 
     var result = new PurchaseOrderDetailDto

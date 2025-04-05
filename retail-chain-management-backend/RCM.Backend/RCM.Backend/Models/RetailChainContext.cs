@@ -834,6 +834,10 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.PurchaseOrderId).HasColumnName("purchase_order_id");
 
+                entity.Property(e => e.PurchasePrice)
+                    .HasColumnType("decimal(18, 2)")
+                    .HasColumnName("purchase_price");
+
                 entity.Property(e => e.QuantityOrdered).HasColumnName("quantity_ordered");
 
                 entity.Property(e => e.QuantityReceived)
