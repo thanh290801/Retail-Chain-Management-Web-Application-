@@ -20,6 +20,7 @@ const SalaryHistory = () => {
   const [paidAmount, setPaidAmount] = useState(0);
   const [paymentNote, setPaymentNote] = useState(null);
   const [isAdvancePayment, setIsAdvancePayment] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false); // Thêm state cho modal xác nhận
   const api_url = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
@@ -168,11 +169,16 @@ const SalaryHistory = () => {
         isAdvancePayment ? "Ứng tiền thành công!" : "Thanh toán thành công!"
       );
       setIsPaymentModalOpen(false);
+      setIsConfirmModalOpen(false); // Đóng modal xác nhận
       fetchPayrollData();
     } catch (error) {
       const errorMessage = error.message || "Đã có lỗi xảy ra!";
       toast.error(errorMessage, { position: "top-right" });
     }
+  };
+
+  const openConfirmModal = () => {
+    setIsConfirmModalOpen(true); // Mở modal xác nhận
   };
 
   const openDetailModal = async (employeeId) => {
@@ -539,9 +545,40 @@ const SalaryHistory = () => {
               </button>
               <button
                 className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handlePayment}
+                onClick={openConfirmModal} // Mở modal xác nhận thay vì gọi handlePayment trực tiếp
               >
                 {isAdvancePayment ? "Ứng Tiền" : "Thanh Toán"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal xác nhận thanh toán */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Xác Nhận Thanh Toán</h2>
+            <p className="mb-4">
+              Bạn có chắc chắn muốn{" "}
+              {isAdvancePayment ? "ứng tiền" : "thanh toán"} số tiền{" "}
+              {new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+              }).format(paidAmount)}{" "}
+              cho {selectedEmployee.employeeName} không?
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+                onClick={() => setIsConfirmModalOpen(false)}
+              >
+                Hủy
+              </button>
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded"
+                onClick={handlePayment} // Gọi handlePayment khi xác nhận
+              >
+                Xác nhận
               </button>
             </div>
           </div>
