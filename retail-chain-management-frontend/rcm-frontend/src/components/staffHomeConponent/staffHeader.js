@@ -79,13 +79,22 @@ const StaffHeaderComponent = () => {
 
 
     return (
-        <div className="bg-gray-100 p-6">
+        <div className="bg-gray-100 ">
             {/* Header Menu */}
-            <div className="flex justify-between items-center bg-blue-600 p-4 rounded-lg shadow-md text-white">
+            <div className="flex justify-between items-center bg-blue-600 p-4 rounded-b-lg shadow-md text-white">
                 <div className="flex items-center space-x-6 text-2xl font-bold">
-                    <span>👤 {financialData?.fullName || "Đang tải..."}</span>
-                    <span>Chi nhánh: {financialData?.branchId}</span>
-                    <span>📅 {formatDateTime(currentTime)}</span>
+                    {/* Bên trái: Cột thông tin nhân viên */}
+                    <div className="flex flex-col text-md leading-tight">
+                        <span className="flex items-center gap-1">
+                            <span className="text-purple-800">👤</span> {financialData?.fullName || "Đang tải..."}
+                        </span>
+                        <span className="ml-9">Chi nhánh: {financialData?.branchId}</span>
+                    </div>
+
+                    {/* Bên phải: Thời gian */}
+                    <div className="text-md text-white-300 flex items-center gap-1 ml-48">
+                        📅 {formatDateTime(currentTime)}
+                    </div>
                 </div>
 
                 {/* Chức năng Menu */}
@@ -105,12 +114,12 @@ const StaffHeaderComponent = () => {
                                 {menu.label}
                             </button>
                             {menus[menu.menuKey] && (
-                                <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg">
+                                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg">
                                     {menu.links.map((link, index) => (
                                         <button
                                             key={index}
                                             onClick={() => navigate(link.path)}
-                                            className="block w-full px-4 py-2 text-left text-blue-600 hover:bg-gray-100"
+                                            className="block w-full px-4 py-2 text-left text-blue-600 hover: rounded-lg bg-gray-100"
                                         >
                                             {link.label}
                                         </button>
