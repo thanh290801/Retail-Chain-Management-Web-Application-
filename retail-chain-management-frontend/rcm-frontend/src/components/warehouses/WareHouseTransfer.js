@@ -14,7 +14,6 @@ const WarehouseTransfer = () => {
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const [accountId, setAccountId] = useState(null);
 
-    // Lấy AccountID từ token
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
@@ -27,212 +26,187 @@ const WarehouseTransfer = () => {
         }
     }, []);
 
-    // Fetch danh sách kho
     useEffect(() => {
         fetch("https://localhost:5000/api/warehouse")
             .then(response => response.json())
             .then(data => setWarehouses(data))
-            .catch(error => console.error("Error fetching warehouses:", error));
+            .catch(error => console.error("Lỗi khi lấy danh sách kho:", error));
     }, []);
 
-    // Fetch danh sách sản phẩm có thể điều chuyển
     const fetchProductsForTransfer = () => {
         if (sourceWarehouse && destinationWarehouse) {
             fetch(`https://localhost:5000/api/warehouse/available-products?sourceWarehouseId=${sourceWarehouse}&destinationWarehouseId=${destinationWarehouse}`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log("Sản phẩm nhận được từ API:", data);
                     setProducts(data);
+                    setTransferList([]);
                 })
-                .catch(error => console.error("Error fetching available products:", error));
+                .catch(error => console.error("Lỗi khi lấy sản phẩm có thể điều chuyển:", error));
         }
     };
 
     useEffect(() => {
-        setTransferList([]);
         fetchProductsForTransfer();
     }, [sourceWarehouse, destinationWarehouse]);
 
-    // Kiểm tra điều kiện enable nút "Tạo Phiếu Điều Chuyển"
     useEffect(() => {
-        const allQuantitiesValid = transferList.length > 0 &&
+        const allValid = transferList.length > 0 &&
             transferList.every(p => p.transferQuantity > 0 && p.transferQuantity <= (p.quantity - p.minQuantity));
-
-        setIsButtonDisabled(!sourceWarehouse || !destinationWarehouse || !allQuantitiesValid);
+        setIsButtonDisabled(!sourceWarehouse || !destinationWarehouse || !allValid);
     }, [sourceWarehouse, destinationWarehouse, transferList]);
 
-    // Xử lý chọn kho nguồn
-    const handleSourceWarehouseChange = (warehousesId) => {
-        setSourceWarehouse(warehousesId);
-        if (warehousesId === destinationWarehouse) {
-            setDestinationWarehouse("");
-        }
+    const handleSourceWarehouseChange = (id) => {
+        setSourceWarehouse(id);
+        if (id === destinationWarehouse) setDestinationWarehouse("");
         setTransferList([]);
     };
 
-    // Xử lý chọn kho đích
-    const handleDestinationWarehouseChange = (warehousesId) => {
-        if (warehousesId === sourceWarehouse) return;
-        setDestinationWarehouse(warehousesId);
+    const handleDestinationWarehouseChange = (id) => {
+        if (id === sourceWarehouse) return;
+        setDestinationWarehouse(id);
     };
 
-    // Xử lý thêm sản phẩm vào danh sách điều chuyển
-    const handleAddToTransferList = (product) => {
-        setProducts(prevProducts => prevProducts.filter(p => p.productId !== product.productId));
-        setTransferList(prevTransfer => [...prevTransfer, { ...product, transferQuantity: 0 }]);
+    const handleAddProduct = (product) => {
+        setProducts(prev => prev.filter(p => p.productId !== product.productId));
+        setTransferList(prev => [...prev, { ...product, transferQuantity: 0 }]);
     };
 
-    // Xử lý xóa sản phẩm khỏi danh sách điều chuyển
-    const handleRemoveFromTransferList = (product) => {
-        setTransferList(prevTransfer => prevTransfer.filter(p => p.productId !== product.productId));
-        setProducts(prevProducts => [...prevProducts, product]);
+    const handleRemoveProduct = (product) => {
+        setTransferList(prev => prev.filter(p => p.productId !== product.productId));
+        setProducts(prev => [...prev, product]);
     };
 
-    // Xử lý cập nhật số lượng điều chuyển
-    const handleQuantityChange = (productId, quantity, maxQuantity) => {
-        if (quantity < 0 || quantity > maxQuantity) return;
-        setTransferList(prevTransfer =>
-            prevTransfer.map(p => p.productId === productId ? { ...p, transferQuantity: quantity } : p)
+    const handleQuantityChange = (productId, quantity, max) => {
+        const safeQty = Math.min(Math.max(0, quantity), max);
+        setTransferList(prev =>
+            prev.map(p => p.productId === productId ? { ...p, transferQuantity: safeQty } : p)
         );
     };
 
-    // Gửi yêu cầu điều chuyển kho
-    const handleTransfer = () => {
-        if (isButtonDisabled || !accountId) {
-            console.error("❌ Không thể tạo phiếu điều chuyển. Kiểm tra thông tin nhập.");
+    const handleTransfer = async () => {
+        if (!accountId || isButtonDisabled || transferList.length === 0) {
+            alert("Vui lòng nhập đầy đủ thông tin.");
             return;
         }
-    
-        if (transferList.length === 0) {
-            alert("⚠️ Vui lòng chọn ít nhất một sản phẩm để điều chuyển.");
-            return;
-        }
-    
-        const transferPayload = {
+
+        const payload = {
             sourceWarehouseId: parseInt(sourceWarehouse),
             destinationWarehouseId: parseInt(destinationWarehouse),
             createdBy: accountId,
             items: transferList.map(p => ({
                 productId: p.productId,
-                quantity: parseInt(p.transferQuantity, 10)
+                quantity: p.transferQuantity
             }))
         };
-    
-        console.log("📤 Payload gửi lên API:", transferPayload);
-    
-        fetch("https://localhost:5000/api/warehouse/transfer", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(transferPayload)
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(`Lỗi API: ${err.message || response.statusText}`);
-                });
+
+        try {
+            const res = await fetch("https://localhost:5000/api/warehouse/transfer", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || "Tạo phiếu điều chuyển thất bại.");
             }
-            return response.json();
-        })
-        .then(() => {
-            alert("✅ Tạo phiếu điều chuyển thành công!");
-            navigate("/ownerproductstock"); // Điều hướng về trang ownerproductstock
-        })
-        .catch(error => console.error("❌ Lỗi khi tạo phiếu điều chuyển:", error.message));
+
+            alert("✅ Tạo phiếu điều chuyển thành công.");
+            navigate("/ownerproductstock");
+        } catch (error) {
+            console.error("❌ Lỗi khi tạo phiếu điều chuyển:", error.message);
+        }
     };
-    
 
     return (
         <div>
-            <Header/>
+            <Header />
             <div className="p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">🔄 Tạo Phiếu Điều Chuyển Kho</h2>
+                <h2 className="text-xl font-bold mb-4">🔁 Tạo Phiếu Điều Chuyển Kho</h2>
 
-            <div className="flex space-x-4">
-                <div className="w-1/2">
-                    <label className="block font-medium">Kho nguồn:</label>
-                    <select className="p-2 border rounded w-full" value={sourceWarehouse} onChange={(e) => handleSourceWarehouseChange(e.target.value)}>
-                        <option value="">-- Chọn kho nguồn --</option>
-                        {warehouses.map(wh => <option key={wh.warehousesId} value={wh.warehousesId}>{wh.name}</option>)}
-                    </select>
+                <div className="flex gap-4">
+                    <div className="w-1/2">
+                        <label className="block font-medium">Kho nguồn:</label>
+                        <select className="w-full p-2 border rounded" value={sourceWarehouse} onChange={(e) => handleSourceWarehouseChange(e.target.value)}>
+                            <option value="">-- Chọn kho nguồn --</option>
+                            {warehouses.map(w => <option key={w.warehousesId} value={w.warehousesId}>{w.name}</option>)}
+                        </select>
+                    </div>
+                    <div className="w-1/2">
+                        <label className="block font-medium">Kho đích:</label>
+                        <select className="w-full p-2 border rounded" value={destinationWarehouse} onChange={(e) => handleDestinationWarehouseChange(e.target.value)}>
+                            <option value="">-- Chọn kho đích --</option>
+                            {warehouses
+                                .filter(w => w.warehousesId !== parseInt(sourceWarehouse))
+                                .map(w => <option key={w.warehousesId} value={w.warehousesId}>{w.name}</option>)}
+                        </select>
+                    </div>
                 </div>
 
-                <div className="w-1/2">
-                    <label className="block font-medium">Kho đích:</label>
-                    <select className="p-2 border rounded w-full" value={destinationWarehouse} onChange={(e) => handleDestinationWarehouseChange(e.target.value)}>
-                        <option value="">-- Chọn kho đích --</option>
-                        {warehouses
-                            .filter(wh => wh.warehousesId !== sourceWarehouse)
-                            .map(wh => <option key={wh.warehousesId} value={wh.warehousesId}>{wh.name}</option>)
-                        }
-                    </select>
-                </div>
-            </div>
+                <input type="text" className="w-full p-2 border my-4" placeholder="🔍 Tìm sản phẩm..."
+                    value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
 
-            <div className="mt-6">
-                <input type="text" placeholder="Tìm kiếm sản phẩm..." className="p-2 border rounded w-full mb-4"
-                    value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            </div>
-
-            <div className="flex">
-                {/* Danh sách sản phẩm */}
-                <div className="w-1/2 pr-2">
-                    <h3 className="text-lg font-semibold mb-3">📋 Danh sách sản phẩm</h3>
-                    <table className="w-full bg-white shadow-md rounded">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th>Mã</th><th>Tên</th><th>Đơn vị</th><th>Tồn kho</th><th>Tồn kho tối thiểu</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {products.map(product => (
-                                <tr key={product.productId} onClick={() => handleAddToTransferList(product)} className="cursor-pointer hover:bg-gray-200">
-                                    <td>{product.productId}</td>
-                                    <td>{product.name}</td>
-                                    <td>{product.unit}</td>
-                                    <td>{product.quantity}</td>
-                                    <td>{product.minQuantity}</td>
+                <div className="flex gap-4">
+                    <div className="w-1/2">
+                        <h3 className="font-semibold mb-2">📋 Sản phẩm có thể điều chuyển</h3>
+                        <table className="w-full border text-sm">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th>Mã</th><th>Tên</th><th>Tồn</th><th>Tối thiểu</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {products
+                                    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                                    .map(p => (
+                                        <tr key={p.productId} className="cursor-pointer hover:bg-gray-200" onClick={() => handleAddProduct(p)}>
+                                            <td>{p.productId}</td>
+                                            <td>{p.name}</td>
+                                            <td>{p.quantity}</td>
+                                            <td>{p.minQuantity}</td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="w-1/2">
+                        <h3 className="font-semibold mb-2">📦 Sản phẩm sẽ điều chuyển</h3>
+                        <table className="w-full border text-sm">
+                            <thead className="bg-gray-100">
+                                <tr><th>Mã</th><th>Tên</th><th>SL</th><th>Tồn</th><th>Tối thiểu</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                                {transferList.map(p => (
+                                    <tr key={p.productId}>
+                                        <td>{p.productId}</td>
+                                        <td>{p.name}</td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                value={p.transferQuantity}
+                                                min="0"
+                                                max={p.quantity - p.minQuantity}
+                                                onChange={e => handleQuantityChange(p.productId, parseInt(e.target.value), p.quantity - p.minQuantity)}
+                                                className="w-16 p-1 border rounded text-center"
+                                            />
+                                        </td>
+                                        <td>{p.quantity}</td>
+                                        <td>{p.minQuantity}</td>
+                                        <td><button onClick={() => handleRemoveProduct(p)}>❌</button></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                {/* Danh sách điều chuyển */}
-                <div className="w-1/2 pl-2">
-                    <h3 className="text-lg font-semibold mb-3">📦 Danh sách điều chuyển</h3>
-                    <table className="w-full bg-white shadow-md rounded">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th>Mã</th><th>Tên</th><th>SL điều chuyển</th><th>Tồn kho</th><th>Tồn kho tối thiểu</th><th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {transferList.map(product => (
-                                <tr key={product.productId}>
-                                    <td>{product.productId}</td>
-                                    <td>{product.name}</td>
-                                    <td>
-                                        <input type="number" min="0" max={product.quantity - product.minQuantity}
-                                            value={product.transferQuantity || 0}
-                                            onChange={(e) => handleQuantityChange(product.productId, e.target.value, product.quantity - product.minQuantity)}
-                                        />
-                                    </td>
-                                    <td>{product.quantity}</td>
-                                    <td>{product.minQuantity}</td>
-                                    <td><button onClick={() => handleRemoveFromTransferList(product)}>❌</button></td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-               
-            </div>
-            <button className="mt-4 bg-blue-500 text-white px-4 py-2 rounded w-full" disabled={isButtonDisabled} onClick={handleTransfer}>
+                <button disabled={isButtonDisabled} onClick={handleTransfer}
+                    className={`mt-4 w-full py-2 rounded text-white ${isButtonDisabled ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}>
                     ✅ Tạo Phiếu Điều Chuyển
                 </button>
+            </div>
         </div>
-        </div>
-        
     );
 };
 

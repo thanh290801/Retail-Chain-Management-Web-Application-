@@ -27,6 +27,7 @@ namespace RCM.Backend.Models
         public virtual DbSet<DailySalesReport> DailySalesReports { get; set; } = null!;
         public virtual DbSet<Employee> Employees { get; set; } = null!;
         public virtual DbSet<EndShift> EndShifts { get; set; } = null!;
+        public virtual DbSet<Notification> Notifications { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
         public virtual DbSet<OvertimeRecord> OvertimeRecords { get; set; } = null!;
@@ -61,7 +62,7 @@ namespace RCM.Backend.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=localhost;Database=RetailChain;Trusted_Connection=True;");
+                optionsBuilder.UseSqlServer("Server=localhost;Database=RetailChain;Trusted_Connection=True;TrustServerCertificate=True;");
             }
         }
 
@@ -462,6 +463,21 @@ namespace RCM.Backend.Models
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__End_Shift__Emplo__1CBC4616");
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Title).HasMaxLength(255);
+
+                entity.HasOne(d => d.ReceiverAccount)
+                    .WithMany(p => p.Notifications)
+                    .HasForeignKey(d => d.ReceiverAccountId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Notificat__Recei__5B78929E");
             });
 
             modelBuilder.Entity<Order>(entity =>

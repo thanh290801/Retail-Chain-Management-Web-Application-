@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import NotificationDropdown from '../components/NotificationDropdown'; // ✅ Thêm component dropdown thông báo
 
 const Header = () => {
     const [activeDropdown, setActiveDropdown] = useState(null);
     const [accountDropdown, setAccountDropdown] = useState(false);
-    const [branchId, setBranchId] = useState(null);
     const [avatarUrl, setAvatarUrl] = useState(null);
     const navigate = useNavigate();
 
@@ -19,7 +19,6 @@ const Header = () => {
         } else {
             try {
                 const decodedToken = jwtDecode(token);
-                setBranchId(decodedToken.BranchId);
                 const accountId = decodedToken.AccountId;
 
                 fetch(`https://localhost:5000/api/accounts/avatar/${accountId}`)
@@ -79,29 +78,7 @@ const Header = () => {
                         <h1 className="text-3xl font-bold text-white tracking-wide" onClick={() => navigate("/revenue-summary-owner")}>RCM</h1>
                     </button>
                     <nav className="flex space-x-4 text-[16px] font-medium">
-
-                        {/* <button onClick={() => navigate("/revenue-summary-owner")} className="text-white font-bold hover:underline">
-              Tổng quan
-            </button> */}
-
-                        {/* Sản phẩm & Nhập hàng */}
-                        {/* <div
-                            className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
-                            onMouseLeave={closeDropdown}
-                            onClick={() => handleDropdown('products')}
-                        >
-                            <span className="text-white font-bold">a</span>
-                            {activeDropdown === 'products' &&
-                                dropdownMenu([
-                                    { to: "/listallproduct", label: "Danh sách hàng hóa" },
-                                    { to: "/ownerproductstock", label: "Tồn kho sản phẩm" },
-                                    { to: "/createpurchaseorder", label: "Đặt hàng từ nhà cung cấp" },
-                                    { to: "/ownerorderlist", label: "Đơn hàng nhập kho" }
-                                ])
-                            }
-                        </div> */}
-
-                        {/* Điều phối kho */}
+                        {/* Quản lý kho */}
                         <div
                             className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
                             onMouseLeave={closeDropdown}
@@ -120,7 +97,8 @@ const Header = () => {
                             }
                         </div>
 
-                        {/* Bán hàng & Trả hàng */}
+                        {/* Các dropdown khác giữ nguyên như bạn đã viết */}
+
                         <div
                             className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
                             onMouseLeave={closeDropdown}
@@ -131,12 +109,10 @@ const Header = () => {
                                 dropdownMenu([
                                     { to: "/button6", label: "Danh sách hóa đơn bán hàng" },
                                     { to: "/button5", label: "Danh sách phiếu trả hàng" },
-                                    // { to: "/button4", label: "Phiếu hoàn nhập kho" }
                                 ])
                             }
                         </div>
 
-                        {/* Đối tác */}
                         <div
                             className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
                             onMouseLeave={closeDropdown}
@@ -151,7 +127,6 @@ const Header = () => {
                             }
                         </div>
 
-                        {/* Nhân sự */}
                         <div
                             className="relative p-3 rounded cursor-pointer hover:bg-blue-800 transition duration-150"
                             onMouseLeave={closeDropdown}
@@ -175,12 +150,13 @@ const Header = () => {
                         <button onClick={() => navigate("/financial-report")} className="text-white font-bold hover:bg-blue-800 px-3 py-2 rounded transition">
                             Báo cáo tài chính
                         </button>
-
                     </nav>
                 </div>
 
-                {/* Tài khoản & Chi nhánh */}
+                {/* Thông báo + Tài khoản */}
                 <div className="flex items-center space-x-4">
+                    <NotificationDropdown /> {/* ✅ Dropdown thông báo dạng popup */}
+
                     <Link
                         to="/warehouselistdetail"
                         className="block px-4 py-2 hover:bg-gray-100 bg-white no-underline text-black rounded-lg shadow-sm text-[16px] font-bold"
@@ -198,7 +174,6 @@ const Header = () => {
                                 alt="Avatar"
                                 className="w-8 h-8 rounded-full object-cover mr-2 border-2 border-white"
                             />
-                           
                         </button>
                         {accountDropdown && (
                             <div className="absolute right-0 bg-white shadow-md rounded-lg p-2 space-y-1 min-w-[200px]">

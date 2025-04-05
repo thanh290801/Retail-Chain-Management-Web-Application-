@@ -70,52 +70,64 @@ public IActionResult GetWarehouseById(int id)
 public async Task<IActionResult> TransferStock([FromBody] WarehouseTransferRequest request)
 {
     if (request == null)
-    {
         return BadRequest(new { message = "Dữ liệu gửi lên không hợp lệ." });
-    }
 
     if (request.Items == null || !request.Items.Any())
-    {
         return BadRequest(new { message = "Danh sách sản phẩm điều chuyển không hợp lệ." });
-    }
 
     if (request.SourceWarehouseId == request.DestinationWarehouseId)
-    {
         return BadRequest(new { message = "Kho nguồn và kho đích không thể giống nhau." });
-    }
 
     if (request.CreatedBy <= 0)
-    {
         return BadRequest(new { message = "Người tạo không hợp lệ." });
-    }
 
-    // 🔹 Lưu thông tin điều chuyển vào bảng warehouse_transfer
+    // 🔹 Tạo phiếu điều chuyển
     var transfer = new WarehouseTransfer
     {
         FromWarehouseId = request.SourceWarehouseId,
         ToWarehouseId = request.DestinationWarehouseId,
         TransferDate = DateTime.UtcNow,
         CreatedBy = request.CreatedBy,
-        Status = "Chưa chuyển" // ✅ Trạng thái mặc định mới
+        Status = "Chưa chuyển"
     };
 
     _context.WarehouseTransfers.Add(transfer);
     await _context.SaveChangesAsync();
 
-    // 🔹 Lưu chi tiết điều chuyển vào bảng warehouse_transfer_details
+    // 🔹 Ghi chi tiết sản phẩm điều chuyển
     foreach (var item in request.Items)
     {
-        var transferDetail = new WarehouseTransferDetail
+        _context.WarehouseTransferDetails.Add(new WarehouseTransferDetail
         {
             TransferId = transfer.TransferId,
             ProductId = item.ProductId,
             Quantity = item.Quantity
-        };
-
-        _context.WarehouseTransferDetails.Add(transferDetail);
+        });
     }
 
-    // ❌ Không cập nhật tồn kho ở đây nữa
+    await _context.SaveChangesAsync();
+
+    // ✅ GỬI THÔNG BÁO CHO NHÂN VIÊN KHO NGUỒN (FromWarehouseId)
+    var fromWarehouse = await _context.Warehouses
+        .FirstOrDefaultAsync(w => w.WarehousesId == request.SourceWarehouseId);
+
+    var sourceEmployees = await _context.Employees
+        .Where(e => e.BranchId == request.SourceWarehouseId && e.AccountId != null)
+        .ToListAsync();
+
+    foreach (var emp in sourceEmployees)
+    {
+        var notif = new Notification
+        {
+            Title = "Phiếu điều chuyển kho",
+            Message = $"Có phiếu điều chuyển từ kho của bạn ({fromWarehouse?.Name ?? "Không xác định"}).",
+            ReceiverAccountId = emp.AccountId.Value,
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        };
+        _context.Notifications.Add(notif);
+    }
+
     await _context.SaveChangesAsync();
 
     return Ok(new { message = "Phiếu điều chuyển đã được tạo thành công." });

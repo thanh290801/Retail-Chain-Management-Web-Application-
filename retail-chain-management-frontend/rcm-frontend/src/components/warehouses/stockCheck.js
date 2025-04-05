@@ -56,7 +56,7 @@ const StockCheck = () => {
                     stockQuantity: p.quantity,
                     recordedQuantity: p.quantity,
                     reason: "Không có sai lệch",
-                    checked: false // ✅ mặc định chưa đánh dấu
+                    checked: false
                 }));
                 setProducts(updated);
             })
@@ -123,9 +123,15 @@ const StockCheck = () => {
             .catch(err => console.error("❌ Lỗi gửi kiểm kho:", err));
     };
 
-    const filtered = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    // ✅ Lọc và sắp xếp
+    const filtered = products
+        .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => a.checked - b.checked); // false < true => chưa kiểm lên trước
+
     const totalPages = Math.ceil(filtered.length / productsPerPage);
     const current = filtered.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage);
+
+    const allChecked = filtered.length > 0 && filtered.every(p => p.checked);
 
     return (
         <div>
@@ -252,9 +258,9 @@ const StockCheck = () => {
                 )}
 
                 <button
-                    className={`mt-6 w-full py-2 rounded ${products.length === 0 ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}
+                    className={`mt-6 w-full py-2 rounded ${allChecked ? 'bg-blue-500 text-white' : 'bg-gray-400 text-white'}`}
                     onClick={handleStockCheck}
-                    disabled={products.length === 0}
+                    disabled={!allChecked}
                 >
                     ✅ Tạo Phiếu Kiểm Kho
                 </button>

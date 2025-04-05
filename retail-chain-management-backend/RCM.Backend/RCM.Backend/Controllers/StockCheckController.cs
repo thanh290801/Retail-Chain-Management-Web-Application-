@@ -82,18 +82,15 @@ public IActionResult CreateStockAudit([FromBody] StockAuditRequest request)
 
             foreach (var item in request.Products)
             {
-                // 🔹 Tìm tồn kho hiện tại
                 var stock = _context.StockLevels
                     .FirstOrDefault(s => s.WarehouseId == request.WarehouseId && s.ProductId == item.ProductId);
 
                 if (stock == null) continue;
 
-                // 🔹 Tính lý do sai lệch
                 var reason = item.RecordedQuantity == item.StockQuantity
                     ? "Không có sai lệch"
                     : string.IsNullOrWhiteSpace(item.Reason) ? "Sai lệch do kiểm kê" : item.Reason;
 
-                // 🔹 Ghi chi tiết kiểm kho
                 auditDetails.Add(new StockAuditDetail
                 {
                     AuditId = auditRecord.StockAuditRecordsId,
@@ -103,12 +100,31 @@ public IActionResult CreateStockAudit([FromBody] StockAuditRequest request)
                     Reason = reason
                 });
 
-                // 🔹 Cập nhật tồn kho
                 stock.Quantity = item.RecordedQuantity;
             }
 
             _context.StockAuditDetails.AddRange(auditDetails);
             _context.SaveChanges();
+
+            // ✅ Gửi thông báo cho Chủ (Owner)
+            var ownerAccount = _context.Accounts.FirstOrDefault(a => a.Role == "Owner");
+            var auditor = _context.Employees.FirstOrDefault(e => e.EmployeeId == request.AuditorId);
+            var warehouse = _context.Warehouses.FirstOrDefault(w => w.WarehousesId == request.WarehouseId);
+
+            if (ownerAccount != null && auditor != null && warehouse != null)
+            {
+                var notification = new Notification
+                {
+                    Title = "Kiểm kho mới",
+                    Message = $"Nhân viên {auditor.FullName} vừa tạo phiếu kiểm kho tại kho {warehouse.Name}.",
+                    ReceiverAccountId = ownerAccount.AccountId,
+                    CreatedAt = DateTime.Now,
+                    IsRead = false
+                };
+                _context.Notifications.Add(notification);
+                _context.SaveChanges();
+            }
+
             transaction.Commit();
 
             return Ok(new

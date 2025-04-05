@@ -56,54 +56,55 @@ public async Task<IActionResult> GetPurchaseOrders()
 
 
 
-        // 📌 Lấy đơn đặt hàng theo ID
-        [HttpGet("{orderId}")]
-        public async Task<IActionResult> GetPurchaseOrder(int orderId)
-        {
-            try
+      [HttpGet("{orderId}")]
+public async Task<IActionResult> GetPurchaseOrder(int orderId)
+{
+    try
+    {
+        var order = await _context.PurchaseOrders
+            .Where(o => o.PurchaseOrdersId == orderId)
+            .Select(o => new
             {
-                var order = await _context.PurchaseOrders
-                    .Where(o => o.PurchaseOrdersId == orderId)
-                    .Select(o => new
+                o.PurchaseOrdersId,
+                o.OrderDate,
+                o.Status,
+                o.Notes,
+                o.WarehousesId,
+                o.SupplierId,
+                WarehouseName = o.Warehouses.Name,
+                SupplierName = o.Supplier.Name,
+                TotalCost = _context.PurchaseCosts
+                    .Where(pc => pc.PurchaseOrderId == o.PurchaseOrdersId)
+                    .Select(pc => pc.TotalCost)
+                    .FirstOrDefault(),
+                Items = _context.PurchaseOrderItems
+                    .Where(i => i.PurchaseOrderId == o.PurchaseOrdersId)
+                    .Select(i => new
                     {
-                        o.PurchaseOrdersId,
-                        o.OrderDate,
-                        o.Status,
-                        o.Notes,
-                        SupplierName = o.Supplier.Name, // Lấy từ bảng Supplier
-                        TotalCost = _context.PurchaseCosts
-                                    .Where(pc => pc.PurchaseOrderId == o.PurchaseOrdersId)
-                                    .Select(pc => pc.TotalCost)
-                                    .FirstOrDefault(),
-                        Items = _context.PurchaseOrderItems
-                            .Where(i => i.PurchaseOrderId == o.PurchaseOrdersId)
-                            .Select(i => new
-                            {
-                                i.ProductId,
-                                ProductName = i.Product.Name, // Lấy từ bảng Products
-                                i.QuantityOrdered,
-                                PurchasePrice = _context.StockLevels
-                                                .Where(sl => sl.ProductId == i.ProductId)
-                                                .Select(sl => sl.PurchasePrice)
-                                                .FirstOrDefault() // Lấy giá nhập từ bảng stock_levels
-                            }).ToList()
-                    })
-                    .FirstOrDefaultAsync();
+                        i.ProductId,
+                        ProductName = i.Product.Name,
+                        i.QuantityOrdered,
+                        i.QuantityReceived,
+                        PurchasePrice = _context.StockLevels
+                            .Where(sl => sl.ProductId == i.ProductId && sl.WarehouseId == o.WarehousesId)
+                            .Select(sl => sl.PurchasePrice)
+                            .FirstOrDefault()
+                    }).ToList()
+            })
+            .FirstOrDefaultAsync();
 
-                if (order == null)
-                {
-                    return NotFound("Không tìm thấy đơn hàng.");
-                }
-
-                return Ok(order);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Lỗi máy chủ: " + ex.Message);
-            }
+        if (order == null)
+        {
+            return NotFound("Không tìm thấy đơn hàng.");
         }
 
-
+        return Ok(order);
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, "Lỗi máy chủ: " + ex.Message);
+    }
+}
 
        // 📌 Tạo đơn đặt hàng mới
 [HttpPost("Create")]
@@ -135,7 +136,7 @@ public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderDto
             _context.PurchaseOrders.Add(order);
             await _context.SaveChangesAsync();
 
-            // 2. Lưu vào purchase_order_items, bao gồm purchase_price
+            // 2. Lưu vào purchase_order_items
             foreach (var item in orderDto.Items)
             {
                 _context.PurchaseOrderItems.Add(new PurchaseOrderItem
@@ -144,7 +145,7 @@ public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderDto
                     ProductId = item.ProductId,
                     QuantityOrdered = item.QuantityOrdered,
                     QuantityReceived = 0,
-                    PurchasePrice = item.Price // thêm dòng này
+                    PurchasePrice = item.Price
                 });
             }
             await _context.SaveChangesAsync();
@@ -160,7 +161,32 @@ public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderDto
             });
             await _context.SaveChangesAsync();
 
+            // ✅ 4. Gửi thông báo cho toàn bộ nhân viên thuộc kho nhận hàng
+            var employees = await _context.Employees
+                .Where(e => e.BranchId == orderDto.BranchId && e.AccountId != null)
+                .ToListAsync();
+
+            var supplier = await _context.Suppliers
+                .FirstOrDefaultAsync(s => s.SuppliersId == orderDto.SupplierId);
+
+            var warehouse = await _context.Warehouses
+                .FirstOrDefaultAsync(w => w.WarehousesId == orderDto.BranchId);
+
+            foreach (var emp in employees)
+            {
+                _context.Notifications.Add(new Notification
+                {
+                    Title = "Thông báo đơn đặt hàng",
+                    Message = $"Có đơn đặt hàng mới từ nhà cung cấp {supplier?.Name ?? "NCC"} gửi đến kho {warehouse?.Name ?? "chưa xác định"}.",
+                    ReceiverAccountId = emp.AccountId.Value,
+                    CreatedAt = vietnamTime,
+                    IsRead = false
+                });
+            }
+
+            await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
             return Ok(new { OrderId = order.PurchaseOrdersId });
         }
         catch (Exception ex)

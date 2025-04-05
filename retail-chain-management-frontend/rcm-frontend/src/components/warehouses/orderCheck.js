@@ -1,209 +1,177 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Button, Form, Pagination } from "react-bootstrap";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import StaffHeaderComponent from "../staffHomeConponent/staffHeader";
 
-const API_URL = "https://localhost:5000/api/orders";
-
-// Hàm để giải mã token JWT và lấy thông tin
-const getUserInfoFromToken = () => {
-    const token = localStorage.getItem("token");
-    if (!token) return { branchId: null, accountId: null };
-
-    try {
-        const payload = JSON.parse(atob(token.split(".")[1])); // Giải mã payload của token
-        return {
-            branchId: payload.BranchId || null,
-            accountId: payload.AccountId || null
-        };
-    } catch (error) {
-        console.error("Lỗi khi giải mã token:", error);
-        return { branchId: null, accountId: null };
-    }
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(value);
 };
 
 const OrderCheck = () => {
-    const navigate = useNavigate();
     const { orderId } = useParams();
+    const navigate = useNavigate();
     const [order, setOrder] = useState(null);
-    const [receiveData, setReceiveData] = useState([]);
-    const [searchTerm, setSearchTerm] = useState(""); // 🔍 Thanh tìm kiếm
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10; // ✅ Số sản phẩm mỗi trang
-
-    // Lấy branchId và accountId từ token
-    const { branchId, accountId } = getUserInfoFromToken();
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!branchId || !accountId) {
-            console.error("Thiếu thông tin branchId hoặc accountId.");
+        if (orderId) fetchOrder();
+    }, [orderId]);
+
+    const fetchOrder = async () => {
+        try {
+            const res = await axios.get(`https://localhost:5000/api/PurchaseOrders/${orderId}`);
+            const data = res.data;
+
+            setOrder(data);
+
+            const mapped = data.items.map(item => {
+                const remainingQty = item.quantityOrdered - (item.quantityReceived || 0);
+                return {
+                    productId: item.productId,
+                    productName: item.productName,
+                    quantityOrdered: item.quantityOrdered,
+                    quantityReceived: item.quantityReceived || 0,
+                    quantityToReceive: 0,
+                    purchasePrice: item.purchasePrice || 0,
+                    remainingQty
+                };
+            });
+
+            setProducts(mapped);
+        } catch (err) {
+            console.error("❌ Lỗi tải đơn hàng:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleQuantityChange = (index, value) => {
+        const input = parseInt(value) || 0;
+
+        setProducts(prev =>
+            prev.map((p, i) =>
+                i === index
+                    ? {
+                        ...p,
+                        quantityToReceive: input > p.remainingQty ? p.remainingQty : input
+                    }
+                    : p
+            )
+        );
+    };
+
+    const handleReceiveOrder = async () => {
+        const validItems = products.filter(p => p.quantityToReceive > 0);
+
+        if (!validItems.length) {
+            alert("⚠️ Vui lòng nhập số lượng nhận hợp lệ.");
             return;
         }
 
-        axios.get(`${API_URL}/${orderId}?branchId=${branchId}&accountId=${accountId}`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-            }
-        })
-        .then(response => {
-            setOrder(response.data);
-            setReceiveData(response.data.products.map(p => ({
-                productId: p.productId,
-                receivedQuantity: 0,
-                purchasePrice: p.purchasePrice
-            })));
-        })
-        .catch(error => console.error("Error fetching order details:", error));
-    }, [orderId, branchId, accountId]);
+        try {
+            const payload = {
+                branchId: order.branchId || order.branchID || order.warehousesId || 0,
+                products: validItems.map(p => ({
+                    productId: p.productId,
+                    receivedQuantity: p.quantityToReceive,
+                    purchasePrice: p.purchasePrice
+                }))
+            };
 
-    const handleReceiveChange = (index, value, orderedQuantity, receivedQuantity) => {
-        const maxAllowed = orderedQuantity - receivedQuantity;
-        let inputValue = parseInt(value) || 0;
-    
-        if (inputValue > maxAllowed) {
-            inputValue = maxAllowed;
-        } else if (inputValue < 0) {
-            inputValue = 0;
+            const response = await axios.post(
+                `https://localhost:5000/api/orders/${orderId}/receive`,
+                payload
+            );
+
+            const { BatchId, TotalAmount, Message } = response.data;
+            alert(`Nhận hàng thành công`);
+            navigate("/orderlist");
+        } catch (err) {
+            console.error("❌ Lỗi nhận hàng:", err);
+            alert(err.response?.data || "Có lỗi xảy ra khi nhận hàng.");
         }
-    
-        const newReceiveData = [...receiveData];
-        newReceiveData[index].receivedQuantity = inputValue;
-        setReceiveData(newReceiveData);
-    };
-    
-
-    const totalReceiveCost = receiveData.reduce((sum, p) => sum + (p.receivedQuantity * p.purchasePrice), 0);
-
-    const handleReceiveSubmit = () => {
-        if (!branchId || !accountId) {
-            console.error("Không có branchId hoặc accountId hợp lệ.");
-            return;
-        }
-
-        axios.post(`${API_URL}/${orderId}/receive`, {
-            branchId,
-            products: receiveData
-        }, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        })
-        .then(response => {
-            alert(`Đơn nhận hàng thành công!`);
-            navigate('/orderlist')
-        })
-        .catch(error => console.error("Error submitting receive order:", error));
     };
 
-    if (!order) return <p>Loading...</p>;
-
-    // 🔍 Bộ lọc sản phẩm theo tên
-    const filteredProducts = order.products.filter(p =>
-        p.productName.toLowerCase().includes(searchTerm.toLowerCase())
+    const totalAmount = products.reduce(
+        (sum, p) => sum + p.quantityToReceive * p.purchasePrice, 0
     );
 
-    // ✅ Phân trang sản phẩm
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    if (loading) return <p className="p-4">⏳ Đang tải dữ liệu đơn hàng...</p>;
+    if (!order) return <p className="p-4 text-red-600">Không tìm thấy đơn hàng.</p>;
 
     return (
         <div>
-            <StaffHeaderComponent/>
-            <div className="container mt-4">
-            <h2>Chi Tiết Đơn Hàng #{order.orderId}</h2>
-            <h4>Nhà cung cấp: {order.supplierName || "Không có nhà cung cấp"}</h4>
+            <StaffHeaderComponent />
+            <div className="container mx-auto p-6">
+                <h2 className="text-2xl font-bold mb-4">📥 Nhận hàng cho đơn #{orderId}</h2>
 
-            {/* 🔍 Thanh tìm kiếm sản phẩm */}
-            <Form.Group className="mb-3">
-                <Form.Control
-                    type="text"
-                    placeholder="Tìm kiếm sản phẩm..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </Form.Group>
+                <div className="mb-4 space-y-1">
+                    <p><strong>🏬 Kho:</strong> {order.warehouseName || "Không rõ"}</p>
+                    <p><strong>🏢 Nhà cung cấp:</strong> {order.supplierName || "Không rõ"}</p>
+                    <p><strong>📝 Ghi chú:</strong> {order.notes || "(Không có ghi chú)"}</p>
+                </div>
 
-            <Table striped bordered hover>
-                <thead>
-                    <tr>
-                        <th>Mã SP</th>
-                        <th>Tên SP</th>
-                        <th>Đơn vị</th>
-                        <th>Giá nhập</th>
-                        <th>SL đặt</th>
-                        <th>SL đã nhận</th>
-                        <th>Nhận lần này</th>
-                        <th>Tổng giá</th>
-                    </tr>
-                </thead>
-                <tbody>
-    {currentProducts.map((p, index) => (
-        <tr key={p.productId}>
-            <td>{p.productId}</td>
-            <td>{p.productName}</td>
-            <td>{p.unit}</td>
-            <td>{p.purchasePrice ? p.purchasePrice.toLocaleString() : "0"} VNĐ</td>
-            <td>{p.orderedQuantity}</td>
-            <td>{p.receivedQuantity}</td>
-            <td>
-                <Form.Control
-                    type="number"
-                    min="0"
-                    max={p.orderedQuantity - p.receivedQuantity}
-                    value={receiveData[index]?.receivedQuantity || 0}
-                    disabled={p.receivedQuantity >= p.orderedQuantity}
-                    onChange={e => handleReceiveChange(index, e.target.value, p.orderedQuantity, p.receivedQuantity)}
-                />
-            </td>
-            <td>
-                {(receiveData[index]?.receivedQuantity * p.purchasePrice).toLocaleString()} VNĐ
-            </td>
-        </tr>
-    ))}
-</tbody>
-
-            </Table>
-
-            {/* ✅ Thanh phân trang */}
-            {totalPages > 1 && (
-                <Pagination>
-                    <Pagination.Prev onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} />
-                    {[...Array(totalPages)].map((_, i) => (
-                        <Pagination.Item key={i} active={i + 1 === currentPage} onClick={() => setCurrentPage(i + 1)}>
-                            {i + 1}
-                        </Pagination.Item>
-                    ))}
-                    <Pagination.Next onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} />
-                </Pagination>
-            )}
-
-            <h4>Tổng giá nhập hàng: {totalReceiveCost.toLocaleString()} VNĐ</h4>
-
-            <Button variant="primary" onClick={handleReceiveSubmit}>Tạo đơn nhận hàng</Button>
-
-            <h4>Danh sách các lần nhập hàng:</h4>
-            <Table striped bordered hover>
-                <thead>
-                    <tr>
-                        <th>Mã Batch</th>
-                        <th>Ngày nhận</th>
-                        <th>Tổng giá</th>
-                        <th>Trạng thái</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {order.batches?.length > 0 ? order.batches.map(batch => (
-                        <tr key={batch.batchId}>
-                            <td>{batch.batchId}</td>
-                            <td>{batch.receivedDate ? new Date(batch.receivedDate).toLocaleDateString() : "Chưa có"}</td>
-                            <td>{batch.totalPrice ? batch.totalPrice.toLocaleString() : "0"} VNĐ</td>
-                            <td>{batch.status}</td>
+                <table className="w-full border text-sm">
+                    <thead className="bg-gray-100">
+                        <tr>
+                            <th className="p-2 border">Sản phẩm</th>
+                            <th className="p-2 border">SL đặt</th>
+                            <th className="p-2 border">Đã nhận</th>
+                            <th className="p-2 border">Nhận thêm</th>
+                            <th className="p-2 border">Giá nhập</th>
                         </tr>
-                    )) : <tr><td colSpan="4">Không có Batch nào</td></tr>}
-                </tbody>
-            </Table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {products.map((p, idx) => {
+                            const isFullyReceived = p.remainingQty <= 0;
+
+                            return (
+                                <tr key={p.productId} className={isFullyReceived ? "bg-gray-100 text-gray-400" : ""}>
+                                    <td className="border px-2">{p.productName}</td>
+                                    <td className="border text-center">{p.quantityOrdered}</td>
+                                    <td className="border text-center text-blue-600">{p.quantityReceived}</td>
+                                    <td className="border text-center">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max={p.remainingQty}
+                                            disabled={isFullyReceived}
+                                            value={p.quantityToReceive}
+                                            onChange={e => handleQuantityChange(idx, e.target.value)}
+                                            className="w-20 p-1 border rounded text-center bg-white"
+                                        />
+                                    </td>
+                                    <td className="border text-right pr-2">{formatCurrency(p.purchasePrice)}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+
+                <div className="mt-4 text-green-700 text-md font-semibold">
+                    💰 Tổng tiền nhập lần này:{" "}
+                    <span className="font-bold">{formatCurrency(totalAmount)}</span>
+                </div>
+
+                <div className="mt-6 flex gap-4">
+                    <button
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                        onClick={handleReceiveOrder}
+                    >
+                        ✅ Xác nhận nhận hàng
+                    </button>
+                    <button
+                        onClick={() => navigate("/ownerorderlist")}
+                        className="border px-4 py-2 rounded"
+                    >
+                        ⬅️ Quay lại danh sách đơn hàng
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

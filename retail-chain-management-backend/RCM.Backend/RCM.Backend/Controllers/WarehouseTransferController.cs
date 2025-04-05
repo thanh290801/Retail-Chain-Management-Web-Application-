@@ -98,69 +98,110 @@ namespace RCM.Backend.Controllers
             return Ok(result);
         }
 
-        // ✅ API 3: Xác nhận chuyển hàng
-        [HttpPost("confirm-transfer")]
-        public async Task<IActionResult> ConfirmTransfer([FromBody] WarehouseTransferConfirmDto dto)
+       // ✅ API 3: Xác nhận chuyển hàng
+[HttpPost("confirm-transfer")]
+public async Task<IActionResult> ConfirmTransfer([FromBody] WarehouseTransferConfirmDto dto)
+{
+    var transfer = await _context.WarehouseTransfers
+        .Include(t => t.WarehouseTransferDetails)
+        .FirstOrDefaultAsync(t => t.TransferId == dto.TransferId && t.FromWarehouseId == dto.EmployeeWarehouseId);
+
+    if (transfer == null || transfer.Status != "Chưa chuyển")
+        return BadRequest("Không tìm thấy đơn hoặc trạng thái không phù hợp.");
+
+    transfer.Status = "Đã chuyển hàng";
+
+    foreach (var detail in transfer.WarehouseTransferDetails)
+    {
+        var stock = await _context.StockLevels
+            .FirstOrDefaultAsync(s => s.WarehouseId == transfer.FromWarehouseId && s.ProductId == detail.ProductId);
+
+        if (stock == null || stock.Quantity < detail.Quantity)
+            return BadRequest($"Không đủ tồn kho sản phẩm {detail.ProductId}.");
+
+        stock.Quantity -= detail.Quantity;
+    }
+
+    await _context.SaveChangesAsync();
+
+    // ✅ Gửi thông báo cho nhân viên kho nhận
+    var receivingEmployees = await _context.Employees
+        .Where(e => e.BranchId == transfer.ToWarehouseId && e.AccountId != null)
+        .ToListAsync();
+
+    foreach (var emp in receivingEmployees)
+    {
+        _context.Notifications.Add(new Notification
         {
-            var transfer = await _context.WarehouseTransfers
-                .Include(t => t.WarehouseTransferDetails)
-                .FirstOrDefaultAsync(t => t.TransferId == dto.TransferId && t.FromWarehouseId == dto.EmployeeWarehouseId);
+            Title = "Thông báo điều chuyển kho",
+            Message = "Có đơn điều chuyển hàng đến kho của bạn.",
+            ReceiverAccountId = emp.AccountId.Value,
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        });
+    }
 
-            if (transfer == null || transfer.Status != "Chưa chuyển")
-                return BadRequest("Không tìm thấy đơn hoặc trạng thái không phù hợp.");
+    await _context.SaveChangesAsync();
 
-            transfer.Status = "Đã chuyển hàng";
+    return Ok("Xác nhận chuyển hàng thành công.");
+}
 
-            foreach (var detail in transfer.WarehouseTransferDetails)
+// ✅ API 4: Xác nhận nhận hàng
+[HttpPost("confirm-receive")]
+public async Task<IActionResult> ConfirmReceive([FromBody] WarehouseTransferConfirmDto dto)
+{
+    var transfer = await _context.WarehouseTransfers
+        .Include(t => t.WarehouseTransferDetails)
+        .FirstOrDefaultAsync(t => t.TransferId == dto.TransferId && t.ToWarehouseId == dto.EmployeeWarehouseId);
+
+    if (transfer == null || transfer.Status != "Đã chuyển hàng")
+        return BadRequest("Không tìm thấy đơn hoặc trạng thái không phù hợp.");
+
+    transfer.Status = "Hoàn tất";
+
+    foreach (var detail in transfer.WarehouseTransferDetails)
+    {
+        var stock = await _context.StockLevels
+            .FirstOrDefaultAsync(s => s.WarehouseId == transfer.ToWarehouseId && s.ProductId == detail.ProductId);
+
+        if (stock == null)
+        {
+            stock = new StockLevel
             {
-                var stock = await _context.StockLevels
-                    .FirstOrDefaultAsync(s => s.WarehouseId == transfer.FromWarehouseId && s.ProductId == detail.ProductId);
-
-                if (stock == null || stock.Quantity < detail.Quantity)
-                    return BadRequest($"Không đủ tồn kho sản phẩm {detail.ProductId}.");
-
-                stock.Quantity -= detail.Quantity;
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok("Xác nhận chuyển hàng thành công.");
+                WarehouseId = transfer.ToWarehouseId,
+                ProductId = detail.ProductId,
+                Quantity = 0
+            };
+            _context.StockLevels.Add(stock);
         }
 
-        // ✅ API 4: Xác nhận nhận hàng
-        [HttpPost("confirm-receive")]
-        public async Task<IActionResult> ConfirmReceive([FromBody] WarehouseTransferConfirmDto dto)
+        stock.Quantity += detail.Quantity;
+    }
+
+    await _context.SaveChangesAsync();
+
+    // ✅ Gửi thông báo cho Chủ hệ thống
+    var owner = await _context.Employees
+        .Where(e => e.BranchId == null && e.AccountId != null)
+        .Select(e => e.AccountId.Value)
+        .FirstOrDefaultAsync();
+
+    if (owner > 0)
+    {
+        _context.Notifications.Add(new Notification
         {
-            var transfer = await _context.WarehouseTransfers
-                .Include(t => t.WarehouseTransferDetails)
-                .FirstOrDefaultAsync(t => t.TransferId == dto.TransferId && t.ToWarehouseId == dto.EmployeeWarehouseId);
+            Title = "Xác nhận điều chuyển",
+            Message = $"Đơn điều chuyển #{transfer.TransferId} đã nhận hàng thành công.",
+            ReceiverAccountId = owner,
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        });
 
-            if (transfer == null || transfer.Status != "Đã chuyển hàng")
-                return BadRequest("Không tìm thấy đơn hoặc trạng thái không phù hợp.");
+        await _context.SaveChangesAsync();
+    }
 
-            transfer.Status = "Hoàn tất";
-
-            foreach (var detail in transfer.WarehouseTransferDetails)
-            {
-                var stock = await _context.StockLevels
-                    .FirstOrDefaultAsync(s => s.WarehouseId == transfer.ToWarehouseId && s.ProductId == detail.ProductId);
-
-                if (stock == null)
-                {
-                    stock = new StockLevel
-                    {
-                        WarehouseId = transfer.ToWarehouseId,
-                        ProductId = detail.ProductId,
-                        Quantity = 0
-                    };
-                    _context.StockLevels.Add(stock);
-                }
-
-                stock.Quantity += detail.Quantity;
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok("Xác nhận nhận hàng thành công.");
-        }
+    return Ok("Xác nhận nhận hàng thành công.");
+}
 
         [HttpGet("all")]
 public async Task<IActionResult> GetAllTransfersForOwner()

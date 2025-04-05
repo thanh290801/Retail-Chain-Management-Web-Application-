@@ -83,5 +83,24 @@ namespace RCM.Backend.Controllers
                 return StatusCode(500, new { message = "Lỗi máy chủ nội bộ", error = ex.Message });
             }
         }
+
+       [HttpGet("owner")]
+public IActionResult GetOwnerAccount()
+{
+    var owner = (from emp in _context.Employees
+                 join acc in _context.Accounts on emp.AccountId equals acc.AccountId
+                 where emp.BranchId == null
+                 select new
+                 {
+                     accountId = emp.AccountId,
+                     fullName = emp.FullName
+                 }).FirstOrDefault();
+
+    if (owner == null)
+        return NotFound("Không tìm thấy chủ hệ thống.");
+
+    return Ok(owner);
+}
+
     }
 }
