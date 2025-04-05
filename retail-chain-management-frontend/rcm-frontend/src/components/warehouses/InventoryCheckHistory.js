@@ -100,7 +100,7 @@ const InventoryCheckHistory = () => {
     return (
         <div>
             <Header />
-            <div className="p-6 bg-white rounded shadow relative">
+            <div className="p-6 bg-white rounded shadow">
                 <h2 className="text-xl font-semibold mb-4">📜 Lịch sử kiểm kho</h2>
 
                 {/* Filters */}
