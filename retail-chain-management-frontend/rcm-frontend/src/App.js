@@ -44,6 +44,7 @@ import AttendanceTable from "./components/EmployeeComponent/AttendanceTable";
 import RevenueSummaryOwner from "./sale-dashboadConponent/RevenueOwner";
 import PendingOvertimeList from "./components/EmployeeComponent/PendingOvertimeList";
 import OrderList from './sale-dashboadConponent/orderList.js';
+import RefundList from './sale-dashboadConponent/refundList.js';
 import PromotionMain from './components/promotion/promotion_main.js';
 
 import FinancialReport from './components/FinancialReportConponent/financialReport';
@@ -109,6 +110,7 @@ function App() {
           <Route path="/warehouse-transfer/:id" element={<WarehouseTransferDetail />} />
           <Route path='/listallproduct' element= {<ProductListComponent/>} />
           <Route path='/orderlist' element= {<OrderLists/>} />
+          <Route path='/refundlist' element= {<RefundList/>} />
           <Route path='/order/:orderId' element= {<OrderCheck/>} />
           <Route path='/stockcheck' element= {<StockCheck/>} />
           <Route path='/stockadjustment' element= {<CreateStockAdjustment/>} />

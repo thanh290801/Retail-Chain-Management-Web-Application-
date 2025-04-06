@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using RCM.Backend.DTOs;
 
 namespace RCM.Backend.Controllers
 {
@@ -360,12 +361,15 @@ namespace RCM.Backend.Controllers
             }
         }
 
-        [HttpGet("list")]
+        [HttpPost("listOrder")]
         public async Task<IActionResult> GetOrders(
             [FromQuery] string? paymentMethod,
             [FromQuery] int? branchId,
             [FromQuery] DateTime? fromDate,
-            [FromQuery] DateTime? toDate)
+            [FromQuery] DateTime? toDate,
+            [FromQuery] int? orderCode,
+            [FromQuery] string? productName,
+            [FromQuery] string? employeeName)
         {
             var orders = new List<dynamic>();
 
@@ -380,6 +384,9 @@ namespace RCM.Backend.Controllers
                     cmd.Parameters.AddWithValue("@BranchId", branchId ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FromDate", fromDate ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@ToDate", toDate ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@OrderCode", orderCode ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ProductName", string.IsNullOrEmpty(productName) ? (object)DBNull.Value : productName);
+                    cmd.Parameters.AddWithValue("@EmployeeName", string.IsNullOrEmpty(employeeName) ? (object)DBNull.Value : employeeName);
 
                     await conn.OpenAsync();
 
@@ -403,11 +410,7 @@ namespace RCM.Backend.Controllers
                                 unit_price = reader["unit_price"] as decimal? ?? 0,
                                 total_price = reader["total_price"] as decimal? ?? 0,
                                 payment_method = reader["payment_method"]?.ToString() ?? "Unknown",
-                                refund_id = reader["refund_id"] as int?,
-                                refund_date = reader["refund_date"] as DateTime?,
-                                refund_product_id = reader["refund_product_id"] as int?,
-                                refund_quantity = reader["refund_quantity"] as decimal?,
-                                refund_total_price = reader["refund_total_price"] as decimal?
+                                
                             };
 
                             orders.Add(order);
@@ -420,6 +423,61 @@ namespace RCM.Backend.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Lỗi khi lấy danh sách đơn hàng", error = ex.Message });
+            }
+        }
+        [HttpPost("listRefund")]
+        public async Task<IActionResult> GetRefundList([FromBody] RefundFilterDto filter)
+        {
+            var refundList = new List<dynamic>();
+
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
+                using (var cmd = new SqlCommand("pos_GetRefundList", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@FromDate", filter.FromDate ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ToDate", filter.ToDate ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BranchId", filter.BranchId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EmployeeName", string.IsNullOrEmpty(filter.EmployeeName) ? (object)DBNull.Value : filter.EmployeeName);
+                    cmd.Parameters.AddWithValue("@ProductName", string.IsNullOrEmpty(filter.ProductName) ? (object)DBNull.Value : filter.ProductName);
+                    cmd.Parameters.AddWithValue("@OrderId", filter.OrderId ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Page", filter.Page);
+                    cmd.Parameters.AddWithValue("@Limit", filter.Limit);
+
+                    await conn.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var item = new
+                            {
+                                refund_id = reader["refund_id"] as int?,
+                                refund_date = reader["refund_date"] as DateTime?,
+                                order_id = reader["order_id"] as int?,
+                                order_date = reader["order_date"] as DateTime?,
+                                shop_id = reader["shop_id"] as int?,
+                                warehouse = reader["warehouse"]?.ToString(),
+                                employeeid = reader["employeeid"] as int?,
+                                employee_name = reader["employee_name"]?.ToString(),
+                                product_id = reader["product_id"] as int?,
+                                product_name = reader["product_name"]?.ToString(),
+                                quantity = reader["quantity"] as decimal? ?? 0,
+                                total_price = reader["total_price"] as decimal? ?? 0
+                            };
+
+                            refundList.Add(item);
+                        }
+                    }
+                }
+
+                return Ok(refundList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi lấy danh sách hoàn tiền", error = ex.Message });
             }
         }
     }
