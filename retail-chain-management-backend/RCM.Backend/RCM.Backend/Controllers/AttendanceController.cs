@@ -172,47 +172,61 @@ namespace RCM.Backend.Controllers
                 LateDuration = lateDuration > TimeSpan.Zero ? $"{lateDuration.Hours:D2}:{lateDuration.Minutes:D2}:{lateDuration.Seconds:D2}" : null
             });
         }
-
         [HttpPost("RequestOvertime")]
         public async Task<IActionResult> RequestOvertime([FromBody] OvertimeRequest request)
         {
-            if (!ModelState.IsValid || request?.EmployeeId <= 0 || request.TotalHours <= 0)
+            // Kiểm tra dữ liệu đầu vào cơ bản
+            if (request == null || request.EmployeeId <= 0)
                 return BadRequest(new { Message = "Dữ liệu yêu cầu không hợp lệ." });
 
-            var employee = await _context.Employees.FindAsync(request.EmployeeId);
+            // Tìm nhân viên
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.EmployeeId == request.EmployeeId);
+
             if (employee == null)
                 return NotFound(new { Message = "Không tìm thấy nhân viên." });
 
-            var existingEmployeeOvertime = await _context.OvertimeRecords
+            // Kiểm tra xem nhân viên đã gửi yêu cầu tăng ca trong ngày đó chưa
+            var existingOvertimeRequest = await _context.OvertimeRecords
                 .AnyAsync(o => o.Date == request.Date.Date
-                    && o.IsApproved
                     && o.EmployeeId == request.EmployeeId);
 
-            if (existingEmployeeOvertime)
-                return BadRequest(new { Message = "Bạn đã được duyệt tăng ca trong ngày hôm đó." });
+            if (existingOvertimeRequest)
+                return BadRequest(new { Message = "Bạn đã gửi yêu cầu tăng ca cho ngày này rồi." });
 
-            var existingApprovedOvertime = await _context.OvertimeRecords
-                .AnyAsync(o => o.Date == request.Date.Date
-                    && o.IsApproved
-                    && o.EmployeeId != request.EmployeeId);
-
-            if (existingApprovedOvertime)
-                return BadRequest(new { Message = "Đã có nhân viên khác được duyệt tăng ca cho ngày này." });
-
+            // Tạo bản ghi tăng ca
             var overtimeRecord = new OvertimeRecord
             {
                 EmployeeId = request.EmployeeId,
-                Date = request.Date.Date,
+                Date = request.Date.Date, // Lấy ngày từ request
                 StartTime = request.StartTime ?? TimeSpan.Zero,
                 EndTime = TimeSpan.Zero,
-                TotalHours = request.TotalHours,
+                TotalHours = request.TotalHours > 0 ? request.TotalHours : 1, // Đặt mặc định 1 giờ nếu không hợp lệ
+                IsRejected = false,
                 Reason = request.Reason ?? "Yêu cầu tăng ca",
                 IsApproved = false
             };
 
             await _context.OvertimeRecords.AddAsync(overtimeRecord);
+
+            // Thêm thông báo nếu có AccountId
+            if (_context.Notifications != null && employee.AccountId.HasValue && employee.AccountId.Value != 0)
+            {
+                var notification = new Notification
+                {
+                    Title = "Yêu cầu tăng ca",
+                    Message = $"Yêu cầu tăng ca của bạn ngày {request.Date:dd/MM/yyyy} đã được gửi, đang chờ phê duyệt",
+                    ReceiverAccountId = employee.AccountId.Value,
+                    CreatedAt = DateTime.Now,
+                    IsRead = false
+                };
+                await _context.Notifications.AddAsync(notification);
+            }
+
+            // Lưu thay đổi vào database
             await _context.SaveChangesAsync();
 
+            // Trả về phản hồi thành công
             return Ok(new
             {
                 Message = "Yêu cầu tăng ca đã được gửi, chờ phê duyệt.",

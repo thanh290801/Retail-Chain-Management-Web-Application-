@@ -43,7 +43,9 @@ const AttendanceTable = () => {
   const [checkInMessage, setCheckInMessage] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalOvertimeOpen, setModalOvertimeOpen] = useState(false);
-  const [overtimeDate, setOvertimeDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [overtimeDate, setOvertimeDate] = useState(
+    dayjs().format("YYYY-MM-DD")
+  );
   const [startTime, setStartTime] = useState(null);
   const [totalHours, setTotalHours] = useState(1);
   const [reason, setReason] = useState("");
@@ -75,7 +77,7 @@ const AttendanceTable = () => {
         console.log("Bản ghi đầu tiên:", result[0]);
         console.log("WorkShiftId:", result[0].workShiftId);
         setWorkShiftId(result[0].workShiftId);
-      } 
+      }
       calculateWorkDaysAndLates(result);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu chấm công:", error);
@@ -90,9 +92,12 @@ const AttendanceTable = () => {
       );
       const result = await response.json();
 
-      const totalHours = result.approvedOvertimeRecords.reduce((sum, record) => {
-        return sum + parseFloat(record.totalHours);
-      }, 0);
+      const totalHours = result.approvedOvertimeRecords.reduce(
+        (sum, record) => {
+          return sum + parseFloat(record.totalHours);
+        },
+        0
+      );
 
       setTotalOvertimeHours(totalHours);
     } catch (error) {
@@ -102,7 +107,9 @@ const AttendanceTable = () => {
 
   const fetchOvertimeHoursForMonth = async () => {
     const overtimeHours = {};
-    const monthDays = dayjs(`${selectedYear}-${selectedMonth}-01`).daysInMonth();
+    const monthDays = dayjs(
+      `${selectedYear}-${selectedMonth}-01`
+    ).daysInMonth();
 
     try {
       const response = await fetch(
@@ -208,7 +215,9 @@ const AttendanceTable = () => {
   const checkOvertimeAvailability = async (date) => {
     try {
       const response = await fetch(
-        `${api_url}/Staff/ApprovedOvertimeList?month=${dayjs(date).month() + 1}&year=${dayjs(date).year()}`
+        `${api_url}/Staff/ApprovedOvertimeList?month=${
+          dayjs(date).month() + 1
+        }&year=${dayjs(date).year()}`
       );
       if (!response.ok) {
         throw new Error("Không thể kiểm tra dữ liệu tăng ca");
@@ -233,11 +242,11 @@ const AttendanceTable = () => {
     }
 
     // Kiểm tra xem ngày đã có nhân viên nào được duyệt tăng ca chưa
-    const hasApprovedOvertime = await checkOvertimeAvailability(overtimeDate);
-    if (hasApprovedOvertime) {
-      toast.error("Đã có nhân viên khác được duyệt tăng ca cho ngày này.");
-      return;
-    }
+    // const hasApprovedOvertime = await checkOvertimeAvailability(overtimeDate);
+    // if (hasApprovedOvertime) {
+    //   toast.error("Đã có nhân viên khác được duyệt tăng ca cho ngày này.");
+    //   return;
+    // }
 
     const formattedStartTime = dayjs(startTime).format("HH:mm:ss");
 
@@ -279,9 +288,9 @@ const AttendanceTable = () => {
       }
       hours.push(23);
     } else if (workShiftId === 2) {
-      // Ca chiều (14:00 - 22:00), tăng ca từ 6:00 - 14:00
-      // Disable các giờ từ 15:00 - 23:00
-      for (let i = 15; i <= 23; i++) {
+      // Ca chiều (14:00 - 22:00), tăng ca từ 22:00 - 6:00 sáng hôm sau
+      // Disable các giờ từ 7:00 - 21:00
+      for (let i = 7; i <= 21; i++) {
         hours.push(i);
       }
     } else {
@@ -296,7 +305,9 @@ const AttendanceTable = () => {
 
   const formatAttendanceData = () => {
     const formattedData = [];
-    const monthDays = dayjs(`${selectedYear}-${selectedMonth}-01`).daysInMonth();
+    const monthDays = dayjs(
+      `${selectedYear}-${selectedMonth}-01`
+    ).daysInMonth();
     const today = dayjs().format("YYYY-MM-DD");
 
     for (let day = 1; day <= monthDays; day++) {
@@ -367,8 +378,8 @@ const AttendanceTable = () => {
           : afternoonShift
           ? getStatus(afternoonShift)
           : "-",
-          morningLateDuration: morningShift?.lateDuration || "-",
-          afternoonLateDuration: afternoonShift?.lateDuration || "-",
+        morningLateDuration: morningShift?.lateDuration || "-",
+        afternoonLateDuration: afternoonShift?.lateDuration || "-",
       });
     }
 
@@ -497,7 +508,10 @@ const AttendanceTable = () => {
       </div>
       {checkInMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg" style={{ width: "400px" }}>
+          <div
+            className="bg-white p-6 rounded shadow-lg"
+            style={{ width: "400px" }}
+          >
             <h2 className="text-xl font-bold mb-2">Thông báo Check-in</h2>
             <p>
               <strong>Trạng thái:</strong> {checkInMessage.status}
