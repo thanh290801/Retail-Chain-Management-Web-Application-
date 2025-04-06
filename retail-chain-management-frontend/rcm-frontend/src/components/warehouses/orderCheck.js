@@ -4,11 +4,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import StaffHeaderComponent from "../staffHomeConponent/staffHeader";
 
 const formatCurrency = (value) => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
+    return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND"
     }).format(value);
 };
+
+const ITEMS_PER_PAGE = 15;
 
 const OrderCheck = () => {
     const { orderId } = useParams();
@@ -16,6 +18,7 @@ const OrderCheck = () => {
     const [order, setOrder] = useState(null);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         if (orderId) fetchOrder();
@@ -25,7 +28,6 @@ const OrderCheck = () => {
         try {
             const res = await axios.get(`https://localhost:5000/api/PurchaseOrders/${orderId}`);
             const data = res.data;
-
             setOrder(data);
 
             const mapped = data.items.map(item => {
@@ -37,6 +39,7 @@ const OrderCheck = () => {
                     quantityReceived: item.quantityReceived || 0,
                     quantityToReceive: 0,
                     purchasePrice: item.purchasePrice || 0,
+                    unit: item.unit || "",
                     remainingQty
                 };
             });
@@ -51,14 +54,13 @@ const OrderCheck = () => {
 
     const handleQuantityChange = (index, value) => {
         const input = parseInt(value) || 0;
-
         setProducts(prev =>
             prev.map((p, i) =>
                 i === index
                     ? {
-                        ...p,
-                        quantityToReceive: input > p.remainingQty ? p.remainingQty : input
-                    }
+                          ...p,
+                          quantityToReceive: input > p.remainingQty ? p.remainingQty : input
+                      }
                     : p
             )
         );
@@ -66,7 +68,6 @@ const OrderCheck = () => {
 
     const handleReceiveOrder = async () => {
         const validItems = products.filter(p => p.quantityToReceive > 0);
-
         if (!validItems.length) {
             alert("⚠️ Vui lòng nhập số lượng nhận hợp lệ.");
             return;
@@ -82,13 +83,12 @@ const OrderCheck = () => {
                 }))
             };
 
-            const response = await axios.post(
+            await axios.post(
                 `https://localhost:5000/api/orders/${orderId}/receive`,
                 payload
             );
 
-            const { BatchId, TotalAmount, Message } = response.data;
-            alert(`Nhận hàng thành công`);
+            alert("Nhận hàng thành công");
             navigate("/orderlist");
         } catch (err) {
             console.error("❌ Lỗi nhận hàng:", err);
@@ -97,8 +97,17 @@ const OrderCheck = () => {
     };
 
     const totalAmount = products.reduce(
-        (sum, p) => sum + p.quantityToReceive * p.purchasePrice, 0
+        (sum, p) => sum + p.quantityToReceive * p.purchasePrice,
+        0
     );
+
+    const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+    const paginatedProducts = products.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    const hasChanges = products.some(p => p.quantityToReceive > 0);
 
     if (loading) return <p className="p-4">⏳ Đang tải dữ liệu đơn hàng...</p>;
     if (!order) return <p className="p-4 text-red-600">Không tìm thấy đơn hàng.</p>;
@@ -106,6 +115,14 @@ const OrderCheck = () => {
     return (
         <div>
             <StaffHeaderComponent />
+            <div>
+            <button
+                        onClick={() => navigate("/orderlist")}
+                        className="border px-4 py-2 rounded"
+                    >
+                        ⬅️ Quay lại danh sách đơn hàng
+                    </button>
+            </div>
             <div className="container mx-auto p-6">
                 <h2 className="text-2xl font-bold mb-4">📥 Nhận hàng cho đơn #{orderId}</h2>
 
@@ -119,6 +136,7 @@ const OrderCheck = () => {
                     <thead className="bg-gray-100">
                         <tr>
                             <th className="p-2 border">Sản phẩm</th>
+                            <th className="p-2 border">Đơn vị</th>
                             <th className="p-2 border">SL đặt</th>
                             <th className="p-2 border">Đã nhận</th>
                             <th className="p-2 border">Nhận thêm</th>
@@ -126,12 +144,12 @@ const OrderCheck = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {products.map((p, idx) => {
+                        {paginatedProducts.map((p, idx) => {
                             const isFullyReceived = p.remainingQty <= 0;
-
                             return (
                                 <tr key={p.productId} className={isFullyReceived ? "bg-gray-100 text-gray-400" : ""}>
                                     <td className="border px-2">{p.productName}</td>
+                                    <td className="border text-center">{p.unit}</td>
                                     <td className="border text-center">{p.quantityOrdered}</td>
                                     <td className="border text-center text-blue-600">{p.quantityReceived}</td>
                                     <td className="border text-center">
@@ -141,7 +159,12 @@ const OrderCheck = () => {
                                             max={p.remainingQty}
                                             disabled={isFullyReceived}
                                             value={p.quantityToReceive}
-                                            onChange={e => handleQuantityChange(idx, e.target.value)}
+                                            onChange={e =>
+                                                handleQuantityChange(
+                                                    (currentPage - 1) * ITEMS_PER_PAGE + idx,
+                                                    e.target.value
+                                                )
+                                            }
                                             className="w-20 p-1 border rounded text-center bg-white"
                                         />
                                     </td>
@@ -152,6 +175,22 @@ const OrderCheck = () => {
                     </tbody>
                 </table>
 
+                {totalPages > 1 && (
+                    <div className="flex justify-center mt-4 gap-2">
+                        {Array.from({ length: totalPages }, (_, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setCurrentPage(i + 1)}
+                                className={`px-3 py-1 rounded border ${
+                                    currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200"
+                                }`}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 <div className="mt-4 text-green-700 text-md font-semibold">
                     💰 Tổng tiền nhập lần này:{" "}
                     <span className="font-bold">{formatCurrency(totalAmount)}</span>
@@ -159,17 +198,17 @@ const OrderCheck = () => {
 
                 <div className="mt-6 flex gap-4">
                     <button
-                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                        className={`${
+                            hasChanges
+                                ? "bg-green-600 hover:bg-green-700 text-white"
+                                : "bg-gray-400 text-white cursor-not-allowed"
+                        } font-bold py-2 px-4 rounded`}
                         onClick={handleReceiveOrder}
+                        disabled={!hasChanges}
                     >
                         ✅ Xác nhận nhận hàng
                     </button>
-                    <button
-                        onClick={() => navigate("/ownerorderlist")}
-                        className="border px-4 py-2 rounded"
-                    >
-                        ⬅️ Quay lại danh sách đơn hàng
-                    </button>
+                    
                 </div>
             </div>
         </div>

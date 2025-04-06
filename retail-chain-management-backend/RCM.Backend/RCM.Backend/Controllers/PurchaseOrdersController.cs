@@ -83,6 +83,7 @@ public async Task<IActionResult> GetPurchaseOrder(int orderId)
                     {
                         i.ProductId,
                         ProductName = i.Product.Name,
+                        Unit = i.Product.Unit, // ✅ Thêm đơn vị sản phẩm từ bảng Products
                         i.QuantityOrdered,
                         i.QuantityReceived,
                         PurchasePrice = _context.StockLevels

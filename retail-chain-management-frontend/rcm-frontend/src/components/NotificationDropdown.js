@@ -28,8 +28,12 @@ const NotificationDropdown = () => {
   const fetchNotifications = async () => {
     try {
       const res = await axios.get(`${api_url}/notification/all?accountId=${accountId}`);
-      setNotifications(res.data);
-      setUnreadCount(res.data.filter(n => !n.isRead).length);
+      const sorted = res.data.sort((a, b) => {
+        if (a.isRead !== b.isRead) return a.isRead ? 1 : -1;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      setNotifications(sorted);
+      setUnreadCount(sorted.filter(n => !n.isRead).length);
     } catch (err) {
       console.error("Lỗi khi lấy thông báo:", err);
     }
@@ -89,7 +93,9 @@ const NotificationDropdown = () => {
                 >
                   <div className="font-medium text-gray-800">{noti.title}</div>
                   <div className="text-sm text-gray-600">{noti.message}</div>
-                  <div className="text-xs text-gray-400">{new Date(noti.createdAt).toLocaleString()}</div>
+                  <div className="text-xs text-gray-400">
+                    {new Date(noti.createdAt).toLocaleString()}
+                  </div>
                 </li>
               ))}
             </ul>
