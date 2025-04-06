@@ -13,7 +13,7 @@ const StaffHeaderComponent = () => {
     const [warehouseDropdown, setWarehouseDropdown] = useState(false);
     const api_url = process.env.REACT_APP_API_URL;
 
-    const fallbackAvatar = "https://www.google.com/url?sa=i&url=https%3A%2F%2Fcellphones.com.vn%2Fsforum%2Favatar-trang&psig=AOvVaw3gT7W0d7xx-61ntgBrkD5V&ust=1743953923315000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCOjUjuKcwYwDFQAAAAAdAAAAABAE"; // avatar mặc định đầy đủ nếu cần
+    const fallbackAvatar = "https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg"; // avatar mặc định đầy đủ nếu cần
 
     useEffect(() => {
         fetchData();
