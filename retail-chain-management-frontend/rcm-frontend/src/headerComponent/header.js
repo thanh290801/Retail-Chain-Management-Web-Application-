@@ -107,8 +107,9 @@ const Header = () => {
                             <span className="text-white font-bold">Lịch sử bán lẻ</span>
                             {activeDropdown === 'sales' &&
                                 dropdownMenu([
-                                    { to: "/button6", label: "Danh sách hóa đơn bán hàng" },
-                                    { to: "/button5", label: "Danh sách phiếu trả hàng" },
+                                    { to: "/order-list", label: "Danh sách hóa đơn bán hàng" },
+                                    { to: "/refundlist", label: "Danh sách phiếu trả hàng" },
+                                    // { to: "/button4", label: "Phiếu hoàn nhập kho" }
                                 ])
                             }
                         </div>
@@ -176,7 +177,7 @@ const Header = () => {
                             />
                         </button>
                         {accountDropdown && (
-                            <div className="absolute right-0 bg-white shadow-md rounded-lg p-2 space-y-1 min-w-[200px]">
+                            <div className="absolute right-0 bg-white shadow-md rounded-lg p-2 space-y-1 min-w-[200px] z-[9999]">
                                 <button
                                     onClick={() => navigate("/profile")}
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg text-gray-800 text-[16px]"
