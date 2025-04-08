@@ -82,7 +82,7 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
 
         setProductDiscounts(updatedProducts);
     };
-
+      
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -232,7 +232,7 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
                                         <th className="border p-2 w-[7%]">Giảm (%)</th>
                                         <th className="border p-2 w-[10%]">Giảm (VNĐ)</th>
                                         <th className="border p-2 w-[11%]">Giá Sau Giảm</th>
-                                        <th className="border p-2 w-[20%]">Mô Tả</th>
+                                        <th className="border p-2 w-[20%]">Ghi chú</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -281,7 +281,7 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
                                                     onChange={(e) =>
                                                         handleDiscountChange(index, 'description', e.target.value)
                                                     }
-                                                    placeholder="Nhập mô tả (không bắt buộc)"
+                                                    placeholder="Nhập ghi chú (không bắt buộc)"
                                                 />
                                             </td>
                                         </tr>

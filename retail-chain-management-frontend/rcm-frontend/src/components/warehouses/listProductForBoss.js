@@ -12,10 +12,8 @@ import AddProductsToWarehouse from "./addProductToWarehouse";
 const ProductStockForOwner = () => {
     const navigate = useNavigate();
 
-    // ✅ Thêm state phân trang
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 10;
-
     const [warehouses, setWarehouses] = useState([]);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [products, setProducts] = useState([]);
@@ -116,12 +114,22 @@ const ProductStockForOwner = () => {
     };
 
     const handleSelectAll = (e) => {
-        setSelectedProducts(e.target.checked ? filteredProducts : []);
+        if (e.target.checked) {
+            const newSelections = currentProducts.filter(p =>
+                !selectedProducts.some(sp => sp.productsId === p.productsId)
+            );
+            setSelectedProducts(prev => [...prev, ...newSelections]);
+        } else {
+            const remaining = selectedProducts.filter(
+                p => !currentProducts.some(cp => cp.productsId === p.productsId)
+            );
+            setSelectedProducts(remaining);
+        }
     };
 
     const handleCreatePromotion = () => {
         if (selectedProducts.length === 0) {
-            toast.error("Vui lòng chọn ít nhất một sản phẩm để tạo khuyến mãi.");
+            toast.error("⚠️ Vui lòng chọn ít nhất một sản phẩm để tạo khuyến mãi.");
             return;
         }
         setIsCreatePromotionModalOpen(true);
@@ -129,7 +137,12 @@ const ProductStockForOwner = () => {
 
     const handlePromotionCreated = () => {
         setIsCreatePromotionModalOpen(false);
-        setSelectedProducts([]); // ✅ reset checkbox sau khi tạo
+        setSelectedProducts([]);
+    };
+
+    const handleClosePromotionModal = () => {
+        setIsCreatePromotionModalOpen(false);
+        setTimeout(() => setSelectedProducts([]), 300);
     };
 
     const filteredProducts = Array.isArray(products)
@@ -144,7 +157,7 @@ const ProductStockForOwner = () => {
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
     const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
-    // Thêm trong ProductStockForOwner:
+
     const fetchProducts = () => {
         if (selectedWarehouse) {
             fetch(`https://localhost:5000/api/warehouse/${selectedWarehouse}/products`)
@@ -163,7 +176,6 @@ const ProductStockForOwner = () => {
             <Header />
             <ToastContainer />
             <div className="p-6 bg-white rounded-lg shadow-md">
-
                 {/* Thanh công cụ */}
                 <div className="mb-4 flex flex-wrap gap-4 justify-between items-center">
                     <select
@@ -197,8 +209,9 @@ const ProductStockForOwner = () => {
                     </button>
 
                     <button
-                        className="bg-purple-500 text-white px-4 py-2 rounded"
+                        className={`px-4 py-2 rounded text-white ${selectedProducts.length === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-purple-500"}`}
                         onClick={handleCreatePromotion}
+                        disabled={selectedProducts.length === 0}
                     >
                         Tạo Khuyến Mãi
                     </button>
@@ -235,7 +248,13 @@ const ProductStockForOwner = () => {
                     <tbody>
                         {currentProducts.length > 0 ? currentProducts.map(product => (
                             <tr key={product.productsId} className={product.quantity < product.minQuantity ? "bg-red-100" : ""}>
-                                <td><input type="checkbox" checked={selectedProducts.some(p => p.productsId === product.productsId)} onChange={() => handleCheckboxChange(product)} /></td>
+                                <td>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedProducts.some(p => p.productsId === product.productsId)}
+                                        onChange={() => handleCheckboxChange(product)}
+                                    />
+                                </td>
                                 <td>{product.productsId}</td>
                                 <td>{product.name}</td>
                                 <td className={`font-semibold ${product.quantity < product.minQuantity ? "text-red-600" : ""}`}>{product.quantity}</td>
@@ -271,10 +290,7 @@ const ProductStockForOwner = () => {
                 {/* Modal khuyến mãi */}
                 {isCreatePromotionModalOpen && (
                     <PromotionCreate
-                        onClose={() => {
-                            setIsCreatePromotionModalOpen(false);
-                            setSelectedProducts([]); // ✅ reset khi đóng modal
-                        }}
+                        onClose={handleClosePromotionModal}
                         onPromotionCreated={handlePromotionCreated}
                         selectedProducts={selectedProducts}
                         warehouseId={selectedWarehouse}
@@ -294,8 +310,8 @@ const ProductStockForOwner = () => {
                                     warehouseId={selectedWarehouse}
                                     onClose={() => setIsAddProductModalOpen(false)}
                                     onProductAdded={() => {
-                                        fetchProducts(); // ✅ Reload danh sách sản phẩm
-                                        setIsAddProductModalOpen(false); // ✅ Đóng modal sau khi thêm
+                                        fetchProducts();
+                                        setIsAddProductModalOpen(false);
                                     }}
                                 />
                             </div>
