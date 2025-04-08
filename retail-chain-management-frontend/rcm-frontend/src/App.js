@@ -24,7 +24,7 @@ import WarehouseTransferDetail from './components/warehouses/warehouseTransferDe
 import WarehouseTransferConfirmation from './components/warehouses/warehouseTransferConfirmation';
 import WarehouseTransfer from './components/warehouses/WareHouseTransfer';
 import CreateStockAdjustment from './components/warehouses/newStockAdjustment';
-
+import PayOSVoiceNotification from './components/PayOSVoiceNotification';
 
 import CashBookComponent from './components/cashbookConponent/cashBook';
 import Main from './components/pos/main';
@@ -94,6 +94,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <PayOSVoiceNotification />
            {/* Quân */}
            <Route path='/addproduct' element= {<AddProductComponent/>} />
           <Route path='/productstock' element= {<ProtectedRoute><ProductStockComponent/></ProtectedRoute>} />
