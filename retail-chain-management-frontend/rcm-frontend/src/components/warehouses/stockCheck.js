@@ -13,7 +13,7 @@ const StockCheck = () => {
     const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [accountId, setAccountId] = useState(null);
-
+    const [auditDate, setAuditDate] = useState(new Date().toISOString().slice(0, 16));
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 15;
 
@@ -21,99 +21,117 @@ const StockCheck = () => {
         const token = localStorage.getItem("token");
         if (token) {
             try {
-                const decodedToken = jwtDecode(token);
-                setAccountId(decodedToken.AccountId);
-                setAuditor(decodedToken.AccountId);
-                setWarehouseId(decodedToken.BranchId);
-                fetchWarehouseInfo(decodedToken.BranchId);
-                fetchEmployees(decodedToken.BranchId);
-            } catch (error) {
-                console.error("Lỗi khi decode token:", error);
+                const decoded = jwtDecode(token);
+                setAccountId(decoded.AccountId);
+                setAuditor(decoded.AccountId);
+                setWarehouseId(decoded.BranchId);
+                fetchWarehouseInfo(decoded.BranchId);
+                fetchEmployees(decoded.BranchId);
+            } catch (err) {
+                console.error("Decode lỗi:", err);
             }
         }
     }, []);
 
     const fetchWarehouseInfo = (branchId) => {
         fetch(`https://localhost:5000/api/warehouse/${branchId}`)
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => setWarehouseName(data.name))
-            .catch(error => console.error("Lỗi khi lấy tên kho:", error));
+            .catch(err => console.error("Lỗi lấy kho:", err));
     };
 
     const fetchEmployees = (branchId) => {
         fetch(`https://localhost:5000/api/stock-check/employees/${branchId}`)
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => setEmployees(data))
-            .catch(error => console.error("Lỗi khi lấy danh sách nhân viên:", error));
+            .catch(err => console.error("Lỗi lấy nhân viên:", err));
     };
 
     const fetchProducts = () => {
         fetch(`https://localhost:5000/api/stock-check/products/${warehouseId}`)
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
-                const updatedProducts = data.map(product => ({
-                    ...product,
-                    recordedQuantity: product.quantity
+                const updated = data.map(p => ({
+                    ...p,
+                    stockQuantity: p.quantity,
+                    recordedQuantity: p.quantity,
+                    reason: "Không có sai lệch",
+                    checked: false
                 }));
-                setProducts(updatedProducts);
+                setProducts(updated);
             })
-            .catch(error => console.error("Error fetching products:", error));
+            .catch(err => console.error("Lỗi lấy sản phẩm:", err));
     };
 
     useEffect(() => {
-        if (warehouseId) {
-            fetchProducts();
-        }
+        if (warehouseId) fetchProducts();
     }, [warehouseId]);
 
-    const handleQuantityChange = (productsId, quantity) => {
+    const handleQuantityChange = (id, value) => {
         setProducts(prev =>
-            prev.map(p =>
-                p.productsId === productsId ? { ...p, recordedQuantity: parseInt(quantity) || 0 } : p
-            )
+            prev.map(p => {
+                if (p.productsId === id) {
+                    const qty = parseInt(value) || 0;
+                    const reason = qty !== p.stockQuantity ? "Sai lệch do kiểm kê" : "Không có sai lệch";
+                    return { ...p, recordedQuantity: qty, reason };
+                }
+                return p;
+            })
+        );
+    };
+
+    const handleReasonChange = (id, value) => {
+        setProducts(prev =>
+            prev.map(p => p.productsId === id ? { ...p, reason: value || "Sai lệch do kiểm kê" } : p)
+        );
+    };
+
+    const toggleChecked = (id) => {
+        setProducts(prev =>
+            prev.map(p => p.productsId === id ? { ...p, checked: !p.checked } : p)
         );
     };
 
     const handleStockCheck = () => {
-        const requestPayload = {
+        const payload = {
             warehouseId: parseInt(warehouseId),
             auditorId: parseInt(auditor),
             coAuditorId: coAuditor ? parseInt(coAuditor) : null,
+            auditDate: auditDate,
             products: products.map(p => ({
                 productId: p.productsId,
-                recordedQuantity: parseInt(p.recordedQuantity, 10)
+                recordedQuantity: parseInt(p.recordedQuantity, 10),
+                stockQuantity: p.stockQuantity,
+                reason: p.reason
             }))
         };
 
         fetch("https://localhost:5000/api/stock-check/create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestPayload)
+            body: JSON.stringify(payload)
         })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
-                if (data.error) {
-                    alert("❌ Lỗi: " + data.error);
-                } else {
-                    alert("✅ Phiếu kiểm kho đã được tạo!");
+                if (data.error) alert("❌ Lỗi: " + data.error);
+                else {
+                    alert("✅ Đã tạo phiếu kiểm kho!");
                     fetchProducts();
-                    const adjustmentId = data.stockAdjustmentsId;
-                    if (adjustmentId && !isNaN(adjustmentId)) {
-                        navigate(`/stock-adjustment/${adjustmentId}`);
-                    }
+                    navigate("/productstock");
                 }
             })
-            .catch(error => console.error("❌ Lỗi khi gửi yêu cầu kiểm kho:", error));
+            .catch(err => console.error("❌ Lỗi gửi kiểm kho:", err));
     };
 
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // ✅ Lọc và sắp xếp
+    const filtered = products
+        .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => a.checked - b.checked); // false < true => chưa kiểm lên trước
 
-    const indexOfLastProduct = currentPage * productsPerPage;
-    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    const totalPages = Math.ceil(filtered.length / productsPerPage);
+    const current = filtered.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage);
+
+    const allChecked = filtered.length > 0 && filtered.every(p => p.checked);
 
     return (
         <div>
@@ -122,8 +140,13 @@ const StockCheck = () => {
                 <h2 className="text-xl font-semibold mb-4">📋 Tạo Phiếu Kiểm Kho</h2>
 
                 <div className="mb-4">
-                    <label className="block font-medium">Kho kiểm:</label>
+                    <label className="block font-medium">🧭 Kho kiểm:</label>
                     <div className="p-2 border rounded bg-gray-100">{warehouseName || "Đang tải..."}</div>
+                </div>
+
+                <div className="mb-4">
+                    <label className="block font-medium">🕒 Ngày giờ kiểm kho:</label>
+                    <input type="datetime-local" className="p-2 border rounded w-full" value={auditDate} onChange={e => setAuditDate(e.target.value)} />
                 </div>
 
                 <div className="mb-4 flex space-x-4">
@@ -142,7 +165,7 @@ const StockCheck = () => {
                             value={coAuditor}
                             onChange={(e) => setCoAuditor(e.target.value)}
                         >
-                            <option value="">-- Chọn người đồng kiểm --</option>
+                            <option value="">-- Chọn --</option>
                             {employees
                                 .filter(emp => emp.employeeId !== parseInt(auditor))
                                 .map(emp => (
@@ -156,7 +179,7 @@ const StockCheck = () => {
 
                 <input
                     type="text"
-                    placeholder="Tìm kiếm sản phẩm..."
+                    placeholder="🔍 Tìm kiếm sản phẩm..."
                     className="p-2 border rounded w-full mb-4"
                     value={searchTerm}
                     onChange={(e) => {
@@ -168,45 +191,65 @@ const StockCheck = () => {
                 <table className="w-full bg-white shadow-md rounded">
                     <thead className="bg-gray-100">
                         <tr>
-                            <th className="p-2">Mã sản phẩm</th>
-                            <th className="p-2">Tên sản phẩm</th>
+                            <th className="p-2">Mã SP</th>
+                            <th className="p-2">Tên</th>
                             <th className="p-2">Đơn vị</th>
                             <th className="p-2">Tồn kho</th>
                             <th className="p-2">SL thực tế</th>
+                            <th className="p-2">Lý do</th>
+                            <th className="p-2">Đánh dấu đã kiểm</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {currentProducts.map(product => (
-                            <tr key={product.productsId}>
-                                <td className="p-2">{product.productsId}</td>
-                                <td className="p-2">{product.name}</td>
-                                <td className="p-2">{product.unit}</td>
-                                <td className="p-2">{product.quantity}</td>
+                        {current.map(p => (
+                            <tr key={p.productsId} className={p.checked ? "bg-green-100" : ""}>
+                                <td className="p-2">{p.productsId}</td>
+                                <td className="p-2">{p.name}</td>
+                                <td className="p-2">{p.unit}</td>
+                                <td className="p-2">{p.stockQuantity}</td>
                                 <td className="p-2">
                                     <input
                                         type="number"
                                         min="0"
-                                        className="p-1 border rounded w-20"
-                                        value={product.recordedQuantity}
-                                        onChange={(e) => handleQuantityChange(product.productsId, e.target.value)}
+                                        disabled={p.checked}
+                                        className="p-1 border rounded w-20 bg-white"
+                                        value={p.recordedQuantity}
+                                        onChange={(e) => handleQuantityChange(p.productsId, e.target.value)}
                                     />
+                                </td>
+                                <td className="p-2">
+                                    {p.stockQuantity !== p.recordedQuantity ? (
+                                        <input
+                                            type="text"
+                                            disabled={p.checked}
+                                            className="p-1 border rounded w-full bg-white"
+                                            value={p.reason}
+                                            onChange={(e) => handleReasonChange(p.productsId, e.target.value)}
+                                        />
+                                    ) : (
+                                        <span className="italic text-gray-500">Không có sai lệch</span>
+                                    )}
+                                </td>
+                                <td className="p-2 text-center">
+                                    <button
+                                        onClick={() => toggleChecked(p.productsId)}
+                                        className={`text-sm px-2 py-1 rounded ${p.checked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}
+                                    >
+                                        {p.checked ? "❌ Hủy" : "✅ Đã kiểm"}
+                                    </button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
 
-                {/* PHÂN TRANG */}
                 {totalPages > 1 && (
                     <div className="mt-4 flex justify-center space-x-2">
                         {Array.from({ length: totalPages }, (_, index) => (
                             <button
                                 key={index}
                                 onClick={() => setCurrentPage(index + 1)}
-                                className={`px-4 py-2 rounded ${currentPage === index + 1
-                                    ? 'bg-blue-500 text-white'
-                                    : 'bg-gray-200'
-                                    }`}
+                                className={`px-4 py-2 rounded ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
                             >
                                 {index + 1}
                             </button>
@@ -215,9 +258,9 @@ const StockCheck = () => {
                 )}
 
                 <button
-                    className={`mt-6 w-full py-2 rounded ${products.length === 0 ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}
+                    className={`mt-6 w-full py-2 rounded ${allChecked ? 'bg-blue-500 text-white' : 'bg-gray-400 text-white'}`}
                     onClick={handleStockCheck}
-                    disabled={products.length === 0}
+                    disabled={!allChecked}
                 >
                     ✅ Tạo Phiếu Kiểm Kho
                 </button>

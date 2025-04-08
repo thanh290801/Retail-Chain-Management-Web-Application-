@@ -27,6 +27,7 @@ namespace RCM.Backend.Models
         public virtual DbSet<DailySalesReport> DailySalesReports { get; set; } = null!;
         public virtual DbSet<Employee> Employees { get; set; } = null!;
         public virtual DbSet<EndShift> EndShifts { get; set; } = null!;
+        public virtual DbSet<Notification> Notifications { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderDetail> OrderDetails { get; set; } = null!;
         public virtual DbSet<OvertimeRecord> OvertimeRecords { get; set; } = null!;
@@ -397,6 +398,8 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.IsCheckedIn).HasDefaultValueSql("((0))");
 
+                entity.Property(e => e.OvertimeRate).HasColumnType("decimal(10, 2)");
+
                 entity.Property(e => e.Phone).HasMaxLength(20);
 
                 entity.Property(e => e.ProfileImage).HasMaxLength(255);
@@ -460,6 +463,21 @@ namespace RCM.Backend.Models
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__End_Shift__Emplo__1CBC4616");
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Title).HasMaxLength(255);
+
+                entity.HasOne(d => d.ReceiverAccount)
+                    .WithMany(p => p.Notifications)
+                    .HasForeignKey(d => d.ReceiverAccountId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Notificat__Recei__5B78929E");
             });
 
             modelBuilder.Entity<Order>(entity =>
@@ -832,6 +850,10 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.PurchaseOrderId).HasColumnName("purchase_order_id");
 
+                entity.Property(e => e.PurchasePrice)
+                    .HasColumnType("decimal(18, 2)")
+                    .HasColumnName("purchase_price");
+
                 entity.Property(e => e.QuantityOrdered).HasColumnName("quantity_ordered");
 
                 entity.Property(e => e.QuantityReceived)
@@ -928,7 +950,9 @@ namespace RCM.Backend.Models
                 entity.Property(e => e.EndDate).HasColumnType("date");
 
                 entity.Property(e => e.StartDate).HasColumnType("date");
-                
+
+                entity.Property(e => e.UpdateAt).HasColumnType("datetime");
+
                 entity.HasOne(d => d.Employee)
                     .WithMany(p => p.Salaries)
                     .HasForeignKey(d => d.EmployeeId)
@@ -1076,7 +1100,13 @@ namespace RCM.Backend.Models
 
                 entity.Property(e => e.ProductId).HasColumnName("product_id");
 
+                entity.Property(e => e.Reason)
+                    .HasMaxLength(255)
+                    .HasColumnName("reason");
+
                 entity.Property(e => e.RecordedQuantity).HasColumnName("recorded_quantity");
+
+                entity.Property(e => e.StockQuantity).HasColumnName("stock_quantity");
 
                 entity.HasOne(d => d.Audit)
                     .WithMany(p => p.StockAuditDetails)

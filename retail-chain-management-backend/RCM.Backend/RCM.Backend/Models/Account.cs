@@ -7,6 +7,7 @@ namespace RCM.Backend.Models
     {
         public Account()
         {
+            Notifications = new HashSet<Notification>();
             ProductPriceHistories = new HashSet<ProductPriceHistory>();
             StockAdjustments = new HashSet<StockAdjustment>();
             StockAuditRecordAuditors = new HashSet<StockAuditRecord>();
@@ -25,6 +26,7 @@ namespace RCM.Backend.Models
         public int? EmployeeId { get; set; }
 
         public virtual Employee? Employee { get; set; }
+        public virtual ICollection<Notification> Notifications { get; set; }
         public virtual ICollection<ProductPriceHistory> ProductPriceHistories { get; set; }
         public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
         public virtual ICollection<StockAuditRecord> StockAuditRecordAuditors { get; set; }

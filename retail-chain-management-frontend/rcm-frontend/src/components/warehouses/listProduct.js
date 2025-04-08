@@ -137,7 +137,7 @@ const ProductStockComponent = () => {
                             <th className="p-2">Tồn kho</th>
                             <th className="p-2">Tồn kho tối thiểu</th>
                             <th className="p-2">Giá nhập</th>
-                            <th className="p-2">Giá bán buôn</th>
+                            
                             <th className="p-2">Giá bán lẻ</th>
                         </tr>
                     </thead>
@@ -162,7 +162,7 @@ const ProductStockComponent = () => {
                                     />
                                 </td>
                                 <td className="p-2">{product.purchasePrice.toLocaleString()} đ</td>
-                                <td className="p-2">{product.wholesalePrice.toLocaleString()} đ</td>
+                               
                                 <td className="p-2">{product.retailPrice.toLocaleString()} đ</td>
                             </tr>
                         ))}

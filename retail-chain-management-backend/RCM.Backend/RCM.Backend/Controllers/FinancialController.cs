@@ -37,7 +37,11 @@ public class FinancialController : ControllerBase
             .Select(e => new
             {
                 FullName = e.FullName,
-                BranchId = e.BranchId
+                BranchId = e.BranchId,
+                 WarehouseName = _context.Warehouses
+                                .Where(w => w.WarehousesId == e.BranchId)
+                                .Select(w => w.Name)
+                                .FirstOrDefault()
             })
             .FirstOrDefaultAsync();
 
@@ -103,6 +107,7 @@ public class FinancialController : ControllerBase
             totalchi = financialData.TotalRefund + financialData.Expense,
             FullName = employee.FullName,
             BranchId = employee.BranchId,
+            WarehouseName = employee.WarehouseName, // Thêm dòng này
             TotalRevenues = financialData.TotalRevenue,
             CashSale = financialData.CashSales,
             BankSale = financialData.BankSales,

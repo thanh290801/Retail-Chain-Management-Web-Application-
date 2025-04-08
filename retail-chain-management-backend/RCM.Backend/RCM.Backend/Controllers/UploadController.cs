@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace YourNamespace.Controllers
+namespace RCM.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

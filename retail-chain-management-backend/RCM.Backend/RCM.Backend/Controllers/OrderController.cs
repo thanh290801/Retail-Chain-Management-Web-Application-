@@ -86,17 +86,13 @@ public async Task<ActionResult<OrderDetailDto>> GetPurchaseOrder(int id, [FromQu
             Unit = poi.Product?.Unit ?? "-",
             OrderedQuantity = poi.QuantityOrdered,
             ReceivedQuantity = poi.QuantityReceived,
-            PurchasePrice = _context.StockLevels
-                .Where(sl => sl.ProductId == poi.ProductId && sl.WarehouseId == purchaseOrder.WarehousesId)
-                .Select(sl => sl.PurchasePrice)
-                .FirstOrDefault() ?? 0
+            PurchasePrice = poi.PurchasePrice ?? 0 // ✅ lấy trực tiếp từ purchase_order_items
         }).ToList(),
         Batches = purchaseOrder.Batches.Select(b => new BatchDto
         {
             BatchId = b.BatchesId,
             ReceivedDate = b.ReceivedDate,
-           TotalPrice = b.BatchPrices ?? 0m,
-
+            TotalPrice = b.BatchPrices ?? 0m,
             Status = b.Status
         }).ToList()
     };
@@ -105,7 +101,7 @@ public async Task<ActionResult<OrderDetailDto>> GetPurchaseOrder(int id, [FromQu
 }
 
         // ✅ API 3: Nhận hàng và cập nhật trạng thái đơn nhập
-        [HttpPost("{id}/receive")]
+       [HttpPost("{id}/receive")]
 public async Task<IActionResult> ReceiveOrder(int id, [FromBody] ReceiveOrderDto receiveOrderDto)
 {
     var purchaseOrder = await _context.PurchaseOrders
@@ -113,21 +109,17 @@ public async Task<IActionResult> ReceiveOrder(int id, [FromBody] ReceiveOrderDto
         .FirstOrDefaultAsync(po => po.PurchaseOrdersId == id);
 
     if (purchaseOrder == null)
-    {
         return NotFound("Không tìm thấy đơn hàng.");
-    }
 
-    // 🔹 Tính tổng giá trị nhập hàng cho lần nhận hàng này
     decimal totalReceiveCost = receiveOrderDto.Products.Sum(p => p.ReceivedQuantity * p.PurchasePrice);
 
-    // 🔹 Tạo một batch mới
     var batch = new Batch
     {
         WarehouseId = receiveOrderDto.BranchId,
         ReceivedDate = DateTime.Now,
         PurchaseOrderId = id,
         Status = "Chưa thanh toán",
-        BatchPrices = totalReceiveCost // ✅ Gán tổng số tiền vào `branch_price`
+        BatchPrices = totalReceiveCost
     };
 
     _context.Batches.Add(batch);
@@ -150,18 +142,15 @@ public async Task<IActionResult> ReceiveOrder(int id, [FromBody] ReceiveOrderDto
 
             _context.BatchDetails.Add(batchDetail);
 
-            // ✅ Cập nhật StockLevels cho kho hàng
             var stockLevel = await _context.StockLevels
                 .FirstOrDefaultAsync(sl => sl.ProductId == product.ProductId && sl.WarehouseId == receiveOrderDto.BranchId);
 
             if (stockLevel != null)
             {
-                // 🔹 Nếu sản phẩm đã có trong kho, cập nhật số lượng tồn kho
                 stockLevel.Quantity += product.ReceivedQuantity;
             }
             else
             {
-                // 🔹 Nếu sản phẩm chưa có trong kho, thêm mới vào StockLevels
                 _context.StockLevels.Add(new StockLevel
                 {
                     ProductId = product.ProductId,
@@ -173,18 +162,45 @@ public async Task<IActionResult> ReceiveOrder(int id, [FromBody] ReceiveOrderDto
         }
     }
 
-    // Cập nhật trạng thái đơn hàng
-    if (purchaseOrder.PurchaseOrderItems.All(p => p.QuantityReceived >= p.QuantityOrdered))
-    {
-        purchaseOrder.Status = "Đã nhận đủ hàng";
-    }
-    else
-    {
-        purchaseOrder.Status = "Đã nhận một phần";
-    }
+    // Trạng thái đơn hàng
+    var receivedAll = purchaseOrder.PurchaseOrderItems.All(p => p.QuantityReceived >= p.QuantityOrdered);
+    purchaseOrder.Status = receivedAll ? "Đã nhận đủ hàng" : "Đã nhận một phần";
 
     await _context.SaveChangesAsync();
-    return Ok(new { Message = "Nhận hàng thành công", BatchId = batch.BatchesId, TotalAmount = totalReceiveCost });
+
+    // ✅ Gửi thông báo cho chủ
+    var warehouse = await _context.Warehouses.FirstOrDefaultAsync(w => w.WarehousesId == receiveOrderDto.BranchId);
+    var branchName = warehouse?.Name ?? "kho chưa xác định";
+
+    var ownerAccountId = await _context.Employees
+        .Where(e => e.BranchId == null && e.AccountId != null)
+        .Select(e => e.AccountId.Value)
+        .FirstOrDefaultAsync();
+
+    if (ownerAccountId > 0)
+    {
+        string message = receivedAll
+            ? $"Đơn hàng #{id} tại kho {branchName} đã nhận đủ hàng."
+            : $"Đơn hàng #{id} tại kho {branchName} đã nhận một phần hàng.";
+
+        _context.Notifications.Add(new Notification
+        {
+            Title = "Cập nhật đơn hàng nhập",
+            Message = message,
+            ReceiverAccountId = ownerAccountId,
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        });
+
+        await _context.SaveChangesAsync();
+    }
+
+    return Ok(new
+    {
+        Message = "Nhận hàng thành công",
+        BatchId = batch.BatchesId,
+        TotalAmount = totalReceiveCost
+    });
 }
 
 // ✅ API 4: Tạo đơn đặt hàng mới

@@ -21,9 +21,10 @@ namespace RCM.Backend.Models
         public int? WorkingDays { get; set; }
         public int? BonusHours { get; set; }
         public int? SalaryPerShift { get; set; }
-        public bool? IsCalculated { get; set; } 
+        public bool IsCalculated { get; set; }
         public DateTime? UpdateAt { get; set; }
+
         public virtual Employee Employee { get; set; } = null!;
-        public virtual ICollection<SalaryPaymentHistory>? SalaryPaymentHistories { get; set; }
+        public virtual ICollection<SalaryPaymentHistory> SalaryPaymentHistories { get; set; }
     }
 }

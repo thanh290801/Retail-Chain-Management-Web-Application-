@@ -51,32 +51,31 @@ const InventoryCheckDetail = ({ auditId, onClose }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {pageData.length > 0 ? (
-                            pageData.map((item) => {
-                                const product = getProductInfo(item.productId);
-                                return (
-                                    <tr key={item.stockAuditDetailsId}>
-                                        <td className="p-2 border">{item.productId}</td>
-                                        <td className="p-2 border">{product.name || "N/A"}</td>
-                                        <td className="p-2 border">{product.unit || "N/A"}</td>
-                                        <td className="p-2 border">{item.previousQuantity}</td>
-                                        <td className="p-2 border">{item.adjustedQuantity}</td>
-                                        <td className="p-2 border">
-                                            {item.reason && item.previousQuantity !== item.adjustedQuantity
-                                                ? item.reason
-                                                : "Không có sai lệch"}
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        ) : (
-                            <tr>
-                                <td colSpan="6" className="text-center p-2 border">
-                                    Không có dữ liệu kiểm kho.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
+    {pageData.length > 0 ? (
+        pageData.map((item) => {
+            const product = getProductInfo(item.productId);
+            return (
+                <tr key={item.stockAuditDetailsId}>
+                    <td className="p-2 border">{item.productId}</td>
+                    <td className="p-2 border">{product.name || "N/A"}</td>
+                    <td className="p-2 border">{product.unit || "N/A"}</td>
+                    <td className="p-2 border">{item.stockQuantity ?? "Chưa cập nhật"}</td>
+                    <td className="p-2 border">{item.recordedQuantity}</td>
+                    <td className="p-2 border">
+                        {item.reason?.trim() || "Không có ghi chú"}
+                    </td>
+                </tr>
+            );
+        })
+    ) : (
+        <tr>
+            <td colSpan="6" className="text-center p-2 border">
+                Không có dữ liệu kiểm kho.
+            </td>
+        </tr>
+    )}
+</tbody>
+
                 </table>
 
                 {/* Pagination */}

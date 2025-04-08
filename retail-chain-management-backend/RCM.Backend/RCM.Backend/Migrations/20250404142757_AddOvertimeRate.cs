@@ -8,22 +8,22 @@ namespace RCM.Backend.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-           
 
-            migrationBuilder.AddColumn<decimal>(
-                name: "OvertimeRate",
-                table: "Employee",
-                type: "decimal(18,2)",
-                nullable: true);
+
+            //migrationBuilder.AddColumn<decimal>(
+            //    name: "OvertimeRate",
+            //    table: "Employee",
+            //    type: "decimal(18,2)",
+            //    nullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "OvertimeRate",
-                table: "Employee");
+            //    migrationBuilder.DropColumn(
+            //        name: "OvertimeRate",
+            //        table: "Employee");
 
-            
+
         }
-    }
+}
 }

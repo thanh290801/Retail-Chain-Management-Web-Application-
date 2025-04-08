@@ -20,18 +20,20 @@ const CreatePurchaseOrder = () => {
 
     useEffect(() => {
         axios.get("https://localhost:5000/api/Warehouses")
-            .then((res) => setBranches(res.data))
-            .catch((err) => console.error("Lỗi lấy chi nhánh:", err));
+            .then(res => setBranches(res.data))
+            .catch(err => console.error("Lỗi lấy chi nhánh:", err));
     }, []);
 
     useEffect(() => {
         axios.get("https://localhost:5000/api/Supplier")
-            .then((res) => setSuppliers(res.data))
-            .catch((err) => console.error("Lỗi lấy nhà cung cấp:", err));
+            .then(res => setSuppliers(res.data))
+            .catch(err => console.error("Lỗi lấy nhà cung cấp:", err));
     }, []);
 
     useEffect(() => {
-        setFilteredSuppliers(suppliers.filter(s => s.name.toLowerCase().includes(searchSupplier.toLowerCase())));
+        setFilteredSuppliers(
+            suppliers.filter(s => s.name.toLowerCase().includes(searchSupplier.toLowerCase()))
+        );
     }, [searchSupplier, suppliers]);
 
     useEffect(() => {
@@ -39,7 +41,7 @@ const CreatePurchaseOrder = () => {
     }, [products]);
 
     useEffect(() => {
-        const filtered = products.filter((p) =>
+        const filtered = products.filter(p =>
             (p.productName || "").toLowerCase().includes(searchProduct.toLowerCase())
         );
         setFilteredProducts(filtered);
@@ -48,10 +50,8 @@ const CreatePurchaseOrder = () => {
     useEffect(() => {
         if (selectedBranch && selectedSupplier) {
             axios.get(`https://localhost:5000/api/StockLevels/GetAvailableProducts?supplierId=${selectedSupplier}&warehouseId=${selectedBranch}`)
-                .then((res) => {
-                    setProducts(res.data.length > 0 ? res.data : []);
-                })
-                .catch((err) => {
+                .then(res => setProducts(res.data || []))
+                .catch(err => {
                     console.error("Lỗi lấy sản phẩm:", err);
                     setProducts([]);
                 });
@@ -61,7 +61,7 @@ const CreatePurchaseOrder = () => {
     }, [selectedBranch, selectedSupplier]);
 
     const handleAddProduct = (product) => {
-        setOrderItems((prev) => {
+        setOrderItems(prev => {
             if (prev.some(item => item.productId === product.productId)) {
                 return prev.map(item =>
                     item.productId === product.productId
@@ -72,14 +72,14 @@ const CreatePurchaseOrder = () => {
             return [...prev, { ...product, quantity: 1 }];
         });
 
-        setFilteredProducts((prev) => prev.filter(p => p.productId !== product.productId));
+        setFilteredProducts(prev => prev.filter(p => p.productId !== product.productId));
     };
 
     const handleRemoveProduct = (productId) => {
         const removedProduct = orderItems.find(item => item.productId === productId);
         setOrderItems(prev => prev.filter(item => item.productId !== productId));
         if (removedProduct) {
-            setFilteredProducts((prev) => [...prev, removedProduct]);
+            setFilteredProducts(prev => [...prev, removedProduct]);
         }
     };
 
@@ -118,7 +118,7 @@ const CreatePurchaseOrder = () => {
 
             await axios.post("https://localhost:5000/api/PurchaseOrders/Create", payload);
 
-            // ✅ Cập nhật lại giá nhập trong StockLevels cho từng sản phẩm
+            // ✅ Giá nhập được cập nhật trong FE (nếu cần)
             for (const item of orderItems) {
                 await axios.put(`https://localhost:5000/api/StockLevels/UpdatePurchasePrice`, {
                     warehouseId: selectedBranch,
@@ -154,8 +154,18 @@ const CreatePurchaseOrder = () => {
 
                     <div>
                         <label className="font-semibold">📑 Nhà cung cấp:</label>
-                        <input type="text" className="w-full p-2 border rounded" value={searchSupplier} placeholder="Tìm nhà cung cấp..." onChange={(e) => setSearchSupplier(e.target.value)} />
-                        <select className="w-full p-2 border rounded" value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)}>
+                        <input
+                            type="text"
+                            className="w-full p-2 border rounded"
+                            value={searchSupplier}
+                            placeholder="Tìm nhà cung cấp..."
+                            onChange={(e) => setSearchSupplier(e.target.value)}
+                        />
+                        <select
+                            className="w-full p-2 border rounded"
+                            value={selectedSupplier}
+                            onChange={(e) => setSelectedSupplier(e.target.value)}
+                        >
                             <option value="">Chọn nhà cung cấp</option>
                             {filteredSuppliers.map(supplier => (
                                 <option key={supplier.suppliersId} value={supplier.suppliersId}>{supplier.name}</option>
@@ -165,7 +175,13 @@ const CreatePurchaseOrder = () => {
                 </div>
 
                 <h3 className="text-lg font-semibold mt-6">📦 Danh sách sản phẩm</h3>
-                <input type="text" className="border p-2 w-full mb-2" value={searchProduct} onChange={(e) => setSearchProduct(e.target.value)} placeholder="🔍 Tìm sản phẩm..." />
+                <input
+                    type="text"
+                    className="border p-2 w-full mb-2"
+                    value={searchProduct}
+                    onChange={(e) => setSearchProduct(e.target.value)}
+                    placeholder="🔍 Tìm sản phẩm..."
+                />
 
                 {filteredProducts.length === 0 ? (
                     <p className="text-gray-500">Không có sản phẩm nào khả dụng cho nhà cung cấp này.</p>
@@ -173,7 +189,10 @@ const CreatePurchaseOrder = () => {
                     <table className="w-full border">
                         <thead>
                             <tr className="bg-gray-200">
-                                <th>Sản phẩm</th><th>Đơn vị</th><th>Giá nhập</th><th>Chọn</th>
+                                <th>Sản phẩm</th>
+                                <th>Đơn vị</th>
+                                <th>Giá nhập</th>
+                                <th>Chọn</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -183,10 +202,7 @@ const CreatePurchaseOrder = () => {
                                     <td>{product.unit}</td>
                                     <td>{product.purchasePrice.toLocaleString()} VNĐ</td>
                                     <td>
-                                        <button
-                                            className="bg-blue-500 text-white p-2 rounded"
-                                            onClick={() => handleAddProduct(product)}
-                                        >
+                                        <button className="bg-blue-500 text-white p-2 rounded" onClick={() => handleAddProduct(product)}>
                                             Chọn
                                         </button>
                                     </td>
@@ -197,11 +213,18 @@ const CreatePurchaseOrder = () => {
                 )}
 
                 <h3 className="text-lg font-semibold mt-6">🛍️ Sản phẩm đã chọn</h3>
-                {orderItems.length === 0 ? <p className="text-gray-500">Chưa có sản phẩm nào được chọn.</p> : (
+                {orderItems.length === 0 ? (
+                    <p className="text-gray-500">Chưa có sản phẩm nào được chọn.</p>
+                ) : (
                     <table className="w-full border">
                         <thead>
                             <tr className="bg-gray-200">
-                                <th>Sản phẩm</th><th>Số lượng</th><th>Đơn vị</th><th>Giá nhập</th><th>Thành tiền</th><th>Xóa</th>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Đơn vị</th>
+                                <th>Giá nhập</th>
+                                <th>Thành tiền</th>
+                                <th>Xóa</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -223,7 +246,8 @@ const CreatePurchaseOrder = () => {
                                             className="border w-24 text-right"
                                             value={item.purchasePrice}
                                             onChange={(e) => handlePriceChange(index, e.target.value)}
-                                        /> VNĐ
+                                        />{" "}
+                                        VNĐ
                                     </td>
                                     <td>{calculateTotal(item).toLocaleString()} VNĐ</td>
                                     <td>
@@ -250,16 +274,10 @@ const CreatePurchaseOrder = () => {
 
                 <h3 className="text-lg font-bold mt-6">💰 Tổng tiền: {totalAmount.toLocaleString()} VNĐ</h3>
                 <div className="flex gap-4 mt-4">
-                    <button
-                        className="bg-green-600 text-white p-3 rounded"
-                        onClick={handleCreateOrder}
-                    >
+                    <button className="bg-green-600 text-white p-3 rounded" onClick={handleCreateOrder}>
                         🛒 Tạo đơn đặt hàng
                     </button>
-                    <button
-                        className="btn btn-secondary border px-4 py-2 rounded"
-                        onClick={() => navigate("/ownerorderlist")}
-                    >
+                    <button className="btn btn-secondary border px-4 py-2 rounded" onClick={() => navigate("/ownerorderlist")}>
                         ⬅️ Danh sách đơn hàng
                     </button>
                 </div>
