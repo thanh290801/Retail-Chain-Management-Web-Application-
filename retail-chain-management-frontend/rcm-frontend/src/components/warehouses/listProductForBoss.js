@@ -129,6 +129,7 @@ const ProductStockForOwner = () => {
 
     const handlePromotionCreated = () => {
         setIsCreatePromotionModalOpen(false);
+        setSelectedProducts([]); // ✅ reset checkbox sau khi tạo
     };
 
     const filteredProducts = Array.isArray(products)
@@ -144,18 +145,18 @@ const ProductStockForOwner = () => {
 
     const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
     // Thêm trong ProductStockForOwner:
-const fetchProducts = () => {
-    if (selectedWarehouse) {
-        fetch(`https://localhost:5000/api/warehouse/${selectedWarehouse}/products`)
-            .then(response => response.json())
-            .then(data => setProducts(data))
-            .catch(error => console.error("Error fetching stock:", error));
-    }
-};
+    const fetchProducts = () => {
+        if (selectedWarehouse) {
+            fetch(`https://localhost:5000/api/warehouse/${selectedWarehouse}/products`)
+                .then(response => response.json())
+                .then(data => setProducts(data))
+                .catch(error => console.error("Error fetching stock:", error));
+        }
+    };
 
-useEffect(() => {
-    fetchProducts();
-}, [selectedWarehouse]);
+    useEffect(() => {
+        fetchProducts();
+    }, [selectedWarehouse]);
 
     return (
         <div>
@@ -214,7 +215,13 @@ useEffect(() => {
                 <table className="w-full bg-white shadow-md rounded text-center">
                     <thead className="bg-gray-100">
                         <tr>
-                            <th><input type="checkbox" onChange={handleSelectAll} checked={selectedProducts.length === currentProducts.length && currentProducts.length > 0} /></th>
+                            <th>
+                                <input
+                                    type="checkbox"
+                                    onChange={handleSelectAll}
+                                    checked={currentProducts.length > 0 && currentProducts.every(p => selectedProducts.some(s => s.productsId === p.productsId))}
+                                />
+                            </th>
                             <th>Mã</th>
                             <th>Tên</th>
                             <th>Tồn kho</th>
@@ -264,7 +271,10 @@ useEffect(() => {
                 {/* Modal khuyến mãi */}
                 {isCreatePromotionModalOpen && (
                     <PromotionCreate
-                        onClose={() => setIsCreatePromotionModalOpen(false)}
+                        onClose={() => {
+                            setIsCreatePromotionModalOpen(false);
+                            setSelectedProducts([]); // ✅ reset khi đóng modal
+                        }}
                         onPromotionCreated={handlePromotionCreated}
                         selectedProducts={selectedProducts}
                         warehouseId={selectedWarehouse}
@@ -281,13 +291,13 @@ useEffect(() => {
                                     <button onClick={() => setIsAddProductModalOpen(false)} className="text-gray-600 hover:text-red-500 text-2xl">✕</button>
                                 </div>
                                 <AddProductsToWarehouse
-    warehouseId={selectedWarehouse}
-    onClose={() => setIsAddProductModalOpen(false)}
-    onProductAdded={() => {
-        fetchProducts(); // ✅ Reload danh sách sản phẩm
-        setIsAddProductModalOpen(false); // ✅ Đóng modal sau khi thêm
-    }}
-/>
+                                    warehouseId={selectedWarehouse}
+                                    onClose={() => setIsAddProductModalOpen(false)}
+                                    onProductAdded={() => {
+                                        fetchProducts(); // ✅ Reload danh sách sản phẩm
+                                        setIsAddProductModalOpen(false); // ✅ Đóng modal sau khi thêm
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>

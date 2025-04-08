@@ -1,18 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { toast } from 'react-toastify';
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { registerLocale } from 'react-datepicker';
+import vi from 'date-fns/locale/vi';
+
+registerLocale('vi', vi);
 
 const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], warehouseId, warehouseName }) => {
     const [formData, setFormData] = useState({
         promotionName: '',
         warehouseId: warehouseId,
-        startDate: '',
-        endDate: '',
+        startDate: null,
+        endDate: null,
         discountPercent: '',
         description: ''
     });
+
+    const [fetchedWarehouseName, setFetchedWarehouseName] = useState("");
+
+    useEffect(() => {
+        if (warehouseId) {
+            axios.post(`${api_url}/warehouses/get-by-id`, warehouseId, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(res => {
+                    setFetchedWarehouseName(res.data.name);
+                })
+                .catch(err => console.error(err));
+        }
+    }, [warehouseId]);
 
     const [localSelectedProducts, setLocalSelectedProducts] = useState([...selectedProducts]);
 
@@ -26,69 +47,74 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
 
     const api_url = process.env.REACT_APP_API_URL;
 
-    useEffect(() => {
-    }, [selectedProducts, warehouseId]);
-
     const handleChange = (e) => {
         const { name, value } = e.target;
-
-        if (name === 'endDate') {
-            const endDate = new Date(value);
-            endDate.setHours(23, 59, 0, 0);
-            const localDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
-            setFormData({ ...formData, [name]: localDate.toISOString().slice(0, 16) });
-        } else {
-            setFormData({ ...formData, [name]: value });
-        }
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleDiscountChange = (index, field, value) => {
         const updatedProducts = [...productDiscounts];
-        const parsedValue = parseFloat(value);
 
-        if (isNaN(parsedValue)) {
-            updatedProducts[index][field] = 0;
+        if (field === 'description') {
+            updatedProducts[index][field] = value;
         } else {
-            if (field === 'discountPercent') {
-                updatedProducts[index][field] = Math.min(100, Math.max(0, parsedValue));
-                updatedProducts[index].discountAmount = 0;
-            } else if (field === 'discountAmount') {
-                const maxDiscount = localSelectedProducts[index].retailPrice;
-                updatedProducts[index][field] = Math.min(maxDiscount, Math.max(0, parsedValue));
-                updatedProducts[index].discountPercent = 0;
+            const parsedValue = parseFloat(value);
+            if (isNaN(parsedValue)) {
+                updatedProducts[index][field] = 0;
+            } else {
+                if (field === 'discountPercent') {
+                    updatedProducts[index][field] = Math.min(100, Math.max(0, parsedValue));
+                    updatedProducts[index].discountAmount = 0;
+                } else if (field === 'discountAmount') {
+                    const maxDiscount = localSelectedProducts[index].retailPrice;
+                    updatedProducts[index][field] = Math.min(maxDiscount, Math.max(0, parsedValue));
+                    updatedProducts[index].discountPercent = 0;
+                }
             }
+
+            const discountValue =
+                field === 'discountPercent'
+                    ? (updatedProducts[index].discountPercent / 100) * localSelectedProducts[index].retailPrice
+                    : updatedProducts[index].discountAmount;
+
+            updatedProducts[index].discountedPrice = localSelectedProducts[index].retailPrice - discountValue;
         }
 
-        const discountValue = field === 'discountPercent'
-            ? (updatedProducts[index].discountPercent / 100) * localSelectedProducts[index].retailPrice
-            : updatedProducts[index].discountAmount;
-
-        updatedProducts[index].discountedPrice = localSelectedProducts[index].retailPrice - discountValue;
         setProductDiscounts(updatedProducts);
-    };
-
-    const getNextHourStart = () => {
-        const now = new Date();
-        now.setHours(now.getHours() + 1);
-        now.setMinutes(0, 0, 0);
-        const offset = now.getTimezoneOffset() * 60000;
-        const localTime = new Date(now - offset).toISOString().slice(0, 16);
-        return localTime;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.promotionName.trim()) {
+            toast.warning("Tên khuyến mãi không được để trống.");
+            return;
+        }
+
+        if (!formData.startDate || !formData.endDate) {
+            toast.warning("Vui lòng chọn ngày bắt đầu và kết thúc.");
+            return;
+        }
 
         if (productDiscounts.length === 0) {
             toast.warning("Vui lòng chọn ít nhất một sản phẩm để tạo khuyến mãi.");
             return;
         }
 
+        // Kiểm tra từng sản phẩm phải có giảm giá (1 trong 2 ô)
+        for (let i = 0; i < productDiscounts.length; i++) {
+            const { discountPercent, discountAmount } = productDiscounts[i];
+            if ((discountPercent === 0 || discountPercent === '') && (discountAmount === 0 || discountAmount === '')) {
+                toast.warning(`Sản phẩm "${localSelectedProducts[i].name}" phải có giảm giá phần trăm hoặc số tiền.`);
+                return;
+            }
+        }
+
         const dataToSend = {
-            promotionName: formData.promotionName,
+            promotionName: formData.promotionName.trim(),
             warehouseId: formData.warehouseId,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
+            startDate: new Date(formData.startDate).toISOString(),
+            endDate: new Date(formData.endDate).toISOString(),
             products: productDiscounts,
         };
 
@@ -98,7 +124,7 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
             onPromotionCreated();
             onClose();
         } catch (error) {
-            toast.error('Lỗi khi tạo khuyến mãi:', error);
+            // toast.error('Lỗi khi tạo khuyến mãi:', error);
             toast.error(error.response?.data?.message || 'Tạo khuyến mãi thất bại!');
         }
     };
@@ -115,7 +141,7 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
             <div className="bg-white p-6 rounded-lg w-full max-w-xl md:max-w-7xl max-h-[80vh] overflow-y-auto">
                 <h2 className="text-xl font-bold mb-4">Tạo Khuyến Mãi Mới</h2>
                 <ToastContainer />
-                <p className="mb-4 text-gray-600">Nhà kho: <span className="font-semibold">{warehouseName}</span></p>
+                <p className="mb-4 text-gray-600">Nhà kho: <span className="font-semibold">{fetchedWarehouseName}</span></p>
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -126,32 +152,67 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
                                 value={formData.promotionName}
                                 onChange={handleChange}
                                 className="border w-full p-2"
-                                required
+                                placeholder='Nhập tên chương trình khuyến mãi'
+                            // required
                             />
                         </div>
                         <div className="flex gap-4">
                             <div>
                                 <label className="block mb-2">Ngày Bắt Đầu:</label>
-                                <input
-                                    type="datetime-local"
-                                    name="startDate"
-                                    value={formData.startDate || getNextHourStart()}
-                                    onChange={handleChange}
+                                <DatePicker
+                                    selected={formData.startDate}
+                                    onChange={(date) => {
+                                        const now = new Date();
+                                        const selectedDate = new Date(date);
+
+                                        // Nếu ngày được chọn là hôm nay và giờ < hiện tại ⇒ đẩy giờ lên hiện tại
+                                        if (selectedDate.toDateString() === now.toDateString() && selectedDate < now) {
+                                            selectedDate.setHours(now.getHours(), now.getMinutes(), 0, 0);
+                                        }
+
+                                        setFormData({ ...formData, startDate: selectedDate });
+                                    }}
+                                    showTimeSelect
+                                    timeFormat="HH:mm"
+                                    timeIntervals={15}
+                                    dateFormat="dd/MM/yyyy HH:mm"
+                                    locale="vi"
                                     className="border w-full p-2"
-                                    required
-                                    min={getNextHourStart()}
+                                    placeholderText="Chọn ngày bắt đầu"
+                                    minDate={new Date()}
+                                    minTime={
+                                        formData.startDate &&
+                                            new Date(formData.startDate).toDateString() === new Date().toDateString()
+                                            ? new Date()
+                                            : new Date(0, 0, 0, 0, 0)
+                                    }
+                                    maxTime={new Date(0, 0, 0, 23, 59)}
                                 />
                             </div>
                             <div>
                                 <label className="block mb-2">Ngày Kết Thúc:</label>
-                                <input
-                                    type="datetime-local"
-                                    name="endDate"
-                                    value={formData.endDate}
-                                    onChange={handleChange}
+                                <DatePicker
+                                    selected={formData.endDate}
+                                    onChange={(date) => {
+                                        const selected = new Date(date);
+                                        selected.setHours(23, 59, 0, 0); // Đặt giờ kết thúc là 23:59
+                                        setFormData({ ...formData, endDate: selected });
+                                    }}
+                                    showTimeSelect
+                                    timeFormat="HH:mm"
+                                    timeIntervals={15}
+                                    dateFormat="dd/MM/yyyy HH:mm"
+                                    locale="vi"
                                     className="border w-full p-2"
-                                    required
-                                    min={formData.startDate || new Date().toISOString().slice(0, 16)}
+                                    placeholderText="Chọn ngày kết thúc"
+                                    minDate={formData.startDate || new Date()}
+                                    minTime={
+                                        formData.endDate &&
+                                            new Date(formData.endDate).toDateString() === new Date().toDateString()
+                                            ? new Date()
+                                            : new Date(0, 0, 0, 0, 0)
+                                    }
+                                    maxTime={new Date(0, 0, 0, 23, 59)}
                                 />
                             </div>
                         </div>
@@ -213,11 +274,14 @@ const PromotionCreate = ({ onClose, onPromotionCreated, selectedProducts = [], w
                                             </td>
                                             <td className="border p-2">{productDiscounts[index].discountedPrice?.toLocaleString()} VND</td>
                                             <td className="border p-2">
-                                                <input
-                                                    type='text'
-                                                    className="w-full border p-1"
-                                                    value={productDiscounts[index].description}
-                                                    onChange={(e) => handleDiscountChange(index, 'description', e.target.value)}
+                                                <textarea
+                                                    className="w-full border p-1 resize-none"
+                                                    rows={2}
+                                                    value={productDiscounts[index]?.description || ''}
+                                                    onChange={(e) =>
+                                                        handleDiscountChange(index, 'description', e.target.value)
+                                                    }
+                                                    placeholder="Nhập mô tả (không bắt buộc)"
                                                 />
                                             </td>
                                         </tr>
