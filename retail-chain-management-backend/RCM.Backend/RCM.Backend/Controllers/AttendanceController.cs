@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using OfficeOpenXml;
 
 namespace RCM.Backend.Controllers
 {
@@ -264,7 +265,7 @@ namespace RCM.Backend.Controllers
             if (startDate > endDate)
                 return BadRequest("startDate must be earlier than endDate.");
 
-            var allEmployees = await _context.Employees.ToListAsync();
+            var allEmployees = await _context.Employees.Where(e => e.Account.Role !="Owner").ToListAsync();
             var checkIns = await _context.AttendanceCheckIns
                 .Where(a => a.AttendanceDate >= startDate && a.AttendanceDate <= endDate)
                 .Include(a => a.Employee)
@@ -326,7 +327,131 @@ namespace RCM.Backend.Controllers
 
             return Ok(dateRangeReport);
         }
+        [HttpGet("AttendanceReport/Range/Export")]
+        public async Task<IActionResult> ExportAttendanceReportByRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            startDate = startDate.Date;
+            endDate = endDate.Date;
 
+            if (startDate > endDate)
+                return BadRequest("startDate must be earlier than endDate.");
+
+            // Lấy dữ liệu
+            var allEmployees = await _context.Employees.Where(e => e.Account.Role != "Owner").ToListAsync();
+            var checkIns = await _context.AttendanceCheckIns
+                .Where(a => a.AttendanceDate >= startDate && a.AttendanceDate <= endDate)
+                .Include(a => a.Employee)
+                .ToListAsync();
+            var checkOuts = await _context.AttendanceCheckOuts
+                .Where(a => a.AttendanceDate >= startDate && a.AttendanceDate <= endDate)
+                .ToListAsync();
+            var overtimeRecords = await _context.OvertimeRecords
+                .Where(o => o.Date >= startDate && o.Date <= endDate && o.IsApproved)
+                .ToListAsync();
+
+            // Sử dụng EPPlus để tạo file Excel
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Attendance Report");
+
+                // Thiết lập header
+                worksheet.Cells[1, 1].Value = "Ngày";
+                worksheet.Cells[1, 2].Value = "Mã NV";
+                worksheet.Cells[1, 3].Value = "Họ Tên";
+                worksheet.Cells[1, 4].Value = "Ca";
+                worksheet.Cells[1, 5].Value = "Giờ Check In";
+                worksheet.Cells[1, 6].Value = "Giờ Check Out";
+                worksheet.Cells[1, 7].Value = "Trạng Thái";
+                worksheet.Cells[1, 8].Value = "Giờ Tăng Ca"; // Cột mới cho giờ tăng ca
+
+                int row = 2;
+
+                // Lặp qua từng ngày trong khoảng thời gian
+                for (DateTime currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
+                {
+                    // Dữ liệu nhân viên có mặt
+                    var attendedRecords = checkIns
+                        .Where(a => a.AttendanceDate.Date == currentDate)
+                        .Select(a => new
+                        {
+                            a.Employee.EmployeeId,
+                            a.Employee.FullName,
+                            AttendanceDate = a.AttendanceDate,
+                            a.Shift,
+                            CheckInTime = a.CheckInTime,
+                            CheckOutTime = checkOuts
+                                .FirstOrDefault(co => co.EmployeeId == a.EmployeeId
+                                    && co.AttendanceDate.Date == currentDate
+                                    && co.Shift == a.Shift)?.CheckOutTime,
+                            Overtime = overtimeRecords
+                                .FirstOrDefault(o => o.EmployeeId == a.EmployeeId
+                                    && o.Date == currentDate && o.IsApproved)
+                        });
+
+                    foreach (var record in attendedRecords)
+                    {
+                        worksheet.Cells[row, 1].Value = record.AttendanceDate.ToString("dd/MM/yyyy");
+                        worksheet.Cells[row, 2].Value = record.EmployeeId;
+                        worksheet.Cells[row, 3].Value = record.FullName;
+                        worksheet.Cells[row, 4].Value = record.Shift;
+                        worksheet.Cells[row, 5].Value = record.CheckInTime.ToString("HH:mm:ss");
+                        worksheet.Cells[row, 6].Value = record.CheckOutTime?.ToString("HH:mm:ss") ?? "";
+                        worksheet.Cells[row, 7].Value = "Attended";
+
+                        // Thêm thông tin giờ tăng ca
+                        worksheet.Cells[row, 8].Value = record.Overtime != null
+                            ? $"{record.Overtime.TotalHours} giờ"
+                            : "";
+                        row++;
+                    }
+
+                    // Dữ liệu nhân viên không có mặt
+                    var attendedEmployeeShifts = attendedRecords
+                        .Select(a => $"{a.EmployeeId}-{a.Shift}")
+                        .ToHashSet();
+
+                    var notAttendedEmployees = allEmployees
+                        .SelectMany(e => new[] { "Ca sáng", "Ca chiều" }
+                            .Where(shift => !attendedEmployeeShifts.Contains($"{e.EmployeeId}-{shift}"))
+                            .Select(shift => new
+                            {
+                                e.EmployeeId,
+                                e.FullName,
+                                Shift = shift,
+                                Overtime = overtimeRecords
+                                    .FirstOrDefault(o => o.EmployeeId == e.EmployeeId
+                                        && o.Date == currentDate && o.IsApproved)
+                            }));
+
+                    foreach (var employee in notAttendedEmployees)
+                    {
+                        worksheet.Cells[row, 1].Value = currentDate.ToString("dd/MM/yyyy");
+                        worksheet.Cells[row, 2].Value = employee.EmployeeId;
+                        worksheet.Cells[row, 3].Value = employee.FullName;
+                        worksheet.Cells[row, 4].Value = employee.Shift;
+                        worksheet.Cells[row, 5].Value = "";
+                        worksheet.Cells[row, 6].Value = "";
+                        worksheet.Cells[row, 7].Value = "Not Attended";
+
+                        // Thêm thông tin giờ tăng ca (nếu có)
+                        worksheet.Cells[row, 8].Value = employee.Overtime != null
+                            ? $"{employee.Overtime.TotalHours} giờ"
+                            : "";
+                        row++;
+                    }
+                }
+
+                // Định dạng bảng
+                worksheet.Cells[1, 1, 1, 8].Style.Font.Bold = true; // Cập nhật range để bao gồm cột mới
+                worksheet.Cells.AutoFitColumns();
+
+                // Xuất file
+                var stream = new MemoryStream(package.GetAsByteArray());
+                string fileName = $"Attendance_Report_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.xlsx";
+
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+        }
         [HttpGet("AttendanceDetail")]
         public async Task<IActionResult> GetAttendance([FromQuery] int employeeId)
         {

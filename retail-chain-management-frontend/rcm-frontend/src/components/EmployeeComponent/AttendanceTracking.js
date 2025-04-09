@@ -16,7 +16,7 @@ import { vi } from "date-fns/locale";
 import Header from "../../headerComponent/header";
 import { useNavigate } from "react-router-dom";
 
-const api_url = process.env.REACT_APP_API_URL
+const api_url = process.env.REACT_APP_API_URL;
 
 const fetchAttendanceData = async (startDate, endDate, setAttendanceData) => {
   try {
@@ -43,17 +43,15 @@ const fetchAttendanceData = async (startDate, endDate, setAttendanceData) => {
             avatar:
               "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png",
             status: emp.status,
-            attendance: {}, // Đảm bảo tồn tại
+            attendance: {},
           };
         }
 
-        // ✅ Kiểm tra và parse checkInTime
         let checkInTime = emp.checkInTime
           ? parse(emp.checkInTime, "dd/MM/yyyy HH:mm:ss", new Date())
           : null;
         checkInTime = isValid(checkInTime) ? format(checkInTime, "HH:mm") : "-";
 
-        // ✅ Kiểm tra và parse checkOutTime
         let checkOutTime = emp.checkOutTime
           ? parse(emp.checkOutTime, "dd/MM/yyyy HH:mm:ss", new Date())
           : null;
@@ -61,7 +59,6 @@ const fetchAttendanceData = async (startDate, endDate, setAttendanceData) => {
           ? format(checkOutTime, "HH:mm")
           : "-";
 
-        // ✅ Đảm bảo attendance tồn tại
         if (!mergedData[emp.employeeId].attendance) {
           mergedData[emp.employeeId].attendance = {};
         }
@@ -85,11 +82,10 @@ const fetchAttendanceData = async (startDate, endDate, setAttendanceData) => {
             avatar:
               "https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png",
             status: emp.status,
-            attendance: {}, // Đảm bảo tồn tại
+            attendance: {},
           };
         }
 
-        // ✅ Kiểm tra nếu không có check-in/check-out, gán "-"
         if (!mergedData[emp.employeeId].attendance[formattedDate]) {
           mergedData[emp.employeeId].attendance[formattedDate] = {
             checkin: "-",
@@ -101,6 +97,38 @@ const fetchAttendanceData = async (startDate, endDate, setAttendanceData) => {
     setAttendanceData(Object.values(mergedData));
   } catch (error) {
     console.error("Error fetching attendance data:", error);
+  }
+};
+
+// Thêm hàm xử lý export
+const exportAttendanceData = async (startDate, endDate) => {
+  try {
+    const response = await fetch(
+      `${api_url}/Attendance/AttendanceReport/Range/Export?startDate=${startDate}&endDate=${endDate}`,
+      {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to export attendance data');
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Attendance_Report_${startDate}_${endDate}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error exporting attendance data:", error);
+    alert("Có lỗi xảy ra khi xuất file Excel");
   }
 };
 
@@ -133,7 +161,6 @@ const EmployeeTable = () => {
     const newWeeks = getWeeksInMonth(selectedYear, selectedMonth);
     setWeeks(newWeeks);
 
-    // Nếu không có tuần nào được chọn, chọn tuần đầu tiên
     if (!selectedWeek || !newWeeks.includes(selectedWeek)) {
       setSelectedWeek(newWeeks[0]);
     }
@@ -149,12 +176,17 @@ const EmployeeTable = () => {
     );
     setWeekDates(dates);
 
-    // Lấy dữ liệu cho toàn bộ tuần
     fetchAttendanceData(dates[0], dates[dates.length - 1], setEmployees);
   }, [selectedWeek]);
 
   const toggleSortOrder = () => {
     setEmployees([...employees].sort((a, b) => a.name.localeCompare(b.name)));
+  };
+
+  const handleExport = () => {
+    if (weekDates.length > 0) {
+      exportAttendanceData(weekDates[0], weekDates[weekDates.length - 1]);
+    }
   };
 
   return (
@@ -163,7 +195,7 @@ const EmployeeTable = () => {
       <div className="h-screen flex flex-col mt-5">
         <div className="flex justify-between items-center p-4 border-b bg-white shadow">
           <div className="text-lg font-bold">Lịch Làm Việc Hàng Tuần</div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
@@ -197,6 +229,12 @@ const EmployeeTable = () => {
                 } (${week})`}</option>
               ))}
             </select>
+            <button
+              onClick={handleExport}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Xuất Excel
+            </button>
           </div>
         </div>
         <div className="flex-grow overflow-x-auto p-2">
