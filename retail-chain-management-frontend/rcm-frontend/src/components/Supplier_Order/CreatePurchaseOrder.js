@@ -115,25 +115,23 @@ const CreatePurchaseOrder = () => {
                     price: item.purchasePrice
                 }))
             };
-
-            await axios.post("https://localhost:5000/api/PurchaseOrders/Create", payload);
-
-            // ✅ Giá nhập được cập nhật trong FE (nếu cần)
-            for (const item of orderItems) {
-                await axios.put(`https://localhost:5000/api/StockLevels/UpdatePurchasePrice`, {
-                    warehouseId: selectedBranch,
-                    productId: item.productId,
-                    newPrice: item.purchasePrice
-                });
-            }
-
-            alert("Đơn hàng được tạo và giá nhập đã được cập nhật!");
+    
+            // 1. Gọi API tạo đơn đặt hàng
+            const orderResponse = await axios.post("https://localhost:5000/api/PurchaseOrders/Create", payload);
+    
+            // ✅ Thông báo thành công tạo đơn hàng
+            alert("Đơn hàng được tạo thành công!");
+    
+            // ✅ Đưa người dùng quay lại danh sách đơn hàng
             navigate("/ownerorderlist");
         } catch (err) {
-            console.error("Lỗi khi tạo đơn hàng hoặc cập nhật giá:", err.response?.data || err.message);
+            console.error("Lỗi khi tạo đơn hàng:", err.response?.data || err.message);
             alert("Có lỗi xảy ra khi tạo đơn hàng.");
         }
     };
+    
+    // Kiểm tra có sản phẩm nào có giá nhập = 0 hoặc chưa có sản phẩm trong orderItems
+    const isCreateOrderDisabled = orderItems.length === 0 || orderItems.some(item => item.purchasePrice === 0);
 
     return (
         <div>
@@ -249,7 +247,7 @@ const CreatePurchaseOrder = () => {
                                         />{" "}
                                         VNĐ
                                     </td>
-                                    <td>{calculateTotal(item).toLocaleString()} VNĐ</td>
+                                    <td>{(item.quantity * item.purchasePrice).toLocaleString()} VNĐ</td>
                                     <td>
                                         <button className="text-red-600" onClick={() => handleRemoveProduct(item.productId)}>
                                             <FaTrash />
@@ -274,7 +272,11 @@ const CreatePurchaseOrder = () => {
 
                 <h3 className="text-lg font-bold mt-6">💰 Tổng tiền: {totalAmount.toLocaleString()} VNĐ</h3>
                 <div className="flex gap-4 mt-4">
-                    <button className="bg-green-600 text-white p-3 rounded" onClick={handleCreateOrder}>
+                    <button
+                        className={`p-3 rounded ${isCreateOrderDisabled ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-600 text-white'}`}
+                        onClick={handleCreateOrder}
+                        disabled={isCreateOrderDisabled}
+                    >
                         🛒 Tạo đơn đặt hàng
                     </button>
                     <button className="btn btn-secondary border px-4 py-2 rounded" onClick={() => navigate("/ownerorderlist")}>
