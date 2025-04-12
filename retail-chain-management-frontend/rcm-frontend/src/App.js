@@ -94,7 +94,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <PayOSVoiceNotification />
            {/* Quân */}
            <Route path='/addproduct' element= {<AddProductComponent/>} />
           <Route path='/productstock' element= {<ProtectedRoute><ProductStockComponent/></ProtectedRoute>} />
