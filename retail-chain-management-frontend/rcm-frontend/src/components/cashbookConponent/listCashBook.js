@@ -31,7 +31,6 @@ const CashBook = () => {
                 }
             } catch (err) {
                 setCashbook([]); // Đảm bảo `cashbook` không bị undefined nếu lỗi
-                setError(err.response?.data?.message || "Lỗi khi lấy dữ liệu sổ quỹ.");
             } finally {
                 setLoading(false);
             }
