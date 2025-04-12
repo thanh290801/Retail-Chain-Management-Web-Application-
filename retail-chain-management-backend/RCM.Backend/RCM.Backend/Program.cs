@@ -18,6 +18,7 @@ builder.Services.AddDbContext<RetailChainContext>(options =>
 // 🔹 Đăng ký các service
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddSignalR();
 
 // 🔹 Cấu hình CORS
 builder.Services.AddCors(options =>
@@ -125,5 +126,6 @@ app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<RCM.Backend.Hubs.PaymentHub>("/paymentHub");
 app.MapControllers();
 app.Run();
