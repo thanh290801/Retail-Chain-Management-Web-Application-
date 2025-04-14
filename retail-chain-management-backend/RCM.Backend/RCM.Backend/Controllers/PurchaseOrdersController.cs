@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RCM.Backend.DTOs;
 using RCM.Backend.Models;
@@ -86,10 +86,7 @@ public async Task<IActionResult> GetPurchaseOrder(int orderId)
                         Unit = i.Product.Unit, // ✅ Thêm đơn vị sản phẩm từ bảng Products
                         i.QuantityOrdered,
                         i.QuantityReceived,
-                        PurchasePrice = _context.StockLevels
-                            .Where(sl => sl.ProductId == i.ProductId && sl.WarehouseId == o.WarehousesId)
-                            .Select(sl => sl.PurchasePrice)
-                            .FirstOrDefault()
+                        PurchasePrice = i.PurchasePrice // Thay vì lấy từ StockLevels, lấy giá từ PurchaseOrderItems
                     }).ToList()
             })
             .FirstOrDefaultAsync();
@@ -107,7 +104,7 @@ public async Task<IActionResult> GetPurchaseOrder(int orderId)
     }
 }
 
-       // 📌 Tạo đơn đặt hàng mới
+// 📌 Tạo đơn đặt hàng mới
 [HttpPost("Create")]
 public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderDto orderDto)
 {
@@ -140,6 +137,10 @@ public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderDto
             // 2. Lưu vào purchase_order_items
             foreach (var item in orderDto.Items)
             {
+                var stockLevel = await _context.StockLevels
+                    .FirstOrDefaultAsync(s => s.ProductId == item.ProductId && s.WarehouseId == orderDto.BranchId);
+
+                // Lưu vào purchase_order_items với giá nhập
                 _context.PurchaseOrderItems.Add(new PurchaseOrderItem
                 {
                     PurchaseOrderId = order.PurchaseOrdersId,
@@ -148,6 +149,12 @@ public async Task<IActionResult> CreatePurchaseOrder([FromBody] PurchaseOrderDto
                     QuantityReceived = 0,
                     PurchasePrice = item.Price
                 });
+
+                // Nếu sản phẩm có trong kho, cập nhật giá nhập trong stock_levels
+                if (stockLevel != null)
+                {
+                    stockLevel.PurchasePrice = item.Price;  // Cập nhật giá nhập trong kho
+                }
             }
             await _context.SaveChangesAsync();
 

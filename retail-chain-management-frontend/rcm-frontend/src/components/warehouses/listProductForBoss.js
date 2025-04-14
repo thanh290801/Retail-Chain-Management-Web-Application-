@@ -1,4 +1,3 @@
-// Các phần đầu vẫn giữ nguyên
 import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
@@ -11,18 +10,21 @@ import AddProductsToWarehouse from "./addProductToWarehouse";
 
 const ProductStockForOwner = () => {
     const navigate = useNavigate();
-
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 10;
+
     const [warehouses, setWarehouses] = useState([]);
     const [selectedWarehouse, setSelectedWarehouse] = useState(null);
     const [products, setProducts] = useState([]);
+    const [visibleProducts, setVisibleProducts] = useState([]); // ✅ Tách riêng dữ liệu hiển thị
     const [isEditingPrice, setIsEditingPrice] = useState(false);
     const [updatedPrices, setUpdatedPrices] = useState({});
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [isCreatePromotionModalOpen, setIsCreatePromotionModalOpen] = useState(false);
     const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+    const [showOnlyLossProducts, setShowOnlyLossProducts] = useState(false);
+    const [hasLossProducts, setHasLossProducts] = useState(false);
 
     useEffect(() => {
         fetch("https://localhost:5000/api/warehouse")
@@ -34,13 +36,22 @@ const ProductStockForOwner = () => {
             .catch(error => console.error("Error fetching warehouses:", error));
     }, []);
 
-    useEffect(() => {
+    const fetchProducts = () => {
         if (selectedWarehouse) {
             fetch(`https://localhost:5000/api/warehouse/${selectedWarehouse}/products`)
                 .then(response => response.json())
-                .then(data => setProducts(data))
+                .then(data => {
+                    setProducts(data);
+                    setVisibleProducts(data); // ✅ luôn giữ danh sách gốc để render
+                    const hasLoss = data.some(product => parseFloat(product.retailPrice) <= parseFloat(product.purchasePrice));
+                    setHasLossProducts(hasLoss);
+                })
                 .catch(error => console.error("Error fetching stock:", error));
         }
+    };
+
+    useEffect(() => {
+        fetchProducts();
     }, [selectedWarehouse]);
 
     useEffect(() => {
@@ -51,6 +62,16 @@ const ProductStockForOwner = () => {
         }
         return () => document.body.classList.remove("overflow-hidden");
     }, [isAddProductModalOpen, isCreatePromotionModalOpen]);
+
+    const handleToggleShowLoss = (checked) => {
+        setShowOnlyLossProducts(checked);
+        if (checked) {
+            const filtered = products.filter(p => parseFloat(p.retailPrice) <= parseFloat(p.purchasePrice));
+            setVisibleProducts(filtered);
+        } else {
+            setVisibleProducts(products);
+        }
+    };
 
     const handlePriceChange = (productId, field, value) => {
         setUpdatedPrices(prev => ({
@@ -79,13 +100,20 @@ const ProductStockForOwner = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(priceUpdates)
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error("Lỗi khi cập nhật giá");
+                return response.json();
+            })
             .then(() => {
                 toast.success("✅ Cập nhật giá thành công!");
                 setIsEditingPrice(false);
                 setUpdatedPrices({});
+                fetchProducts();
             })
-            .catch(error => console.error("Error updating prices:", error));
+            .catch(error => {
+                console.error("Error updating prices:", error);
+                toast.error("❌ Cập nhật giá thất bại.");
+            });
     };
 
     const handleToggleStatus = (productId, currentStatus) => {
@@ -114,22 +142,12 @@ const ProductStockForOwner = () => {
     };
 
     const handleSelectAll = (e) => {
-        if (e.target.checked) {
-            const newSelections = currentProducts.filter(p =>
-                !selectedProducts.some(sp => sp.productsId === p.productsId)
-            );
-            setSelectedProducts(prev => [...prev, ...newSelections]);
-        } else {
-            const remaining = selectedProducts.filter(
-                p => !currentProducts.some(cp => cp.productsId === p.productsId)
-            );
-            setSelectedProducts(remaining);
-        }
+        setSelectedProducts(e.target.checked ? currentProducts : []);
     };
 
     const handleCreatePromotion = () => {
         if (selectedProducts.length === 0) {
-            toast.error("⚠️ Vui lòng chọn ít nhất một sản phẩm để tạo khuyến mãi.");
+            toast.error("Vui lòng chọn ít nhất một sản phẩm để tạo khuyến mãi.");
             return;
         }
         setIsCreatePromotionModalOpen(true);
@@ -137,46 +155,18 @@ const ProductStockForOwner = () => {
 
     const handlePromotionCreated = () => {
         setIsCreatePromotionModalOpen(false);
-        setSelectedProducts([]);
     };
-
-    const handleClosePromotionModal = () => {
-        setIsCreatePromotionModalOpen(false);
-        setTimeout(() => setSelectedProducts([]), 300);
-    };
-
-    const filteredProducts = Array.isArray(products)
-        ? products.filter(product =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        : [];
 
     const indexOfLastProduct = currentPage * productsPerPage;
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-
-    const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
-
-    const fetchProducts = () => {
-        if (selectedWarehouse) {
-            fetch(`https://localhost:5000/api/warehouse/${selectedWarehouse}/products`)
-                .then(response => response.json())
-                .then(data => setProducts(data))
-                .catch(error => console.error("Error fetching stock:", error));
-        }
-    };
-
-    useEffect(() => {
-        fetchProducts();
-    }, [selectedWarehouse]);
+    const currentProducts = visibleProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(visibleProducts.length / productsPerPage);
 
     return (
         <div>
             <Header />
             <ToastContainer />
             <div className="p-6 bg-white rounded-lg shadow-md">
-                {/* Thanh công cụ */}
                 <div className="mb-4 flex flex-wrap gap-4 justify-between items-center">
                     <select
                         className="p-2 border rounded"
@@ -209,77 +199,102 @@ const ProductStockForOwner = () => {
                     </button>
 
                     <button
-                        className={`px-4 py-2 rounded text-white ${selectedProducts.length === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-purple-500"}`}
+                        className="bg-purple-500 text-white px-4 py-2 rounded"
                         onClick={handleCreatePromotion}
-                        disabled={selectedProducts.length === 0}
                     >
                         Tạo Khuyến Mãi
                     </button>
-
-                    <button
-                        className="bg-green-500 text-white px-4 py-2 rounded"
-                        onClick={() => setIsAddProductModalOpen(true)}
-                    >
-                        ➕ Thêm sản phẩm vào kho
-                    </button>
                 </div>
 
-                {/* Bảng sản phẩm */}
-                <table className="w-full bg-white shadow-md rounded text-center">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th>
-                                <input
-                                    type="checkbox"
-                                    onChange={handleSelectAll}
-                                    checked={currentProducts.length > 0 && currentProducts.every(p => selectedProducts.some(s => s.productsId === p.productsId))}
-                                />
-                            </th>
-                            <th>Mã</th>
-                            <th>Tên</th>
-                            <th>Tồn kho</th>
-                            <th>Tối thiểu</th>
-                            <th>Giá nhập</th>
-                            <th>Giá lẻ</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {currentProducts.length > 0 ? currentProducts.map(product => (
-                            <tr key={product.productsId} className={product.quantity < product.minQuantity ? "bg-red-100" : ""}>
-                                <td>
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedProducts.some(p => p.productsId === product.productsId)}
-                                        onChange={() => handleCheckboxChange(product)}
-                                    />
-                                </td>
-                                <td>{product.productsId}</td>
-                                <td>{product.name}</td>
-                                <td className={`font-semibold ${product.quantity < product.minQuantity ? "text-red-600" : ""}`}>{product.quantity}</td>
-                                <td>{product.minQuantity}</td>
-                                <td><input type="number" value={updatedPrices[product.productsId]?.NewPurchasePrice || product.purchasePrice} onChange={(e) => handlePriceChange(product.productsId, "NewPurchasePrice", e.target.value)} disabled={!isEditingPrice} /></td>
-                                <td><input type="number" value={updatedPrices[product.productsId]?.NewRetailPrice || product.retailPrice} onChange={(e) => handlePriceChange(product.productsId, "NewRetailPrice", e.target.value)} disabled={!isEditingPrice} /></td>
-                                <td>{product.status ? "Đang bán" : "Ngừng bán"}</td>
-                                <td>
-                                    <button className={`${product.status ? "bg-red-500" : "bg-green-500"} text-white p-2 rounded`} onClick={() => handleToggleStatus(product.productsId, product.status)}>
-                                        {product.status ? "Ngưng bán" : "Mở bán"}
-                                    </button>
-                                </td>
-                            </tr>
-                        )) : (
-                            <tr><td colSpan="10" className="p-4 text-center">Chưa có sản phẩm</td></tr>
-                        )}
-                    </tbody>
-                </table>
+                <div className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        checked={showOnlyLossProducts}
+                        onChange={(e) => handleToggleShowLoss(e.target.checked)}
+                    />
+                    <label>Chỉ hiển thị sản phẩm lỗ</label>
+                </div>
 
-                {/* Phân trang */}
+                {hasLossProducts && (
+                    <div className="bg-yellow-200 text-yellow-800 font-medium p-3 rounded mb-4">
+                        ⚠️ Có sản phẩm đang bán thấp hơn giá nhập! Vui lòng kiểm tra lại.
+                    </div>
+                )}
+
+<table className="w-full bg-white shadow-md rounded text-center">
+    <thead className="bg-gray-100">
+        <tr>
+            <th><input type="checkbox" onChange={handleSelectAll} checked={selectedProducts.length === currentProducts.length && currentProducts.length > 0} /></th>
+            <th>Mã</th>
+            <th>Tên</th>
+            <th>Tồn kho</th>
+            <th>Tối thiểu</th>
+            <th>Giá nhập</th>
+            <th>Giá lẻ</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        {currentProducts.length > 0 ? currentProducts.map(product => {
+            const purchasePrice = parseFloat(updatedPrices[product.productsId]?.NewPurchasePrice || product.purchasePrice);
+            const retailPrice = parseFloat(updatedPrices[product.productsId]?.NewRetailPrice || product.retailPrice);
+            const isLowStock = product.quantity < product.minQuantity;
+
+            // Kiểm tra nếu giá bán <= giá nhập
+            const isPriceLessThanOrEqual = retailPrice <= purchasePrice;
+
+            let rowClass = "";
+            if (isPriceLessThanOrEqual) rowClass = "bg-yellow-100"; // Highlight vàng nếu giá bán <= giá nhập
+            else if (isLowStock) rowClass = "bg-red-100";
+
+            return (
+                <tr key={product.productsId} className={rowClass}>
+                    <td><input type="checkbox" checked={selectedProducts.some(p => p.productsId === product.productsId)} onChange={() => handleCheckboxChange(product)} /></td>
+                    <td>{product.productsId}</td>
+                    <td>{product.name}</td>
+                    <td className={`font-semibold ${isLowStock ? "text-red-600" : ""}`}>{product.quantity}</td>
+                    <td>{product.minQuantity}</td>
+                    <td>
+                        <input
+                            type="number"
+                            value={updatedPrices[product.productsId]?.NewPurchasePrice || product.purchasePrice}
+                            onChange={(e) => handlePriceChange(product.productsId, "NewPurchasePrice", e.target.value)}
+                            disabled={!isEditingPrice}
+                        />
+                    </td>
+                    <td>
+                        <input
+                            type="number"
+                            value={updatedPrices[product.productsId]?.NewRetailPrice || product.retailPrice}
+                            onChange={(e) => handlePriceChange(product.productsId, "NewRetailPrice", e.target.value)}
+                            disabled={!isEditingPrice}
+                        />
+                    </td>
+                    <td>{product.status ? "Đang bán" : "Ngừng bán"}</td>
+                    <td>
+                        <button
+                            className={`${product.status ? "bg-red-500" : "bg-green-500"} text-white p-2 rounded`}
+                            onClick={() => handleToggleStatus(product.productsId, product.status)}
+                        >
+                            {product.status ? "Ngưng bán" : "Mở bán"}
+                        </button>
+                    </td>
+                </tr>
+            );
+        }) : (
+            <tr>
+                <td colSpan="9" className="p-4 text-center">Chưa có sản phẩm</td>
+            </tr>
+        )}
+    </tbody>
+</table>
+
                 <div className="flex justify-center mt-4">
                     {[...Array(totalPages)].map((_, index) => (
                         <button
                             key={index + 1}
-                            onClick={() => handlePageChange(index + 1)}
+                            onClick={() => setCurrentPage(index + 1)}
                             className={`px-4 py-2 mx-1 rounded ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
                         >
                             {index + 1}
@@ -287,17 +302,15 @@ const ProductStockForOwner = () => {
                     ))}
                 </div>
 
-                {/* Modal khuyến mãi */}
                 {isCreatePromotionModalOpen && (
                     <PromotionCreate
-                        onClose={handleClosePromotionModal}
+                        onClose={() => setIsCreatePromotionModalOpen(false)}
                         onPromotionCreated={handlePromotionCreated}
                         selectedProducts={selectedProducts}
                         warehouseId={selectedWarehouse}
                     />
                 )}
 
-                {/* Modal thêm sản phẩm */}
                 {isAddProductModalOpen && (
                     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 overflow-y-auto" onClick={() => setIsAddProductModalOpen(false)}>
                         <div className="min-h-screen flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>

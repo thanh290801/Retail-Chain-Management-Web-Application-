@@ -101,7 +101,7 @@ public async Task<ActionResult<OrderDetailDto>> GetPurchaseOrder(int id, [FromQu
 }
 
         // ✅ API 3: Nhận hàng và cập nhật trạng thái đơn nhập
-       [HttpPost("{id}/receive")]
+     [HttpPost("{id}/receive")]
 public async Task<IActionResult> ReceiveOrder(int id, [FromBody] ReceiveOrderDto receiveOrderDto)
 {
     var purchaseOrder = await _context.PurchaseOrders
@@ -142,21 +142,36 @@ public async Task<IActionResult> ReceiveOrder(int id, [FromBody] ReceiveOrderDto
 
             _context.BatchDetails.Add(batchDetail);
 
+            // Kiểm tra sản phẩm có tồn kho không
             var stockLevel = await _context.StockLevels
                 .FirstOrDefaultAsync(sl => sl.ProductId == product.ProductId && sl.WarehouseId == receiveOrderDto.BranchId);
 
             if (stockLevel != null)
             {
+                // Nếu sản phẩm có tồn kho, chỉ cập nhật số lượng
                 stockLevel.Quantity += product.ReceivedQuantity;
             }
             else
             {
+                // Nếu sản phẩm chưa có trong kho, lấy MinQuantity từ bảng StockLevels
+                var minQuantity = 20;  // Giá trị mặc định nếu không có MinQuantity trong DB
+                var stockLevelInfo = await _context.StockLevels
+                    .FirstOrDefaultAsync(sl => sl.ProductId == product.ProductId && sl.WarehouseId == receiveOrderDto.BranchId);
+
+                if (stockLevelInfo != null)
+                {
+                    minQuantity = stockLevelInfo.MinQuantity; // Sử dụng MinQuantity từ bảng StockLevels
+                }
+
                 _context.StockLevels.Add(new StockLevel
                 {
                     ProductId = product.ProductId,
                     WarehouseId = receiveOrderDto.BranchId,
-                    Quantity = product.ReceivedQuantity,
-                    PurchasePrice = product.PurchasePrice
+                    Quantity = product.ReceivedQuantity, // Số lượng nhập lần đầu
+                    MinQuantity = minQuantity, // Sử dụng MinQuantity từ bảng StockLevels
+                    PurchasePrice = product.PurchasePrice, // Cập nhật giá nhập
+                    RetailPrice = product.PurchasePrice, // Đặt giá bán lẻ = giá nhập
+                    Status = false // Trạng thái mặc định là disable
                 });
             }
         }

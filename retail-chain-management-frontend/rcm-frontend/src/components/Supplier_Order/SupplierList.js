@@ -11,19 +11,21 @@ const SupplierList = () => {
     const [filteredSuppliers, setFilteredSuppliers] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [showModal, setShowModal] = useState(false); // Thêm mới
-    const [editSupplier, setEditSupplier] = useState(null); // Sửa
+    const [showModal, setShowModal] = useState(false);
+    const [editSupplier, setEditSupplier] = useState(null);
+    const [loadingError, setLoadingError] = useState(false);       // MSG03
+    const [emptyData, setEmptyData] = useState(false);             // MSG01
+
     const suppliersPerPage = 10;
     const navigate = useNavigate();
 
-    // 🔒 Khóa scroll nền khi modal mở
     useEffect(() => {
         if (showModal || editSupplier) {
-            document.body.classList.add('overflow-hidden');
+            document.body.classList.add("overflow-hidden");
         } else {
-            document.body.classList.remove('overflow-hidden');
+            document.body.classList.remove("overflow-hidden");
         }
-        return () => document.body.classList.remove('overflow-hidden');
+        return () => document.body.classList.remove("overflow-hidden");
     }, [showModal, editSupplier]);
 
     useEffect(() => {
@@ -33,15 +35,25 @@ const SupplierList = () => {
     const fetchSuppliers = async () => {
         try {
             const response = await axios.get("https://localhost:5000/api/supplier");
-            setSuppliers(response.data);
-            setFilteredSuppliers(response.data);
+            const data = response.data;
+            if (!data || data.length === 0) {
+                setEmptyData(true); // MSG01
+                setSuppliers([]);
+                setFilteredSuppliers([]);
+            } else {
+                setEmptyData(false);
+                setSuppliers(data);
+                setFilteredSuppliers(data);
+            }
+            setLoadingError(false);
         } catch (error) {
             console.error("❌ Lỗi API:", error);
+            setLoadingError(true); // MSG03
         }
     };
 
     useEffect(() => {
-        const filtered = suppliers.filter(supplier =>
+        const filtered = suppliers.filter((supplier) =>
             supplier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             supplier.contactPerson?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             supplier.phone?.includes(searchTerm) ||
@@ -58,13 +70,11 @@ const SupplierList = () => {
     const indexOfFirstSupplier = indexOfLastSupplier - suppliersPerPage;
     const currentSuppliers = filteredSuppliers.slice(indexOfFirstSupplier, indexOfLastSupplier);
 
-    // ✅ Thêm mới thành công
     const handleAddSupplierSuccess = (newSupplier) => {
         setSuppliers([newSupplier, ...suppliers]);
         setShowModal(false);
     };
 
-    // ✅ Cập nhật sau khi sửa
     const handleUpdateSupplierSuccess = (updatedSupplier) => {
         const updatedList = suppliers.map((s) =>
             s.suppliersId === updatedSupplier.suppliersId ? updatedSupplier : s
@@ -147,7 +157,19 @@ const SupplierList = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentSuppliers.length > 0 ? (
+                            {loadingError ? (
+                                <tr>
+                                    <td colSpan="11" className="text-center text-danger fw-bold">
+                                        Đã xảy ra lỗi. Vui lòng thử lại sau.
+                                    </td>
+                                </tr>
+                            ) : emptyData ? (
+                                <tr>
+                                    <td colSpan="11" className="text-center text-muted">
+                                        Không thể tải dữ liệu
+                                    </td>
+                                </tr>
+                            ) : currentSuppliers.length > 0 ? (
                                 currentSuppliers.map((supplier, index) => (
                                     <tr key={supplier.suppliersId}>
                                         <td className="fw-bold">{indexOfFirstSupplier + index + 1}</td>

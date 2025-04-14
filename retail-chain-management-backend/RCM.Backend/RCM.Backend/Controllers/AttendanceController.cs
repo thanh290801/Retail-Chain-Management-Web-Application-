@@ -198,10 +198,10 @@ namespace RCM.Backend.Controllers
             var overtimeRecord = new OvertimeRecord
             {
                 EmployeeId = request.EmployeeId,
-                Date = request.Date.Date, // Lấy ngày từ request
+                Date = request.Date.Date,
                 StartTime = request.StartTime ?? TimeSpan.Zero,
                 EndTime = TimeSpan.Zero,
-                TotalHours = request.TotalHours > 0 ? request.TotalHours : 1, // Đặt mặc định 1 giờ nếu không hợp lệ
+                TotalHours = request.TotalHours > 0 ? request.TotalHours : 1,
                 IsRejected = false,
                 Reason = request.Reason ?? "Yêu cầu tăng ca",
                 IsApproved = false
@@ -209,10 +209,10 @@ namespace RCM.Backend.Controllers
 
             await _context.OvertimeRecords.AddAsync(overtimeRecord);
 
-            // Thêm thông báo nếu có AccountId
+            // Thêm thông báo cho nhân viên
             if (_context.Notifications != null && employee.AccountId.HasValue && employee.AccountId.Value != 0)
             {
-                var notification = new Notification
+                var employeeNotification = new Notification
                 {
                     Title = "Yêu cầu tăng ca",
                     Message = $"Yêu cầu tăng ca của bạn ngày {request.Date:dd/MM/yyyy} đã được gửi, đang chờ phê duyệt",
@@ -220,7 +220,24 @@ namespace RCM.Backend.Controllers
                     CreatedAt = DateTime.Now,
                     IsRead = false
                 };
-                await _context.Notifications.AddAsync(notification);
+                await _context.Notifications.AddAsync(employeeNotification);
+            }
+
+            // Thêm thông báo cho Owner
+            var owner = await _context.Employees
+                .FirstOrDefaultAsync(e => e.Account.Role == "Owner"); // Giả định có trường Role để xác định Owner
+
+            if (owner != null && owner.AccountId.HasValue && owner.AccountId.Value != 0)
+            {
+                var ownerNotification = new Notification
+                {
+                    Title = "Yêu cầu tăng ca mới",
+                    Message = $"Nhân viên {employee.FullName} đã gửi yêu cầu tăng ca ngày {request.Date:dd/MM/yyyy}, đang chờ phê duyệt",
+                    ReceiverAccountId = owner.AccountId.Value,
+                    CreatedAt = DateTime.Now,
+                    IsRead = false
+                };
+                await _context.Notifications.AddAsync(ownerNotification);
             }
 
             // Lưu thay đổi vào database

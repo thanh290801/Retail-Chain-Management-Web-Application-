@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RCM.Backend.DTOs;
 using RCM.Backend.Models;
@@ -36,38 +36,41 @@ namespace RCM.Backend.Controllers.Supplier_Order
             return Ok(products);
         }
 
-        // API GET: Lấy danh sách sản phẩm có sẵn từ một nhà cung cấp và chi nhánh cụ thể
-        [HttpGet("GetAvailableProducts")]
-        public async Task<IActionResult> GetAvailableProducts(int supplierId, int warehouseId)
-        {
-            // 🛑 Kiểm tra nếu supplierId hoặc warehouseId không hợp lệ
-            if (supplierId <= 0 || warehouseId <= 0)
-            {
-                return BadRequest(new { message = "supplierId hoặc warehouseId không hợp lệ!" });
-            }
+[HttpGet("GetAvailableProducts")]
+public async Task<IActionResult> GetAvailableProducts(int supplierId, int warehouseId)
+{
+    // 🛑 Kiểm tra nếu supplierId không hợp lệ
+    if (supplierId <= 0)
+    {
+        return BadRequest(new { message = "supplierId không hợp lệ!" });
+    }
 
-            var products = await (from sp in _context.SupplierProducts
-                                  join p in _context.Products on sp.ProductId equals p.ProductsId
-                                  join s in _context.StockLevels on p.ProductsId equals s.ProductId
-                                  where sp.SupplierId == supplierId && s.WarehouseId == warehouseId
-                                  select new
-                                  {
-                                      ProductId = p.ProductsId,
-                                      ProductName = p.Name,
-                                      Unit = p.Unit,  // 🟢 Lấy đơn vị từ bảng Products
-                                      StockQuantity = s.Quantity,
-                                      PurchasePrice = s.PurchasePrice,
-                                      RetailPrice = s.RetailPrice
-                                  }).ToListAsync();
+    // Truy vấn sản phẩm của nhà cung cấp và kiểm tra tồn kho cho warehouseId
+    var products = await (from sp in _context.SupplierProducts
+                          join p in _context.Products on sp.ProductId equals p.ProductsId
+                          join s in _context.StockLevels on new { ProductId = p.ProductsId, WarehouseId = warehouseId } 
+                              equals new { ProductId = s.ProductId, WarehouseId = s.WarehouseId } into stockLevels
+                          from s in stockLevels.DefaultIfEmpty() // Nếu không có tồn kho thì sẽ trả về null
+                          where sp.SupplierId == supplierId
+                          select new
+                          {
+                              ProductId = p.ProductsId,
+                              ProductName = p.Name,
+                              Unit = p.Unit,
+                              StockQuantity = s != null ? s.Quantity : 0, // Nếu có tồn kho thì lấy, không thì 0
+                              PurchasePrice = s != null ? s.PurchasePrice : 0, // Giá nhập từ StockLevels nếu có
+                              RetailPrice = s != null ? s.RetailPrice : 0 // Giá bán lẻ từ StockLevels nếu có
+                          }).ToListAsync();
 
-            // 🛑 Nếu không có sản phẩm nào, trả về NotFound
-            if (products == null || !products.Any())
-            {
-                return NotFound(new { message = "Không có sản phẩm nào khả dụng cho nhà cung cấp này tại chi nhánh này." });
-            }
+    // 🛑 Nếu không có sản phẩm nào, trả về NotFound
+    if (products == null || !products.Any())
+    {
+        return NotFound(new { message = "Không có sản phẩm nào khả dụng cho nhà cung cấp này." });
+    }
 
-            return Ok(products);
-        }
+    return Ok(products);
+}
+
         [HttpPut("UpdatePrice")]
         public async Task<IActionResult> UpdatePurchasePrice([FromBody] UpdatePurchasePriceDto request)
         {

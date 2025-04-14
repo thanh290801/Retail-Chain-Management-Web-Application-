@@ -17,18 +17,18 @@ public class EmployeeController : ControllerBase
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
+    // GET: api/employees/profile
     [HttpGet("profile")]
     public async Task<IActionResult> GetLoggedInEmployeeProfile()
     {
         try
         {
-            // 🔹 Lấy AccountID từ Token
             var accountIdClaim = User.FindFirst("AccountId")?.Value;
 
-            if (accountIdClaim == null)
+            if (string.IsNullOrEmpty(accountIdClaim))
                 return Unauthorized(new { message = "Không tìm thấy thông tin đăng nhập." });
 
-            int employeeId = int.Parse(accountIdClaim); // 👈 nếu đây là AccountId, sửa tên biến lại
+            int accountId = int.Parse(accountIdClaim);
 
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -53,7 +53,7 @@ public class EmployeeController : ControllerBase
                     LEFT JOIN warehouses w ON e.BranchID = w.WarehousesId
                     WHERE e.AccountID = @accountId";
 
-                var employee = await connection.QueryFirstOrDefaultAsync<EmployeeProfileDTO>(query, new { accountId = employeeId });
+                var employee = await connection.QueryFirstOrDefaultAsync<EmployeeProfileDTO>(query, new { accountId });
 
                 if (employee == null)
                     return NotFound(new { message = "Không tìm thấy thông tin nhân viên." });
@@ -67,12 +67,59 @@ public class EmployeeController : ControllerBase
         }
     }
 
+    // PUT: api/employees/update-profile
+    [HttpPut("update-profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateEmployeeDTO updatedInfo)
+    {
+        try
+        {
+            var accountIdClaim = User.FindFirst("AccountId")?.Value;
+
+            if (string.IsNullOrEmpty(accountIdClaim))
+                return Unauthorized(new { message = "Không xác định được người dùng." });
+
+            int accountId = int.Parse(accountIdClaim);
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string updateQuery = @"
+                    UPDATE Employee
+                    SET 
+                        FullName = @FullName,
+                        Phone = @Phone,
+                        Gender = @Gender,
+                        BirthDate = @BirthDate,
+                        Hometown = @Hometown
+                    WHERE AccountID = @AccountId";
+
+                var result = await connection.ExecuteAsync(updateQuery, new
+                {
+                    updatedInfo.FullName,
+                    updatedInfo.Phone,
+                    updatedInfo.Gender,
+                    updatedInfo.BirthDate,
+                    updatedInfo.Hometown,
+                    AccountId = accountId
+                });
+
+                if (result == 0)
+                    return NotFound(new { message = "Không tìm thấy nhân viên để cập nhật." });
+
+                return Ok(new { message = "Cập nhật thông tin thành công." });
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi khi cập nhật thông tin.", error = ex.Message });
+        }
+    }
 }
 
+// Dùng cho hiển thị hồ sơ
 public class EmployeeProfileDTO
 {
     public int EmployeeID { get; set; }
-    public int AccountID { get; set; }       // ✅ Thêm dòng này
+    public int AccountID { get; set; }
     public string FullName { get; set; }
     public string Phone { get; set; }
     public string Gender { get; set; }
@@ -88,3 +135,12 @@ public class EmployeeProfileDTO
     public string ProfileImage { get; set; }
 }
 
+// Dùng cho cập nhật thông tin cá nhân
+public class UpdateEmployeeDTO
+{
+    public string FullName { get; set; }
+    public string Phone { get; set; }
+    public string Gender { get; set; }
+    public DateTime BirthDate { get; set; }
+    public string Hometown { get; set; }
+}

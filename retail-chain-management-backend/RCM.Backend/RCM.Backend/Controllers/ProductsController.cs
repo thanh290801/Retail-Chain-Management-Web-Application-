@@ -117,73 +117,67 @@ public class ProductsController : ControllerBase
     }
 
 
-    [HttpPost("update-price")]
-    public async Task<IActionResult> UpdateProductPrice([FromBody] List<UpdatePriceRequest> priceUpdates)
+[HttpPost("update-price")]
+public async Task<IActionResult> UpdateProductPrice([FromBody] List<UpdatePriceRequest> priceUpdates)
+{
+    if (priceUpdates == null || !priceUpdates.Any())
     {
-        if (priceUpdates == null || !priceUpdates.Any())
-        {
-            return BadRequest(new { message = "Không có dữ liệu cập nhật." });
-        }
-
-        var priceHistoryEntries = new List<ProductPriceHistory>();
-
-        foreach (var update in priceUpdates)
-        {
-            var stock = await _context.StockLevels
-                .FirstOrDefaultAsync(s => s.ProductId == update.ProductId && s.WarehouseId == update.WarehouseId);
-
-            if (stock == null)
-            {
-                return NotFound(new { message = $"Không tìm thấy sản phẩm {update.ProductId} trong kho {update.WarehouseId}." });
-            }
-
-            decimal? oldPrice = null;
-
-            switch (update.PriceType)
-            {
-                case "NewPurchasePrice":
-                    oldPrice = stock.PurchasePrice;
-                    stock.PurchasePrice = update.NewPrice;
-                    break;
-                case "NewWholesalePrice":
-                    oldPrice = stock.WholesalePrice;
-                    stock.WholesalePrice = update.NewPrice;
-                    break;
-                case "NewRetailPrice":
-                    oldPrice = stock.RetailPrice;
-                    stock.RetailPrice = update.NewPrice;
-                    break;
-                default:
-                    return BadRequest(new { message = "Loại giá không hợp lệ." });
-            }
-
-            // Chỉ lưu vào history nếu có sự thay đổi
-            if (oldPrice != update.NewPrice)
-            {
-                priceHistoryEntries.Add(new ProductPriceHistory
-                {
-                    ProductId = update.ProductId,
-                    PriceType = update.PriceType,
-                    OldPrice = oldPrice.Value,
-                    NewPrice = update.NewPrice,
-                    ChangedBy = update.ChangedBy,
-                    ChangeDate = DateTime.UtcNow,
-                    WarehouseId = update.WarehouseId
-                });
-            }
-        }
-
-        if (priceHistoryEntries.Any())
-        {
-            _context.ProductPriceHistories.AddRange(priceHistoryEntries);
-        }
-
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Cập nhật giá thành công!" });
-
-
+        return BadRequest(new { message = "Không có dữ liệu cập nhật." });
     }
 
+    var priceHistoryEntries = new List<ProductPriceHistory>();
+
+    foreach (var update in priceUpdates)
+    {
+        var stock = await _context.StockLevels
+            .FirstOrDefaultAsync(s => s.ProductId == update.ProductId && s.WarehouseId == update.WarehouseId);
+
+        if (stock == null)
+        {
+            return NotFound(new { message = $"Không tìm thấy sản phẩm {update.ProductId} trong kho {update.WarehouseId}." });
+        }
+
+        decimal? oldPrice = null;
+
+        // Cập nhật giá nhập và giá bán lẻ, không xử lý giá bán buôn nữa
+        switch (update.PriceType)
+        {
+            case "NewPurchasePrice":
+                oldPrice = stock.PurchasePrice;
+                stock.PurchasePrice = update.NewPrice;
+                break;
+            case "NewRetailPrice":
+                oldPrice = stock.RetailPrice;
+                stock.RetailPrice = update.NewPrice;
+                break;
+            default:
+                return BadRequest(new { message = "Loại giá không hợp lệ." });
+        }
+
+        // Chỉ lưu vào history nếu có sự thay đổi về giá và oldPrice không null
+        if (oldPrice.HasValue && oldPrice.Value != update.NewPrice)
+        {
+            priceHistoryEntries.Add(new ProductPriceHistory
+            {
+                ProductId = update.ProductId,
+                PriceType = update.PriceType,
+                OldPrice = oldPrice.Value,
+                NewPrice = update.NewPrice,
+                ChangedBy = update.ChangedBy,
+                ChangeDate = DateTime.UtcNow,
+                WarehouseId = update.WarehouseId
+            });
+        }
+    }
+
+    if (priceHistoryEntries.Any())
+    {
+        _context.ProductPriceHistories.AddRange(priceHistoryEntries);
+    }
+
+    await _context.SaveChangesAsync();
+    return Ok(new { message = "Cập nhật giá thành công!" });
+}
 
     // Model DTO nhận từ frontend
     public class UpdatePriceRequest

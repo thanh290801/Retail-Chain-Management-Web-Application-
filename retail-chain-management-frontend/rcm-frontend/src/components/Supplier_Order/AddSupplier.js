@@ -17,9 +17,22 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [fieldErrors, setFieldErrors] = useState({});
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        setFieldErrors({ ...fieldErrors, [e.target.name]: "" }); // Clear error as user types
+    };
+
+    const validateFields = () => {
+        const errors = {};
+        if (!formData.Name.trim()) errors.Name = "Vui lòng điền vào trường này.";
+        if (!formData.Phone.trim()) errors.Phone = "Vui lòng điền vào trường này.";
+        if (formData.Email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.Email)) {
+            errors.Email = "Dữ liệu không hợp lệ.";
+        }
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     const handleCheckTaxCode = async () => {
@@ -29,13 +42,12 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                 params: { taxCode: formData.TaxCode },
             });
             if (response.data.exists) {
-                setError("⚠️ Mã số thuế đã tồn tại. Vui lòng kiểm tra lại!");
+                setFieldErrors((prev) => ({ ...prev, TaxCode: "⚠️ Mã số thuế đã tồn tại. Vui lòng kiểm tra lại!" }));
                 return true;
             }
         } catch (err) {
             console.error("Lỗi kiểm tra mã số thuế:", err);
         }
-        setError("");
         return false;
     };
 
@@ -43,6 +55,13 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setFieldErrors({});
+
+        const isValid = validateFields();
+        if (!isValid) {
+            setLoading(false);
+            return;
+        }
 
         const isDuplicate = await handleCheckTaxCode();
         if (isDuplicate) {
@@ -56,8 +75,6 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
             });
 
             alert("✅ Thêm nhà cung cấp thành công!");
-
-            const newSupplier = response.data;
             setFormData({
                 Name: "",
                 TaxCode: "",
@@ -69,8 +86,7 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                 ContactPerson: "",
                 RPhone: "",
             });
-
-            if (onSuccess) onSuccess(newSupplier);
+            if (onSuccess) onSuccess(response.data);
         } catch (err) {
             console.error("❌ Lỗi khi thêm:", err.response?.data || err.message);
             setError("Có lỗi xảy ra khi thêm nhà cung cấp. Vui lòng thử lại!");
@@ -82,19 +98,18 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
     return (
         <Form onSubmit={handleSubmit}>
             {error && <p className="text-danger">{error}</p>}
-
             <Row>
                 <Col md={12}>
                     <Form.Group className="mb-3">
                         <Form.Label>Tên nhà cung cấp</Form.Label>
                         <Form.Control
                             type="text"
-                            placeholder="Nhập tên nhà cung cấp"
                             name="Name"
                             value={formData.Name}
                             onChange={handleChange}
-                            required
+                            placeholder="Nhập tên nhà cung cấp"
                         />
+                        {fieldErrors.Name && <div className="text-danger">{fieldErrors.Name}</div>}
                     </Form.Group>
                 </Col>
 
@@ -103,12 +118,13 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                         <Form.Label>Mã số thuế</Form.Label>
                         <Form.Control
                             type="text"
-                            placeholder="Nhập mã số thuế"
                             name="TaxCode"
                             value={formData.TaxCode}
                             onChange={handleChange}
                             onBlur={handleCheckTaxCode}
+                            placeholder="Nhập mã số thuế"
                         />
+                        {fieldErrors.TaxCode && <div className="text-danger">{fieldErrors.TaxCode}</div>}
                     </Form.Group>
                 </Col>
 
@@ -117,10 +133,10 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                         <Form.Label>Website</Form.Label>
                         <Form.Control
                             type="text"
-                            placeholder="Địa chỉ website"
                             name="Website"
                             value={formData.Website}
                             onChange={handleChange}
+                            placeholder="Địa chỉ website"
                         />
                     </Form.Group>
                 </Col>
@@ -130,11 +146,12 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                         <Form.Label>Email</Form.Label>
                         <Form.Control
                             type="email"
-                            placeholder="Email liên hệ"
                             name="Email"
                             value={formData.Email}
                             onChange={handleChange}
+                            placeholder="Email liên hệ"
                         />
+                        {fieldErrors.Email && <div className="text-danger">{fieldErrors.Email}</div>}
                     </Form.Group>
                 </Col>
 
@@ -143,12 +160,12 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                         <Form.Label>Số điện thoại</Form.Label>
                         <Form.Control
                             type="text"
-                            placeholder="Số điện thoại"
                             name="Phone"
                             value={formData.Phone}
                             onChange={handleChange}
-                            required
+                            placeholder="Số điện thoại"
                         />
+                        {fieldErrors.Phone && <div className="text-danger">{fieldErrors.Phone}</div>}
                     </Form.Group>
                 </Col>
 
@@ -157,10 +174,10 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                         <Form.Label>Fax</Form.Label>
                         <Form.Control
                             type="text"
-                            placeholder="Số fax (nếu có)"
                             name="Fax"
                             value={formData.Fax}
                             onChange={handleChange}
+                            placeholder="Số fax (nếu có)"
                         />
                     </Form.Group>
                 </Col>
@@ -170,10 +187,10 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                         <Form.Label>Địa chỉ</Form.Label>
                         <Form.Control
                             type="text"
-                            placeholder="Nhập địa chỉ"
                             name="Address"
                             value={formData.Address}
                             onChange={handleChange}
+                            placeholder="Nhập địa chỉ"
                         />
                     </Form.Group>
                 </Col>
@@ -183,10 +200,10 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                         <Form.Label>Người đại diện</Form.Label>
                         <Form.Control
                             type="text"
-                            placeholder="Tên người đại diện"
                             name="ContactPerson"
                             value={formData.ContactPerson}
                             onChange={handleChange}
+                            placeholder="Tên người đại diện"
                         />
                     </Form.Group>
                 </Col>
@@ -196,10 +213,10 @@ const AddSupplierComponent = ({ onSuccess, onCancel }) => {
                         <Form.Label>SDT người đại diện</Form.Label>
                         <Form.Control
                             type="text"
-                            placeholder="SĐT người đại diện"
                             name="RPhone"
                             value={formData.RPhone}
                             onChange={handleChange}
+                            placeholder="SĐT người đại diện"
                         />
                     </Form.Group>
                 </Col>
