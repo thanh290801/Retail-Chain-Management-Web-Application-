@@ -101,6 +101,7 @@ namespace RCM.Backend.Controllers
                 StartDate = employeeData.StartDate,
                 BranchId = employeeData.BranchId,
                 IsStaff = true,
+                OvertimeRate = employeeData.OvertimeRate,
                 Username = employeeData.Account != null ? employeeData.Account.Username : "",
                 Role = employeeData.Account != null ? employeeData.Account.Role : "",
                 Hometown = employeeData.Hometown,
