@@ -20,7 +20,7 @@ const OrderList = () => {
     const [filters, setFilters] = useState({
         orderCode: '',
         productName: '',
-        employeeId: '',
+        employeeName: '', // sửa lại ở đây
         branchId: '',
         paymentMethod: '',
         fromDate: null,
@@ -37,20 +37,20 @@ const OrderList = () => {
     // custom input for date picker
     const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
         <input
-          type="text"
-          className="form-control"
-          onClick={onClick}
-          ref={ref}
-          value={value}
-          readOnly
-          placeholder="Chọn khoảng ngày"
-          style={{
-            width: '456.26px',
-            minWidth: '300px',
-            maxWidth: '100%'
-          }}
+            type="text"
+            className="form-control"
+            onClick={onClick}
+            ref={ref}
+            value={value}
+            readOnly
+            placeholder="Chọn khoảng ngày"
+            style={{
+                width: '456.26px',
+                minWidth: '300px',
+                maxWidth: '100%'
+            }}
         />
-      ));      
+    ));
 
     useEffect(() => {
         fetchBranches();
@@ -84,14 +84,14 @@ const OrderList = () => {
             const body = {
                 orderCode: debouncedOrderCode || null,
                 productName: debouncedProductName || null,
-                employeeName: filters.employeeId || null,
+                employeeName: filters.employeeName || null, // đúng tên trường
                 branchId: filters.branchId || null,
                 paymentMethod: filters.paymentMethod || null,
                 fromDate: filters.fromDate || null,
                 toDate: filters.toDate || null,
                 page: currentPage,
                 limit: ordersPerPage
-            };
+            };            
 
             const res = await axios.post('https://localhost:5000/api/sale-invoice/listOrder', body);
             setOrders(groupByOrder(res.data));
@@ -167,7 +167,7 @@ const OrderList = () => {
                 <h4 className="mb-3">📋 Hóa đơn bán lẻ</h4>
 
                 <Row className="mb-3 g-2">
-                <Col md={4}>
+                    <Col md={4}>
                         <Form.Select
                             value={filters.branchId}
                             onChange={(e) => handleFilterChange('branchId', e.target.value)}
@@ -180,10 +180,11 @@ const OrderList = () => {
                             ))}
                         </Form.Select>
                     </Col>
+
                     <Col md={4}>
                         <Form.Select
-                            value={filters.employeeId}
-                            onChange={(e) => handleFilterChange('employeeId', e.target.value)}
+                            value={filters.employeeName}
+                            onChange={(e) => handleFilterChange('employeeName', e.target.value)}
                         >
                             <option value="">Tất cả nhân viên</option>
                             {employees.map(emp => (
@@ -193,7 +194,7 @@ const OrderList = () => {
                             ))}
                         </Form.Select>
                     </Col>
-                    
+
                     <Col md={4}>
                         <Form.Select
                             value={filters.paymentMethod}

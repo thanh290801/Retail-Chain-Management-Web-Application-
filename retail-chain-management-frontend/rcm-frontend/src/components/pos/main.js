@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Row, Col, Form, Button, ButtonGroup, Modal } from 'react-bootstrap';
 import Cart from './cart';
 import Calculator from './calculator';
-import ReturnInvoiceModal from './ReturnInvoiceModal'; // Không dùng dấu ngoặc nhọn {}
+import ReturnInvoiceModal from './returnInvoiceModal'; // Không dùng dấu ngoặc nhọn {}
 import { BsX, BsPlus } from 'react-icons/bs';
 import './main.css';
 import { data, useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ const api_url = process.env.REACT_APP_API_URL
 const API_BASE_URL = `${api_url}/sale-invoice`;
 
 const Main = () => {
+    const [invoiceToAutoRemove, setInvoiceToAutoRemove] = useState(null);
     const [invoices, setInvoices] = useState({
         'Hóa đơn 1': { cart: [], cashGiven: 0, change: 0, paymentMethod: 'cash' }
     });
@@ -39,6 +40,34 @@ const Main = () => {
     const barcodeRef = useRef("");
 
     const token = localStorage.getItem("token");
+
+    useEffect(() => {
+        if (invoiceToAutoRemove) {
+            setInvoices((prev) => {
+                const updated = { ...prev };
+                delete updated[invoiceToAutoRemove];
+
+                const remaining = Object.keys(updated);
+                const fallbackInvoiceId = remaining[0] || "Hóa đơn 1";
+
+                // Nếu không còn, tạo lại Hóa đơn 1
+                if (remaining.length === 0) {
+                    updated["Hóa đơn 1"] = {
+                        cart: [],
+                        cashGiven: 0,
+                        change: 0,
+                        paymentMethod: "cash"
+                    };
+                }
+
+                setCurrentInvoice(fallbackInvoiceId);
+                return updated;
+            });
+
+            // Reset trigger
+            setInvoiceToAutoRemove(null);
+        }
+    }, [invoiceToAutoRemove]);
 
     useEffect(() => {
         const handleGlobalKeyDown = async (e) => {
@@ -108,29 +137,8 @@ const Main = () => {
         }));
     };
 
-    const handleRemoveInvoice = (invoiceId) => {
-        setInvoices((prevInvoices) => {
-            const updatedInvoices = { ...prevInvoices };
-            delete updatedInvoices[invoiceId]; // ✅ Xóa hóa đơn đã chọn
-
-            // ✅ Nếu không còn hóa đơn nào, tạo lại "Hóa đơn 1"
-            if (Object.keys(updatedInvoices).length === 0) {
-                updatedInvoices['Hóa đơn 1'] = { cart: [], cashGiven: 0, change: 0, paymentMethod: 'cash' };
-            }
-
-            return updatedInvoices;
-        });
-
-        // ✅ Chuyển sang hóa đơn khác trước khi xóa
-        setTimeout(() => {
-            setCurrentInvoice((prev) => {
-                const remainingInvoices = Object.keys(invoices).filter(id => id !== invoiceId);
-                return remainingInvoices.length > 0 ? remainingInvoices[0] : "Hóa đơn 1"; // ✅ Chuyển sang hóa đơn mới
-            });
-
-            setShowConfirmModal(false);
-            setInvoiceToDelete(null);
-        }, 100); // ✅ Trì hoãn nhẹ để đảm bảo state cập nhật
+    const handleRemoveInvoice = (invoiceIdToRemove) => {
+        setInvoiceToAutoRemove(invoiceIdToRemove); // ✅ Kích hoạt xóa qua useEffect
     };
 
     // ✅ Hàm xử lý thay đổi input tìm kiếm
@@ -350,35 +358,35 @@ const Main = () => {
                 </Col>
 
                 <Col md={7}>
-                        <Row>
-                            <Col md={9}>
+                    <Row>
+                        <Col md={9}>
                             <ButtonGroup className="invoice-tabs">
-                        {Object.keys(invoices).map((invoiceId) => (
-                            <Button
-                                key={invoiceId}
-                                variant={invoiceId === currentInvoice ? 'light' : 'dark'}
-                                onClick={() => handleSwitchInvoice(invoiceId)}
-                                className={`invoice-tab d-flex align-items-center ${invoiceId === currentInvoice ? 'active' : ''}`}
-                            >
-                                <span>{invoiceId}</span>
-                                <BsX
-                                    className="invoice-close ms-2"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        confirmRemoveInvoice(invoiceId);
-                                    }}
-                                />
-                            </Button>
-                        ))}
-                    </ButtonGroup>
-                            </Col>
-                                <Col md={3}>
-                                    {/* ✅ Nút Thêm Hóa Đơn Mới */}
-                                    <Button variant="success" onClick={handleAddNewInvoice} className="ms-2 d-flex align-items-center">
-                                        <BsPlus className="me-1" /> Hóa đơn mới
+                                {Object.keys(invoices).map((invoiceId) => (
+                                    <Button
+                                        key={invoiceId}
+                                        variant={invoiceId === currentInvoice ? 'light' : 'dark'}
+                                        onClick={() => handleSwitchInvoice(invoiceId)}
+                                        className={`invoice-tab d-flex align-items-center ${invoiceId === currentInvoice ? 'active' : ''}`}
+                                    >
+                                        <span>{invoiceId}</span>
+                                        <BsX
+                                            className="invoice-close ms-2"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                confirmRemoveInvoice(invoiceId);
+                                            }}
+                                        />
                                     </Button>
-                                </Col>
-                        </Row>
+                                ))}
+                            </ButtonGroup>
+                        </Col>
+                        <Col md={3} className="d-flex justify-content-center">
+                            {/* ✅ Nút Thêm Hóa Đơn Mới */}
+                            <Button variant="success" onClick={handleAddNewInvoice} className="ms-2 d-flex align-items-center">
+                                <BsPlus className="me-1" /> Hóa đơn mới
+                            </Button>
+                        </Col>
+                    </Row>
                 </Col>
 
                 <Col md={2}>

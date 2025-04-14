@@ -177,7 +177,10 @@ const Header = () => {
                             />
                         </button>
                         {accountDropdown && (
-                            <div className="absolute right-0 bg-white shadow-md rounded-lg p-2 space-y-1 min-w-[200px] z-[9999]">
+                            <div
+                                className="absolute right-0 bg-white shadow-md rounded-lg p-2 space-y-1 min-w-[200px]"
+                                style={{ zIndex: 2147483647 }}
+                            >
                                 <button
                                     onClick={() => navigate("/profile")}
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg text-gray-800 text-[16px]"

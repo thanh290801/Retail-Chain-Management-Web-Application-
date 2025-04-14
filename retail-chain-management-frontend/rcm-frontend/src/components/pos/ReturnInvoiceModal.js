@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Table, Row, Col } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -14,6 +14,25 @@ const ReturnInvoiceModal = ({ show, onHide, handleCreateReturnInvoice }) => {
     const [filteredOrders, setFilteredOrders] = useState([]);
 
     const token = localStorage.getItem("token");
+
+    useEffect(() => {
+        if (show) {
+            // ✅ Reset tất cả khi mở lại modal
+            setFilters({
+                orderId: "",
+                employeeId: "",
+                customer: "",
+                productId: "",
+                productName: "",
+                barcode: "",
+                startDate: null,
+                endDate: null
+            });
+            setFilteredOrders([]);
+            setCurrentPage(1);
+            setLoading(false);
+        }
+    }, [show]);
 
     // ✅ State bộ lọc tìm kiếm
     const [filters, setFilters] = useState({

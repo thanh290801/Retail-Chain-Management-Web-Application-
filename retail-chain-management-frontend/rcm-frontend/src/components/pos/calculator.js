@@ -37,7 +37,9 @@ const Calculator = ({
     }, [cartData, isReturn]);
 
     useEffect(() => {
-        const newChange = isReturn ? totalPrice - cashGiven : Math.max(cashGiven - totalPrice, 0);
+        const newChange = isReturn
+            ? totalPrice - cashGiven
+            : cashGiven - totalPrice;
 
         // 🔹 Chỉ gọi `onCashUpdate` nếu giá trị thay đổi thực sự
         if (change !== newChange) {
@@ -95,6 +97,10 @@ const Calculator = ({
             console.error("Lỗi khi gọi API VietQR:", error);
         }
     }, [totalPrice]);
+
+    const isReturnInvalid =
+        isReturn &&
+        cartData.every(item => !item.returnQuantity || item.returnQuantity <= 0);
 
     const handlePaymentMethodChange = (val) => {
         onPaymentMethodChange(val);
@@ -219,9 +225,9 @@ const Calculator = ({
 
             // ✅ Hiển thị thông báo
             toast.success(`💰 Thanh toán thành công!`);
-
+            setSelectedDenoms([]);
             // ✅ Gọi `handleRemoveInvoice` để xóa hóa đơn sau khi thanh toán
-            handleRemoveInvoice(invoiceId);
+            handleRemoveInvoice(); // ✅ Gọi hàm đã nhận từ props — đảm bảo đúng tab hiện tại
 
         } catch (error) {
             console.error("❌ Lỗi khi gọi API thanh toán:", error);
@@ -234,6 +240,12 @@ const Calculator = ({
             }
         }
     };
+
+    const isPaymentDisabled =
+        !isReturn &&
+        (
+            paymentMethod === "cash" && (cashGiven === null || isNaN(cashGiven) || change < 0)
+        );
 
     const handleRefund = async () => {
         try {
@@ -256,6 +268,7 @@ const Calculator = ({
             );
 
             toast.success(`🔄 Hoàn tiền thành công!`);
+            setSelectedDenoms([]);
             handleRemoveInvoice(invoiceId);
             setTimeout(() => {
                 onCashUpdate(0, 0);
@@ -331,7 +344,7 @@ const Calculator = ({
                                     value={cashGiven}
                                     onChange={handleCashGivenChange}
                                     placeholder="Nhập số tiền khách đưa"
-                                    className="mt-2 p-2 fs-5"
+                                    className="mt-2 p-2 fs-5 mb-2"
                                 />
                                 <Form.Label>Tiền thừa</Form.Label>
                                 <div className="text-end fw-bold fs-4 text-success">
@@ -362,6 +375,7 @@ const Calculator = ({
                     variant={isReturn ? "danger" : "primary"}
                     className="w-100 py-2 fs-5"
                     onClick={isReturn ? handleRefund : handlePayment}
+                    disabled={isReturn ? isReturnInvalid : isPaymentDisabled}
                 >
                     {isReturn ? "Hoàn tiền" : "Thanh toán"}
                 </Button>
