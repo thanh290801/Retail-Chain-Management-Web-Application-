@@ -269,7 +269,7 @@ const Calculator = ({
 
             toast.success(`🔄 Hoàn tiền thành công!`);
             setSelectedDenoms([]);
-            handleRemoveInvoice(invoiceId);
+            handleRemoveInvoice();
             setTimeout(() => {
                 onCashUpdate(0, 0);
             }, 500);

@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Form, Button, ButtonGroup, Modal } from 'react-bootstrap';
 import Cart from './cart';
 import Calculator from './calculator';
 import ReturnInvoiceModal from './returnInvoiceModal'; // Không dùng dấu ngoặc nhọn {}
 import { BsX, BsPlus } from 'react-icons/bs';
 import './main.css';
-import { data, useNavigate } from "react-router-dom";
-import { IoArrowBackOutline } from "react-icons/io5";
-import { useMemo } from 'react';
+import { useNavigate } from "react-router-dom";
+// import { IoArrowBackOutline } from "react-icons/io5";
+// import { useMemo } from 'react';
 import axios from 'axios';
 
 const api_url = process.env.REACT_APP_API_URL
@@ -21,11 +21,9 @@ const Main = () => {
     });
     const navigate = useNavigate();
     const [currentInvoice, setCurrentInvoice] = useState('Hóa đơn 1');
-    const [showSuggestions, setShowSuggestions] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [invoiceToDelete, setInvoiceToDelete] = useState(null);
     const quantityInputRefs = useRef({});
-    const [orders, setOrders] = useState([]);
     const [showReturnModal, setShowReturnModal] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [suggestedProducts, setSuggestedProducts] = useState([]); // ✅ Khai báo state để lưu sản phẩm gợi ý
@@ -33,42 +31,47 @@ const Main = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [notFound, setNotFound] = useState(false);
 
-    const [selectedOrderId, setSelectedOrderId] = useState(null);
-
     const [lastScanTime, setLastScanTime] = useState(0);
 
     const barcodeRef = useRef("");
 
     const token = localStorage.getItem("token");
 
+    const [returnInvoiceCounter, setReturnInvoiceCounter] = useState(1);
+
     useEffect(() => {
         if (invoiceToAutoRemove) {
             setInvoices((prev) => {
                 const updated = { ...prev };
                 delete updated[invoiceToAutoRemove];
-
+    
                 const remaining = Object.keys(updated);
-                const fallbackInvoiceId = remaining[0] || "Hóa đơn 1";
-
-                // Nếu không còn, tạo lại Hóa đơn 1
+    
+                let fallbackInvoiceId;
+    
                 if (remaining.length === 0) {
-                    updated["Hóa đơn 1"] = {
+                    // ✅ Không còn hóa đơn nào → tạo mới "Hóa đơn 1"
+                    fallbackInvoiceId = "Hóa đơn 1";
+    
+                    updated[fallbackInvoiceId] = {
                         cart: [],
                         cashGiven: 0,
                         change: 0,
                         paymentMethod: "cash"
                     };
+                } else {
+                    // ✅ Nếu tab fallback là chính tab vừa xóa → chọn tab khác
+                    fallbackInvoiceId = remaining.find(id => id !== invoiceToAutoRemove) || remaining[0];
                 }
-
+    
                 setCurrentInvoice(fallbackInvoiceId);
                 return updated;
             });
-
-            // Reset trigger
+    
             setInvoiceToAutoRemove(null);
         }
     }, [invoiceToAutoRemove]);
-
+    
     useEffect(() => {
         const handleGlobalKeyDown = async (e) => {
             const currentTime = new Date().getTime();
@@ -89,11 +92,44 @@ const Main = () => {
 
         window.addEventListener('keydown', handleGlobalKeyDown);
         return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-    }, []); // ✅ Không có dependency → Không bị lặp vô hạn
+    });
 
+    useEffect(() => {
+        if (invoiceToAutoRemove) {
+            setInvoices((prev) => {
+                const updated = { ...prev };
+                delete updated[invoiceToAutoRemove];
+    
+                const remaining = Object.keys(updated);
+                const fallbackInvoiceId = remaining[0] || "Hóa đơn 1";
+    
+                // ✅ Chỉ tạo lại "Hóa đơn 1" nếu tab bị xóa KHÔNG phải phiếu trả
+                if (remaining.length === 0) {
+                    if (!invoiceToAutoRemove.toLowerCase().startsWith("phiếu trả")) {
+                        updated["Hóa đơn 1"] = {
+                            cart: [],
+                            cashGiven: 0,
+                            change: 0,
+                            paymentMethod: "cash"
+                        };
+                    }
+                }
+    
+                setCurrentInvoice(fallbackInvoiceId);
+                return updated;
+            });
+    
+            setInvoiceToAutoRemove(null);
+        }
+    }, [invoiceToAutoRemove]);
+    
     // ✅ 3. Hàm xử lý hóa đơn
     const handleAddNewInvoice = () => {
-        const existingNumbers = Object.keys(invoices).map(name => parseInt(name.replace('Hóa đơn ', ''))).sort((a, b) => a - b);
+        const existingNumbers = Object.keys(invoices)
+            .filter(name => name.startsWith("Hóa đơn"))
+            .map(name => parseInt(name.replace('Hóa đơn ', '')))
+            .sort((a, b) => a - b);
+    
         let newNumber = 1;
         for (let i = 1; i <= existingNumbers.length + 1; i++) {
             if (!existingNumbers.includes(i)) {
@@ -101,7 +137,12 @@ const Main = () => {
                 break;
             }
         }
+    
         const newInvoiceId = `Hóa đơn ${newNumber}`;
+    
+        // ✅ Nếu tên này đang tồn tại → không tạo
+        if (invoices[newInvoiceId]) return;
+    
         setInvoices(prev => ({
             ...prev,
             [newInvoiceId]: {
@@ -111,9 +152,10 @@ const Main = () => {
                 paymentMethod: "cash"
             }
         }));
+    
         setCurrentInvoice(newInvoiceId);
     };
-
+    
     const handleSwitchInvoice = (invoiceId) => {
         setCurrentInvoice(invoiceId);
     };
@@ -255,9 +297,11 @@ const Main = () => {
     // ✅ 6. Hàm xử lý trả hàng
     const handleCreateReturnInvoice = (order, orderDetails) => {
         if (!order || !orderDetails) return;
-
-        const returnInvoiceId = `Phiếu trả ${Object.keys(invoices).length + 1}`;
-
+    
+        // 🔐 Tạo tên phiếu trả duy nhất theo counter
+        const returnInvoiceId = `Phiếu trả ${returnInvoiceCounter}`;
+        setReturnInvoiceCounter(prev => prev + 1); // ✅ Tăng sau khi tạo
+    
         const returnItems = orderDetails.map(p => ({
             orderDetailId: p.orderDetailId,
             productId: p.productId,
@@ -267,7 +311,7 @@ const Main = () => {
             unitPrice: p.unitPrice,
             totalPrice: p.totalPrice,
         }));
-
+    
         setInvoices(prev => ({
             ...prev,
             [returnInvoiceId]: {
@@ -275,23 +319,23 @@ const Main = () => {
                 cashGiven: 0,
                 change: 0,
                 isReturn: true,
-                orderId: order.orderId  // ✅ Lưu orderId vào invoice
+                orderId: order.orderId
             }
         }));
-
-        setCurrentInvoice(returnInvoiceId);
+    
+        setCurrentInvoice(returnInvoiceId); // ✅ Chuyển sang phiếu trả mới
     };
-
-    const handleCashUpdate = useCallback((cashGiven, change) => {
-        setInvoices((prev) => ({
-            ...prev,
-            [currentInvoice]: {
-                ...prev[currentInvoice],
-                cashGiven,
-                change,
-            },
-        }));
-    }, [currentInvoice, setInvoices]);
+    
+    // const handleCashUpdate = useCallback((cashGiven, change) => {
+    //     setInvoices((prev) => ({
+    //         ...prev,
+    //         [currentInvoice]: {
+    //             ...prev[currentInvoice],
+    //             cashGiven,
+    //             change,
+    //         },
+    //     }));
+    // }, [currentInvoice, setInvoices]);
 
     return (
         <Container fluid>
