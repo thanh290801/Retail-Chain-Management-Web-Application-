@@ -1,6 +1,6 @@
 import React, { useEffect, useState, forwardRef } from 'react';
 import axios from 'axios';
-import { Table, Form, Row, Col, Card, Button } from 'react-bootstrap';
+import { Table, Form, Row, Col, Button, Modal } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Header from '../headerComponent/header';
@@ -9,56 +9,78 @@ const RefundList = () => {
     const [refunds, setRefunds] = useState([]);
     const [branches, setBranches] = useState([]);
     const [employees, setEmployees] = useState([]);
+    const [selectedRefund, setSelectedRefund] = useState(null);
+    const [showModal, setShowModal] = useState(false);
 
     const [filters, setFilters] = useState({
-        orderId: '',
-        productName: '',
-        employeeId: '',
-        branchId: '',
+        orderId: null,
+        productName: null,
+        employeeName: null,
+        branchId: null,
         fromDate: null,
         toDate: null,
         page: 1,
         limit: 10
     });
 
-    const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
-            <input
-              type="text"
-              className="form-control"
-              onClick={onClick}
-              ref={ref}
-              value={value}
-              readOnly
-              placeholder="Chọn khoảng ngày"
-              style={{
-                width: '400.26px',
-                minWidth: '300px',
-                maxWidth: '100%'
-              }}
-            />
-          ));
-
     const [dateRange, setDateRange] = useState([null, null]);
     const [startDate, endDate] = dateRange;
 
-    // Fetch chi nhánh
+    const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
+        <input
+            type="text"
+            className="form-control"
+            onClick={onClick}
+            ref={ref}
+            value={value}
+            readOnly
+            placeholder="Chọn khoảng ngày"
+            style={{ width: '336.26px', minWidth: '300px', maxWidth: '100%' }}
+        />
+    ));
+
     const fetchBranches = async () => {
         try {
             const res = await axios.get('https://localhost:5000/api/Warehouses/GetWarehouses');
             setBranches(res.data);
         } catch (err) {
-            console.error('❌ Lỗi khi lấy chi nhánh:', err);
+            console.error('Lỗi khi lấy chi nhánh:', err);
         }
     };
 
-    // Fetch nhân viên
     const fetchEmployees = async () => {
         try {
             const res = await axios.get('https://localhost:5000/api/Staff/getStaff');
             setEmployees(res.data);
         } catch (err) {
-            console.error('❌ Lỗi khi lấy nhân viên:', err);
+            console.error('Lỗi khi lấy nhân viên:', err);
         }
+    };
+
+    const groupByRefund = (data) => {
+        const grouped = {};
+
+        data.forEach(row => {
+            if (!grouped[row.refund_id]) {
+                grouped[row.refund_id] = {
+                    refund_id: row.refund_id,
+                    refund_date: row.refund_date,
+                    order_id: row.order_id,
+                    warehouse: row.warehouse,
+                    employee_name: row.employee_name,
+                    details: []
+                };
+            }
+
+            grouped[row.refund_id].details.push({
+                productId: row.product_id,
+                productName: row.product_name,
+                quantity: row.quantity,
+                totalPrice: row.total_price
+            });
+        });
+
+        return Object.values(grouped);
     };
 
     const fetchRefunds = async () => {
@@ -66,16 +88,16 @@ const RefundList = () => {
             const res = await axios.post('https://localhost:5000/api/sale-invoice/listRefund', {
                 orderId: filters.orderId || null,
                 productName: filters.productName || null,
-                employeeName: filters.employeeId || null,
+                employeeName: filters.employeeName || null,
                 branchId: filters.branchId || null,
                 fromDate: startDate ? startDate.toISOString() : null,
                 toDate: endDate ? endDate.toISOString() : null,
                 page: filters.page,
                 limit: filters.limit
             });
-            setRefunds(res.data);
+            setRefunds(groupByRefund(res.data));
         } catch (err) {
-            console.error('❌ Lỗi khi lấy hoàn tiền:', err);
+            console.error('Lỗi khi lấy danh sách hoàn tiền:', err);
         }
     };
 
@@ -86,10 +108,10 @@ const RefundList = () => {
 
     useEffect(() => {
         fetchRefunds();
-    }, [filters.page]);
+    }, [filters]);
 
     const handleInputChange = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+        setFilters(prev => ({ ...prev, [key]: value === '' ? null : value, page: 1 }));
     };
 
     const handlePageChange = (newPage) => {
@@ -106,48 +128,43 @@ const RefundList = () => {
 
     return (
         <div>
-            <Header></Header>
+            <Header />
             <div className="p-3 mt-4 mx-5 shadow-sm">
                 <h4 className="mb-3">🔁 Danh sách hoàn tiền</h4>
-
                 <Row className="mb-3 g-2">
-                    <Col md={1}>
+                    <Col md={2}>
                         <Form.Control
                             placeholder="Mã đơn hàng"
-                            value={filters.orderId}
+                            value={filters.orderId ?? ''}
                             onChange={(e) => handleInputChange('orderId', e.target.value)}
                         />
                     </Col>
                     <Col md={3}>
                         <Form.Control
                             placeholder="Sản phẩm"
-                            value={filters.productName}
+                            value={filters.productName ?? ''}
                             onChange={(e) => handleInputChange('productName', e.target.value)}
                         />
                     </Col>
                     <Col md={2}>
                         <Form.Select
-                            value={filters.employeeId}
-                            onChange={(e) => handleInputChange('employeeId', e.target.value)}
+                            value={filters.employeeName ?? ''}
+                            onChange={(e) => handleInputChange('employeeName', e.target.value)}
                         >
                             <option value="">Tất cả nhân viên</option>
                             {employees.map(emp => (
-                                <option key={emp.employeeId || emp.id} value={emp.fullName}>
-                                    {emp.fullName}
-                                </option>
+                                <option key={emp.id} value={emp.fullName}>{emp.fullName}</option>
                             ))}
                         </Form.Select>
                     </Col>
                     <Col md={2}>
                         <Form.Select
-                            value={filters.branchId}
-                            onChange={(e) => handleInputChange('branchId', e.target.value)}
+                            value={filters.branchId ?? ''}
+                            onChange={(e) => handleInputChange('branchId', parseInt(e.target.value) || null)}
                         >
                             <option value="">Tất cả chi nhánh</option>
                             {branches.map(branch => (
-                                <option key={branch.branchId || branch.id} value={branch.branchId || branch.id}>
-                                    {branch.name}
-                                </option>
+                                <option key={branch.warehousesId} value={branch.warehousesId}>{branch.name}</option>
                             ))}
                         </Form.Select>
                     </Col>
@@ -162,7 +179,7 @@ const RefundList = () => {
                                 handleInputChange('toDate', endDate);
                             }}
                             isClearable
-                            placeholderText="Chọn khoảng ngày hoàn tiền"
+                            placeholderText="Chọn khoảng ngày"
                             className="form-control"
                             dateFormat="yyyy-MM-dd"
                             customInput={<CustomDateInput />}
@@ -182,19 +199,26 @@ const RefundList = () => {
                                 <th>Sản phẩm</th>
                                 <th>Số lượng</th>
                                 <th>Thành tiền</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {refunds.map((item, idx) => (
-                                <tr key={idx}>
+                            {refunds.map((refund, idx) => (
+                                <tr key={refund.refund_id}>
                                     <td>{(filters.page - 1) * filters.limit + idx + 1}</td>
-                                    <td>{new Date(item.refund_date).toLocaleString()}</td>
-                                    <td>{item.order_id}</td>
-                                    <td>{item.warehouse}</td>
-                                    <td>{item.employee_name}</td>
-                                    <td>{item.product_name}</td>
-                                    <td>{item.quantity}</td>
-                                    <td>{item.total_price.toLocaleString()} VND</td>
+                                    <td>{new Date(refund.refund_date).toLocaleString()}</td>
+                                    <td>{refund.order_id}</td>
+                                    <td>{refund.warehouse}</td>
+                                    <td>{refund.employee_name}</td>
+                                    <td>{refund.details.length} sản phẩm</td>
+                                    <td>
+                                        {refund.details.reduce((sum, d) => sum + d.totalPrice, 0).toLocaleString()} VND
+                                    </td>
+                                    <td>
+                                        <Button size="sm" onClick={() => { setSelectedRefund(refund); setShowModal(true); }}>
+                                            Xem
+                                        </Button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -202,6 +226,45 @@ const RefundList = () => {
                 </div>
 
                 {renderPagination()}
+
+                <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Chi tiết hoàn tiền #{selectedRefund?.refund_id}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {selectedRefund && (
+                            <>
+                                <p><strong>Ngày hoàn:</strong> {new Date(selectedRefund.refund_date).toLocaleString()}</p>
+                                <p><strong>Mã đơn:</strong> {selectedRefund.order_id}</p>
+                                <p><strong>Chi nhánh:</strong> {selectedRefund.warehouse}</p>
+                                <p><strong>Nhân viên:</strong> {selectedRefund.employee_name}</p>
+
+                                <h5 className="mt-3">Sản phẩm hoàn:</h5>
+                                <Table striped bordered>
+                                    <thead>
+                                        <tr>
+                                            <th>Sản phẩm</th>
+                                            <th>Số lượng</th>
+                                            <th>Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedRefund.details.map((item, idx) => (
+                                            <tr key={idx}>
+                                                <td>{item.productName}</td>
+                                                <td>{item.quantity}</td>
+                                                <td>{item.totalPrice.toLocaleString()} VND</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </>
+                        )}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowModal(false)}>Đóng</Button>
+                    </Modal.Footer>
+                </Modal>
             </div>
         </div>
     );
