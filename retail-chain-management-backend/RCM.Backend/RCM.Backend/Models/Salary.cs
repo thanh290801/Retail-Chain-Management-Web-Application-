@@ -19,7 +19,7 @@ namespace RCM.Backend.Models
         public int? Penalty { get; set; }
         public int? FinalSalary { get; set; }
         public int? WorkingDays { get; set; }
-        public int? BonusHours { get; set; }
+        public decimal? BonusHours { get; set; }
         public int? SalaryPerShift { get; set; }
         public bool IsCalculated { get; set; }
         public DateTime? UpdateAt { get; set; }

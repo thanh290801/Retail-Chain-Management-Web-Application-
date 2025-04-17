@@ -20,7 +20,7 @@ public class EmployeeDTO
     public decimal PenaltyAmount { get; set; }
     public string Note { get; set; } = null!;
     public string TotalPenaltyAmount { get; set; } = null!;
-
+    public decimal? OvertimeRate { get; set; }
     // Các thuộc tính đang thiếu
     public string IdentityNumber { get; set; } = null!;
     public string? Hometown { get; set; }

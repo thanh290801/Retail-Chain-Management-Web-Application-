@@ -7568,24 +7568,40 @@
     ]
   },
   "packageFolders": {
+<<<<<<< HEAD
     "C:\\Users\\admin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+=======
+    "C:\\Users\\trung top\\.nuget\\packages\\": {}
+>>>>>>> quanpm
   },
   "project": {
     "version": "1.0.0",
     "restore": {
+<<<<<<< HEAD
       "projectUniqueName": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\RCM.Backend.csproj",
       "projectName": "RCM.Backend",
       "projectPath": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\RCM.Backend.csproj",
       "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
       "outputPath": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\obj\\",
+=======
+      "projectUniqueName": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\RCM.Backend.csproj",
+      "projectName": "RCM.Backend",
+      "projectPath": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\RCM.Backend.csproj",
+      "packagesPath": "C:\\Users\\trung top\\.nuget\\packages\\",
+      "outputPath": "D:\\SP490\\Do an\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\obj\\",
+>>>>>>> quanpm
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
+<<<<<<< HEAD
         "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+=======
+        "C:\\Users\\trung top\\AppData\\Roaming\\NuGet\\NuGet.Config",
+>>>>>>> quanpm
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -7593,8 +7609,13 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+<<<<<<< HEAD
         "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
+=======
+        "https://api.nuget.org/v3/index.json": {},
+        "https://sitecore.myget.org/F/sc-packages/api/v3/index.json": {}
+>>>>>>> quanpm
       },
       "frameworks": {
         "net6.0": {
@@ -7611,8 +7632,12 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
+<<<<<<< HEAD
       },
       "SdkAnalysisLevel": "9.0.200"
+=======
+      }
+>>>>>>> quanpm
     },
     "frameworks": {
       "net6.0": {
@@ -7702,7 +7727,11 @@
             "privateAssets": "all"
           }
         },
+<<<<<<< HEAD
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200\\RuntimeIdentifierGraph.json"
+=======
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204\\RuntimeIdentifierGraph.json"
+>>>>>>> quanpm
       }
     }
   }

@@ -15,8 +15,7 @@ import localeData from "dayjs/plugin/localeData";
 import Header from "../../headerComponent/header";
 import { toast } from "react-toastify";
 import "dayjs/locale/vi";
-import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 dayjs.locale("vi");
 dayjs.extend(isBetween);
@@ -30,6 +29,9 @@ const AttendanceTable = () => {
   const localEmployeeId = localStorage.getItem("employeeId");
   const employeeId = id || localEmployeeId;
   const navigate = useNavigate();
+
+  // Lấy role từ localStorage (giả định role được lưu dưới dạng "Owner" hoặc khác)
+  const userRole = localStorage.getItem("role") || "Employee"; // Mặc định là Employee nếu không có role
 
   const isCheckInRoute = window.location.pathname === "/checkin";
   const isOwner = (id && id === localEmployeeId) || isCheckInRoute;
@@ -211,7 +213,6 @@ const AttendanceTable = () => {
     setReason("");
   };
 
-  // Kiểm tra xem ngày đã có nhân viên nào được duyệt tăng ca chưa
   const checkOvertimeAvailability = async (date) => {
     try {
       const response = await fetch(
@@ -241,13 +242,6 @@ const AttendanceTable = () => {
       return;
     }
 
-    // Kiểm tra xem ngày đã có nhân viên nào được duyệt tăng ca chưa
-    // const hasApprovedOvertime = await checkOvertimeAvailability(overtimeDate);
-    // if (hasApprovedOvertime) {
-    //   toast.error("Đã có nhân viên khác được duyệt tăng ca cho ngày này.");
-    //   return;
-    // }
-
     const formattedStartTime = dayjs(startTime).format("HH:mm:ss");
 
     try {
@@ -276,25 +270,19 @@ const AttendanceTable = () => {
     }
   };
 
-  // Sửa logic hiển thị giờ tăng ca
   const getDisabledHours = () => {
     console.log("WorkShiftId trong getDisabledHours:", workShiftId);
     const hours = [];
     if (workShiftId === 1) {
-      // Ca sáng (6:00 - 14:00), tăng ca từ 14:00 - 22:00
-      // Disable các giờ từ 0:00 - 13:00 và 23:00
       for (let i = 0; i < 14; i++) {
         hours.push(i);
       }
       hours.push(23);
     } else if (workShiftId === 2) {
-      // Ca chiều (14:00 - 22:00), tăng ca từ 22:00 - 6:00 sáng hôm sau
-      // Disable các giờ từ 7:00 - 21:00
       for (let i = 7; i <= 21; i++) {
         hours.push(i);
       }
     } else {
-      // Nếu workShiftId chưa được gán, disable tất cả giờ
       for (let i = 0; i <= 23; i++) {
         hours.push(i);
       }
@@ -393,10 +381,21 @@ const AttendanceTable = () => {
     return <Tag color={color}>{status}</Tag>;
   };
 
+  // Hàm xử lý nút "Quay lại"
+  const handleBack = () => {
+    if (userRole === "Owner") {
+      // Quay về trang trước đó trong lịch sử
+      navigate(-1);
+    } else {
+      // Chuyển hướng về "/staffHome" nếu không phải Owner
+      navigate("/staffHome");
+    }
+  };
+
   return (
     <div>
       <button
-        onClick={() => navigate("/staffHome")}
+        onClick={handleBack}
         className="px-4 py-2 bg-white text-blue-600 rounded-lg font-semibold shadow-md"
       >
         Quay lại
@@ -503,7 +502,6 @@ const AttendanceTable = () => {
           ]}
           dataSource={formatAttendanceData()}
           pagination={false}
-          bordered
         />
       </div>
       {checkInMessage && (
