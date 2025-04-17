@@ -167,7 +167,7 @@ const OrderList = () => {
                         <Form.Select value={filters.paymentMethod ?? ''} onChange={e => handleFilterChange('paymentMethod', e.target.value)}>
                             <option value="">Tất cả phương thức</option>
                             <option value="cash">Tiền mặt</option>
-                            <option value="transfer">Chuyển khoản</option>
+                            <option value="bank">Chuyển khoản</option>
                         </Form.Select>
                     </Col>
                 </Row>
