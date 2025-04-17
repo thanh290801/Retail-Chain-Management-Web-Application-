@@ -362,69 +362,69 @@ namespace RCM.Backend.Controllers
         }
 
         [HttpPost("listOrder")]
-        public async Task<IActionResult> GetOrders(
-            [FromQuery] string? paymentMethod,
-            [FromQuery] int? branchId,
-            [FromQuery] DateTime? fromDate,
-            [FromQuery] DateTime? toDate,
-            [FromQuery] int? orderCode,
-            [FromQuery] string? productName,
-            [FromQuery] string? employeeName)
+        public async Task<IActionResult> GetOrders([FromBody] OrderFilterDto request)
         {
             var orders = new List<dynamic>();
+            int totalCount = 0;
 
             try
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
-                using (SqlCommand cmd = new SqlCommand("pos_GetOrdersByPaymentMethod", conn))
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    cmd.Parameters.AddWithValue("@PaymentMethod", string.IsNullOrEmpty(paymentMethod) ? (object)DBNull.Value : paymentMethod);
-                    cmd.Parameters.AddWithValue("@BranchId", branchId ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FromDate", fromDate ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ToDate", toDate ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@OrderCode", orderCode ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ProductName", string.IsNullOrEmpty(productName) ? (object)DBNull.Value : productName);
-                    cmd.Parameters.AddWithValue("@EmployeeName", string.IsNullOrEmpty(employeeName) ? (object)DBNull.Value : employeeName);
-
                     await conn.OpenAsync();
 
-                    using (var reader = await cmd.ExecuteReaderAsync())
+                    using (SqlCommand cmd = new SqlCommand("pos_GetOrdersWithProductDetails", conn))
                     {
-                        while (await reader.ReadAsync())
-                        {
-                            var order = new
-                            {
-                                orderId = reader["OrderId"] as int? ?? 0,
-                                created_date = reader["created_date"] as DateTime?,
-                                shop_id = reader["shop_id"] as int? ?? 0,
-                                total_amount = reader["total_amount"] as decimal? ?? 0,
-                                employeeid = reader["employeeid"] as int? ?? 0,
-                                employee_name = reader["employee_name"]?.ToString() ?? "Unknown",
-                                product_name = reader["product_name"]?.ToString() ?? "Unknown",
-                                warehouse = reader["warehouse"]?.ToString() ?? "Unknown",
-                                payment_status = reader["payment_status"]?.ToString() ?? "Unknown",
-                                product_id = reader["product_id"] as int? ?? 0,
-                                quantity = reader["quantity"] as decimal? ?? 0,
-                                unit_price = reader["unit_price"] as decimal? ?? 0,
-                                total_price = reader["total_price"] as decimal? ?? 0,
-                                payment_method = reader["payment_method"]?.ToString() ?? "Unknown",
-                                
-                            };
+                        cmd.CommandType = CommandType.StoredProcedure;
 
-                            orders.Add(order);
+                        cmd.Parameters.AddWithValue("@PaymentMethod", string.IsNullOrEmpty(request.PaymentMethod) ? (object)DBNull.Value : request.PaymentMethod);
+                        cmd.Parameters.AddWithValue("@BranchId", request.BranchId ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@FromDate", request.FromDate ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ToDate", request.ToDate ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@OrderCode", string.IsNullOrEmpty(request.OrderCode) ? (object)DBNull.Value : request.OrderCode);
+                        cmd.Parameters.AddWithValue("@ProductName", string.IsNullOrEmpty(request.ProductName) ? (object)DBNull.Value : request.ProductName);
+                        cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Page", request.Page);
+                        cmd.Parameters.AddWithValue("@Limit", request.Limit);
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                orders.Add(new
+                                {
+                                    orderId = reader["OrderId"],
+                                    created_date = reader["created_date"],
+                                    shop_id = reader["shop_id"],
+                                    total_amount = reader["total_amount"],
+                                    employeeid = reader["employeeid"],
+                                    employee_name = reader["employee_name"],
+                                    warehouse = reader["warehouse"],
+                                    payment_method = reader["payment_method"],
+                                    product_id = reader["product_id"],
+                                    product_name = reader["product_name"],
+                                    quantity = reader["quantity"],
+                                    unit_price = reader["unit_price"],
+                                    total_price = reader["total_price"]
+                                });
+                            }
+
+                            if (await reader.NextResultAsync() && await reader.ReadAsync())
+                            {
+                                totalCount = Convert.ToInt32(reader["TotalCount"]);
+                            }
                         }
                     }
                 }
 
-                return Ok(orders);
+                return Ok(new { data = orders, totalCount });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Lỗi khi lấy danh sách đơn hàng", error = ex.Message });
             }
         }
+
         [HttpPost("listRefund")]
         public async Task<IActionResult> GetRefundList([FromBody] RefundFilterDto filter)
         {

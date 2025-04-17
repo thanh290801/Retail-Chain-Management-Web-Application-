@@ -1,6 +1,6 @@
 import React, { useEffect, useState, forwardRef } from 'react';
 import axios from 'axios';
-import { Card, Table, Form, Row, Col, Modal, Button } from 'react-bootstrap';
+import { Table, Form, Row, Col, Modal, Button } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import useDebounce from './useDebounce';
@@ -11,18 +11,18 @@ const OrderList = () => {
     const [branches, setBranches] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [selectedOrderDetails, setSelectedOrderDetails] = useState([]);
     const [showModal, setShowModal] = useState(false);
-
     const [currentPage, setCurrentPage] = useState(1);
     const [ordersPerPage] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
 
-    // filter state
     const [filters, setFilters] = useState({
-        orderCode: '',
-        productName: '',
-        employeeName: '', // sửa lại ở đây
-        branchId: '',
-        paymentMethod: '',
+        orderCode: null,
+        productName: null,
+        employeeId: null,
+        branchId: null,
+        paymentMethod: null,
         fromDate: null,
         toDate: null
     });
@@ -30,11 +30,9 @@ const OrderList = () => {
     const [dateRange, setDateRange] = useState([null, null]);
     const [startDate, endDate] = dateRange;
 
-    // debounce
     const debouncedOrderCode = useDebounce(filters.orderCode, 500);
     const debouncedProductName = useDebounce(filters.productName, 500);
 
-    // custom input for date picker
     const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
         <input
             type="text"
@@ -44,11 +42,7 @@ const OrderList = () => {
             value={value}
             readOnly
             placeholder="Chọn khoảng ngày"
-            style={{
-                width: '456.26px',
-                minWidth: '300px',
-                maxWidth: '100%'
-            }}
+            style={{ width: '456.26px', minWidth: '300px', maxWidth: '100%' }}
         />
     ));
 
@@ -59,90 +53,78 @@ const OrderList = () => {
 
     useEffect(() => {
         fetchOrders();
-    }, [debouncedOrderCode, debouncedProductName, filters.employeeId, filters.branchId, filters.paymentMethod, filters.fromDate, filters.toDate, currentPage]);
+    }, [
+        currentPage,
+        debouncedOrderCode,
+        debouncedProductName,
+        filters.employeeId,
+        filters.branchId,
+        filters.paymentMethod,
+        filters.fromDate,
+        filters.toDate
+    ]);
+
+    useEffect(() => {
+        fetchOrders();
+    }, [currentPage]);
+
+    useEffect(() => {
+        handleFilterChange('fromDate', startDate ? startDate.toISOString() : null);
+        handleFilterChange('toDate', endDate ? endDate.toISOString() : null);
+    }, [startDate, endDate]);
 
     const fetchBranches = async () => {
-        try {
-            const res = await axios.get('https://localhost:5000/api/Warehouses/GetWarehouses');
-            setBranches(res.data);
-        } catch (error) {
-            console.error('Lỗi khi lấy chi nhánh:', error);
-        }
+        const res = await axios.get('https://localhost:5000/api/Warehouses/GetWarehouses');
+        setBranches(res.data);
     };
 
     const fetchEmployees = async () => {
-        try {
-            const res = await axios.get('https://localhost:5000/api/Staff/getStaff');
-            setEmployees(res.data);
-        } catch (error) {
-            console.error('Lỗi khi lấy nhân viên:', error);
-        }
+        const res = await axios.get('https://localhost:5000/api/Staff/getStaff');
+        setEmployees(res.data);
     };
 
     const fetchOrders = async () => {
-        try {
-            const body = {
-                orderCode: debouncedOrderCode || null,
-                productName: debouncedProductName || null,
-                employeeName: filters.employeeName || null, // đúng tên trường
-                branchId: filters.branchId || null,
-                paymentMethod: filters.paymentMethod || null,
-                fromDate: filters.fromDate || null,
-                toDate: filters.toDate || null,
-                page: currentPage,
-                limit: ordersPerPage
-            };            
+        const body = {
+            orderCode: debouncedOrderCode || null,
+            productName: debouncedProductName || null,
+            employeeId: filters.employeeId || null,
+            branchId: filters.branchId || null,
+            paymentMethod: filters.paymentMethod || null,
+            fromDate: filters.fromDate || null,
+            toDate: filters.toDate || null,
+            page: currentPage,
+            limit: ordersPerPage
+        };
 
+        try {
             const res = await axios.post('https://localhost:5000/api/sale-invoice/listOrder', body);
-            setOrders(groupByOrder(res.data));
-        } catch (error) {
-            console.error('Lỗi khi lấy danh sách đơn hàng:', error);
+            const { data, totalCount } = res.data;
+            setOrders(data);
+            setTotalPages(Math.ceil(totalCount / ordersPerPage));
+            console.log("📤 Body gửi API:", body);
+        } catch (err) {
+            console.error('Lỗi khi lấy đơn hàng:', err);
+            setOrders([]);
         }
     };
 
-    const groupByOrder = (data) => {
-        const grouped = {};
-        data.forEach(row => {
-            if (!grouped[row.orderId]) {
-                grouped[row.orderId] = {
-                    ...row,
-                    details: [],
-                    refund: row.refund_id ? {
-                        refundId: row.refund_id,
-                        refundDate: row.refund_date,
-                        refundProductId: row.refund_product_id,
-                        refundQuantity: row.refund_quantity,
-                        refundTotalPrice: row.refund_total_price
-                    } : null
-                };
-            }
-            grouped[row.orderId].details.push({
-                productId: row.product_id,
-                product_name: row.product_name || 'Không có tên sản phẩm',
-                quantity: row.quantity || 0,
-                unitPrice: row.unit_price || 0,
-                totalPrice: row.total_price || 0
-            });
-        });
-        return Object.values(grouped);
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
     };
 
-    const totalPages = Math.ceil(orders.length / ordersPerPage);
-    const indexOfLastOrder = currentPage * ordersPerPage;
-    const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-    const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+    const handleViewOrder = (orderId) => {
+        const mainOrder = orders.find(o => o.orderId === orderId);
+        const details = orders.filter(o => o.orderId === orderId && o.product_id !== null);
+        setSelectedOrder(mainOrder);
+        setSelectedOrderDetails(details);
+        setShowModal(true);
+    };
 
     const renderPageNumbers = () => {
         const pages = [];
         for (let i = 1; i <= totalPages; i++) {
             pages.push(
-                <Button
-                    key={i}
-                    variant={i === currentPage ? 'primary' : 'outline-secondary'}
-                    onClick={() => setCurrentPage(i)}
-                    className="mx-1"
-                    size="sm"
-                >
+                <Button key={i} variant={i === currentPage ? 'primary' : 'outline-secondary'} onClick={() => setCurrentPage(i)} className="mx-1" size="sm">
                     {i}
                 </Button>
             );
@@ -150,15 +132,7 @@ const OrderList = () => {
         return pages;
     };
 
-    const handleFilterChange = (key, value) => {
-        setCurrentPage(1);
-        setFilters(prev => ({ ...prev, [key]: value }));
-    };
-
-    useEffect(() => {
-        handleFilterChange('fromDate', startDate ? startDate.toISOString() : null);
-        handleFilterChange('toDate', endDate ? endDate.toISOString() : null);
-    }, [startDate, endDate]);
+    const uniqueOrders = [...new Map(orders.map(o => [o.orderId, o])).values()];
 
     return (
         <div>
@@ -169,37 +143,28 @@ const OrderList = () => {
                 <Row className="mb-3 g-2">
                     <Col md={4}>
                         <Form.Select
-                            value={filters.branchId}
-                            onChange={(e) => handleFilterChange('branchId', e.target.value)}
+                            value={filters.branchId ?? ''}
+                            onChange={(e) => handleFilterChange('branchId', e.target.value ? parseInt(e.target.value) : null)}
                         >
                             <option value="">Tất cả chi nhánh</option>
                             {branches.map(branch => (
-                                <option key={branch.branchId} value={branch.branchId}>
-                                    {branch.name}
-                                </option>
+                                <option key={branch.warehousesId} value={branch.warehousesId}>{branch.name}</option>
                             ))}
                         </Form.Select>
                     </Col>
-
                     <Col md={4}>
                         <Form.Select
-                            value={filters.employeeName}
-                            onChange={(e) => handleFilterChange('employeeName', e.target.value)}
+                            value={filters.employeeId ?? ''}
+                            onChange={(e) => handleFilterChange('employeeId', e.target.value ? parseInt(e.target.value) : null)}
                         >
                             <option value="">Tất cả nhân viên</option>
                             {employees.map(emp => (
-                                <option key={emp.employeeId} value={emp.fullName}>
-                                    {emp.fullName}
-                                </option>
+                                <option key={emp.id} value={emp.id}>{emp.fullName}</option>
                             ))}
                         </Form.Select>
                     </Col>
-
                     <Col md={4}>
-                        <Form.Select
-                            value={filters.paymentMethod}
-                            onChange={(e) => handleFilterChange('paymentMethod', e.target.value)}
-                        >
+                        <Form.Select value={filters.paymentMethod ?? ''} onChange={e => handleFilterChange('paymentMethod', e.target.value)}>
                             <option value="">Tất cả phương thức</option>
                             <option value="cash">Tiền mặt</option>
                             <option value="transfer">Chuyển khoản</option>
@@ -209,29 +174,13 @@ const OrderList = () => {
 
                 <Row className="mb-3 g-2">
                     <Col md={4}>
-                        <Form.Control
-                            placeholder="Sản phẩm"
-                            value={filters.productName}
-                            onChange={(e) => handleFilterChange('productName', e.target.value)}
-                        />
+                        <Form.Control placeholder="Sản phẩm" value={filters.productName ?? ''} onChange={e => handleFilterChange('productName', e.target.value)} />
                     </Col>
                     <Col md={4}>
-                        <Form.Control
-                            placeholder="Mã đơn"
-                            value={filters.orderCode}
-                            onChange={(e) => handleFilterChange('orderCode', e.target.value)}
-                        />
+                        <Form.Control placeholder="Mã đơn" value={filters.orderCode ?? ''} onChange={e => handleFilterChange('orderCode', e.target.value)} />
                     </Col>
                     <Col md={4}>
-                        <DatePicker
-                            selectsRange
-                            startDate={startDate}
-                            endDate={endDate}
-                            onChange={(update) => setDateRange(update)}
-                            isClearable
-                            dateFormat="yyyy-MM-dd"
-                            customInput={<CustomDateInput />}
-                        />
+                        <DatePicker selectsRange startDate={startDate} endDate={endDate} onChange={update => setDateRange(update)} isClearable dateFormat="yyyy-MM-dd" customInput={<CustomDateInput />} />
                     </Col>
                 </Row>
 
@@ -239,7 +188,7 @@ const OrderList = () => {
                     <Table striped bordered hover responsive>
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>Mã</th>
                                 <th>Ngày tạo</th>
                                 <th>Nhân viên</th>
                                 <th>Tổng tiền</th>
@@ -247,16 +196,14 @@ const OrderList = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentOrders.map((order, idx) => (
+                            {uniqueOrders.map(order => (
                                 <tr key={order.orderId}>
-                                    <td>{indexOfFirstOrder + idx + 1}</td>
+                                    <td>{order.orderId}</td>
                                     <td>{new Date(order.created_date).toLocaleString("vi-VN")}</td>
                                     <td>{order.employee_name}</td>
                                     <td>{order.total_amount.toLocaleString()} VND</td>
                                     <td>
-                                        <Button variant="info" size="sm" onClick={() => { setSelectedOrder(order); setShowModal(true); }}>
-                                            Xem
-                                        </Button>
+                                        <Button variant="info" size="sm" onClick={() => handleViewOrder(order.orderId)}>Xem</Button>
                                     </td>
                                 </tr>
                             ))}
@@ -295,12 +242,12 @@ const OrderList = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {selectedOrder.details.map((item) => (
-                                            <tr key={item.product_id}>
+                                        {selectedOrderDetails.map((item, idx) => (
+                                            <tr key={`${item.product_id}-${idx}`}>
                                                 <td>{item.product_name}</td>
                                                 <td>{item.quantity}</td>
-                                                <td>{item.unitPrice.toLocaleString()} VND</td>
-                                                <td>{item.totalPrice.toLocaleString()} VND</td>
+                                                <td>{item.unit_price.toLocaleString()} VND</td>
+                                                <td>{item.total_price.toLocaleString()} VND</td>
                                             </tr>
                                         ))}
                                         <tr>

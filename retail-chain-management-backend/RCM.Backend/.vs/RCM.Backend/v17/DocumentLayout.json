@@ -3,16 +3,20 @@
   "WorkspaceRootPath": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|e:\\new folder\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\warehousescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\warehousescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|e:\\new folder\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\saleinvoicecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\saleinvoicecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|e:\\new folder\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\dtos\\orderfilterdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\dtos\\orderfilterdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|e:\\new folder\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\cashhandovercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\cashhandovercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|e:\\new folder\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\warehousescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|solutionrelative:rcm.backend\\controllers\\warehousescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D4A1E3F0-14E1-4CB9-BD9B-89D73DAD9662}|RCM.Backend\\RCM.Backend.csproj|e:\\new folder\\retail-chain-management-web-application-\\retail-chain-management-backend\\rcm.backend\\rcm.backend\\controllers\\attendancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -138,7 +142,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 10,
+          "SelectedChildIndex": 13,
           "Children": [
             {
               "$type": "Bookmark",
@@ -182,7 +186,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
+              "Title": "CashHandoverController.cs",
+              "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\CashHandoverController.cs",
+              "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\CashHandoverController.cs",
+              "ToolTip": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\CashHandoverController.cs",
+              "RelativeToolTip": "RCM.Backend\\Controllers\\CashHandoverController.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAA7wBoAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-15T13:34:20.584Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "WarehousesController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\WarehousesController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\WarehousesController.cs",
@@ -190,36 +207,37 @@
               "RelativeToolTip": "RCM.Backend\\Controllers\\WarehousesController.cs",
               "ViewState": "AgIAABkAAAAAAAAAAAAYwDIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-08T08:25:17.201Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-08T08:25:17.201Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "OrderFilterDto.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\OrderFilterDto.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\DTOs\\OrderFilterDto.cs",
               "ToolTip": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\OrderFilterDto.cs",
               "RelativeToolTip": "RCM.Backend\\DTOs\\OrderFilterDto.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAowAYAAAAvAAAAAAAAAA==",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAswAsAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-06T16:09:29.164Z"
+              "WhenOpened": "2025-04-06T16:09:29.164Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "SaleInvoiceController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\SaleInvoiceController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\SaleInvoiceController.cs",
               "ToolTip": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\SaleInvoiceController.cs",
               "RelativeToolTip": "RCM.Backend\\Controllers\\SaleInvoiceController.cs",
-              "ViewState": "AgIAAJ4BAAAAAAAAAAAiwKsBAAAdAAAAAAAAAA==",
+              "ViewState": "AgIAAJ0BAAAAAAAAAAAiwKoBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-06T15:14:38.667Z"
+              "WhenOpened": "2025-04-06T15:14:38.667Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "AttendanceController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AttendanceController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AttendanceController.cs",
@@ -231,7 +249,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "ProductsController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\ProductsController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\ProductsController.cs",
@@ -243,7 +261,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "PayrollController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\PayrollController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\PayrollController.cs",
@@ -255,7 +273,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "OrderController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\OrderController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\OrderController.cs",
@@ -267,7 +285,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "PromotionController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\PromotionController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\PromotionController.cs",
@@ -279,7 +297,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "AuthController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AuthController.cs",
@@ -291,7 +309,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "appsettings.json",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\appsettings.json",
               "RelativeDocumentMoniker": "RCM.Backend\\appsettings.json",
@@ -303,7 +321,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "PurchaseOrdersController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\PurchaseOrdersController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\PurchaseOrdersController.cs",
@@ -315,7 +333,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "EmployeeDTO.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\EmployeeDTO.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\DTOs\\EmployeeDTO.cs",
@@ -327,7 +345,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "UpdatePromotionStatusDto.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\UpdatePromotionStatusDto.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\DTOs\\UpdatePromotionStatusDto.cs",
@@ -339,7 +357,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "RefundRequest.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\RefundRequest.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\DTOs\\RefundRequest.cs",
@@ -351,7 +369,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "WeatherForecast.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\WeatherForecast.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\WeatherForecast.cs",
@@ -363,7 +381,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "AccountController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\AccountController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\AccountController.cs",
@@ -375,7 +393,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "CashHandover.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\CashHandover.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\CashHandover.cs",
@@ -387,7 +405,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 20,
               "Title": "RetailChainContext.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\RetailChainContext.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\RetailChainContext.cs",
@@ -399,7 +417,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "FinancialController.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Controllers\\FinancialController.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Controllers\\FinancialController.cs",
@@ -411,7 +429,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "ProductDTO.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\DTOs\\ProductDTO.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\DTOs\\ProductDTO.cs",
@@ -423,7 +441,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 22,
               "Title": "Employee.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Employee.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Employee.cs",
@@ -435,7 +453,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 23,
               "Title": "Batch.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Batch.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Batch.cs",
@@ -447,7 +465,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "BatchDetail.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\BatchDetail.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\BatchDetail.cs",
@@ -459,7 +477,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 24,
               "Title": "Warehouse.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Warehouse.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Warehouse.cs",
@@ -471,7 +489,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 26,
               "Title": "LoginRequest.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\LoginRequest.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\LoginRequest.cs",
@@ -483,7 +501,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 25,
               "Title": "JwtService.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\JwtService.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Services\\JwtService.cs",
@@ -495,7 +513,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 27,
               "Title": "Account.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Account.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Account.cs",
@@ -507,7 +525,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 28,
               "Title": "IJwtService.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\IJwtService.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Services\\IJwtService.cs",
@@ -519,7 +537,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 29,
               "Title": "IUserService.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\IUserService.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Services\\IUserService.cs",
@@ -531,7 +549,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 30,
               "Title": "UserService.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Services\\UserService.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Services\\UserService.cs",
@@ -543,7 +561,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 32,
               "Title": "AuthResponse.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\AuthResponse.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\AuthResponse.cs",
@@ -555,7 +573,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 31,
               "Title": "Order.cs",
               "DocumentMoniker": "E:\\New folder\\Retail-Chain-Management-Web-Application-\\retail-chain-management-backend\\RCM.Backend\\RCM.Backend\\Models\\Order.cs",
               "RelativeDocumentMoniker": "RCM.Backend\\Models\\Order.cs",
