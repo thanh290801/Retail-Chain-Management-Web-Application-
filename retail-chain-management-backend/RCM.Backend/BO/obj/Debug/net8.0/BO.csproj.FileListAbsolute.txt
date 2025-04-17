@@ -1,0 +1,12 @@
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\bin\Debug\net8.0\BO.deps.json
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\bin\Debug\net8.0\BO.dll
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\bin\Debug\net8.0\BO.pdb
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\obj\Debug\net8.0\BO.GeneratedMSBuildEditorConfig.editorconfig
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\obj\Debug\net8.0\BO.AssemblyInfoInputs.cache
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\obj\Debug\net8.0\BO.AssemblyInfo.cs
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\obj\Debug\net8.0\BO.csproj.CoreCompileInputs.cache
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\obj\Debug\net8.0\BO.sourcelink.json
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\obj\Debug\net8.0\BO.dll
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\obj\Debug\net8.0\refint\BO.dll
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\obj\Debug\net8.0\BO.pdb
+D:\git-do-an\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\BO\obj\Debug\net8.0\ref\BO.dll
