@@ -6,7 +6,7 @@
         public int? BranchId { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
-        public string? OrderCode { get; set; }
+        public string? OrderId { get; set; }
         public string? ProductName { get; set; }
         public int? EmployeeId { get; set; }
         public int Page { get; set; } = 1;
