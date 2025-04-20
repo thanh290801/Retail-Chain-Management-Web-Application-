@@ -369,11 +369,11 @@ namespace RCM.Backend.Controllers
 
             try
             {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
+                using (var conn = new SqlConnection(_connectionString))
                 {
                     await conn.OpenAsync();
 
-                    using (SqlCommand cmd = new SqlCommand("pos_GetOrdersWithProductDetails", conn))
+                    using (var cmd = new SqlCommand("pos_GetOrdersWithProductDetails", conn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
 
@@ -381,11 +381,11 @@ namespace RCM.Backend.Controllers
                         cmd.Parameters.AddWithValue("@BranchId", request.BranchId ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@FromDate", request.FromDate ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@ToDate", request.ToDate ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@OrderCode", string.IsNullOrEmpty(request.OrderCode) ? (object)DBNull.Value : request.OrderCode);
+                        cmd.Parameters.AddWithValue("@OrderId", request.OrderId ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@ProductName", string.IsNullOrEmpty(request.ProductName) ? (object)DBNull.Value : request.ProductName);
                         cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Page", request.Page);
-                        cmd.Parameters.AddWithValue("@Limit", request.Limit);
+                        cmd.Parameters.AddWithValue("@Page", request.Page > 0 ? request.Page : 1);
+                        cmd.Parameters.AddWithValue("@Limit", request.Limit > 0 ? request.Limit : 10);
 
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
@@ -393,25 +393,26 @@ namespace RCM.Backend.Controllers
                             {
                                 orders.Add(new
                                 {
-                                    orderId = reader["OrderId"],
-                                    created_date = reader["created_date"],
-                                    shop_id = reader["shop_id"],
-                                    total_amount = reader["total_amount"],
-                                    employeeid = reader["employeeid"],
-                                    employee_name = reader["employee_name"],
-                                    warehouse = reader["warehouse"],
-                                    payment_method = reader["payment_method"],
-                                    product_id = reader["product_id"],
-                                    product_name = reader["product_name"],
-                                    quantity = reader["quantity"],
-                                    unit_price = reader["unit_price"],
-                                    total_price = reader["total_price"]
+                                    orderId = reader["OrderId"] as int? ?? 0,
+                                    created_date = reader["created_date"] as DateTime?,
+                                    shop_id = reader["shop_id"] as int? ?? 0,
+                                    total_amount = reader["total_amount"] as decimal? ?? 0,
+                                    employeeid = reader["employeeid"] as int? ?? 0,
+                                    employee_name = reader["employee_name"]?.ToString() ?? "Unknown",
+                                    warehouse = reader["warehouse"]?.ToString() ?? "Unknown",
+                                    payment_method = reader["payment_method"]?.ToString() ?? "Unknown",
+                                    product_id = reader["product_id"] as int? ?? 0,
+                                    product_name = reader["product_name"]?.ToString() ?? "Unknown",
+                                    quantity = reader["quantity"] as decimal? ?? 0,
+                                    unit_price = reader["unit_price"] as decimal? ?? 0,
+                                    total_price = reader["total_price"] as decimal? ?? 0
                                 });
                             }
 
+                            // Đọc kết quả TotalCount nếu có result set tiếp theo
                             if (await reader.NextResultAsync() && await reader.ReadAsync())
                             {
-                                totalCount = Convert.ToInt32(reader["TotalCount"]);
+                                totalCount = reader["TotalCount"] as int? ?? 0;
                             }
                         }
                     }
@@ -421,7 +422,11 @@ namespace RCM.Backend.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Lỗi khi lấy danh sách đơn hàng", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = "Lỗi khi lấy danh sách đơn hàng",
+                    error = ex.Message
+                });
             }
         }
 

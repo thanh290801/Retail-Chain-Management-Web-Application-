@@ -65,6 +65,11 @@ public class ProductsController : ControllerBase
         }
 
         product.IsEnabled = !product.IsEnabled;
+        var stockLevels = _context.StockLevels.Where(sl => sl.ProductId == id);
+        foreach (var stock in stockLevels)
+        {
+            stock.Status = product.IsEnabled == true ? true : false;
+        }
         await _context.SaveChangesAsync();
 
         return Ok(new
@@ -167,15 +172,22 @@ public async Task<IActionResult> UpdateProductPrice([FromBody] List<UpdatePriceR
                 ChangeDate = DateTime.UtcNow,
                 WarehouseId = update.WarehouseId
             });
+            }
+            await _context.SaveChangesAsync();
+
+            await _context.Database.ExecuteSqlRawAsync(
+           "EXEC dbo.sp_AutoUpdateProductStatusById @p0, @p1",
+           new object[] { update.ProductId, update.WarehouseId });
         }
-    }
 
     if (priceHistoryEntries.Any())
     {
         _context.ProductPriceHistories.AddRange(priceHistoryEntries);
-    }
+            await _context.SaveChangesAsync();
 
-    await _context.SaveChangesAsync();
+        }
+
+        await _context.SaveChangesAsync();
     return Ok(new { message = "Cập nhật giá thành công!" });
 }
 

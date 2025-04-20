@@ -225,9 +225,9 @@ const SalaryHistory = () => {
     const numberValue = parseFloat(value.replace(/[^0-9]/g, ""));
     return numberValue
       ? new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(numberValue)
+        style: "currency",
+        currency: "VND",
+      }).format(numberValue)
       : "";
   };
 
@@ -286,7 +286,7 @@ const SalaryHistory = () => {
               <tr className="bg-gray-100">
                 <th className="border p-2 text-center">Mã Nhân viên</th>
                 <th className="border p-2 text-center">Tên nhân viên</th>
-                <th className="border p-2 text-center">Lương cố định</th>
+                <th className="border p-2 text-center">Lương tháng</th>
                 <th className="border p-2 text-center">Số ngày công</th>
                 <th className="border p-2 text-center">Số giờ tăng ca</th>
                 <th className="border p-2 text-center">Lương tăng ca</th>
@@ -315,13 +315,13 @@ const SalaryHistory = () => {
                   <td className="border p-2 text-center">
                     {item.overtimePay
                       ? new Intl.NumberFormat("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                        }).format(item.overtimePay)
+                        style: "currency",
+                        currency: "VND",
+                      }).format(item.overtimePay)
                       : new Intl.NumberFormat("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                        }).format(0)}
+                        style: "currency",
+                        currency: "VND",
+                      }).format(0)}
                   </td>
                   <td className="border p-2 text-center font-bold">
                     {new Intl.NumberFormat("vi-VN", {

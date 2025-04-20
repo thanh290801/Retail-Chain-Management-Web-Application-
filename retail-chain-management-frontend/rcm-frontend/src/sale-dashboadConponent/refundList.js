@@ -1,9 +1,12 @@
 import React, { useEffect, useState, forwardRef } from 'react';
 import axios from 'axios';
 import { Table, Form, Row, Col, Button, Modal } from 'react-bootstrap';
-import DatePicker from 'react-datepicker';
+import DatePicker, { registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import vi from "date-fns/locale/vi"; // 👈 Đưa lên cùng với import
+import { format } from 'date-fns';
 import Header from '../headerComponent/header';
+registerLocale("vi", vi);
 
 const RefundList = () => {
     const [refunds, setRefunds] = useState([]);
@@ -83,6 +86,8 @@ const RefundList = () => {
         return Object.values(grouped);
     };
 
+    const [totalPages, setTotalPages] = useState(1);
+
     const fetchRefunds = async () => {
         try {
             const res = await axios.post('https://localhost:5000/api/sale-invoice/listRefund', {
@@ -90,12 +95,13 @@ const RefundList = () => {
                 productName: filters.productName || null,
                 employeeName: filters.employeeName || null,
                 branchId: filters.branchId || null,
-                fromDate: startDate ? startDate.toISOString() : null,
-                toDate: endDate ? endDate.toISOString() : null,
+                fromDate: startDate ? format(startDate, "yyyy-MM-dd'T'00:00:00") : null,
+                toDate: endDate ? format(endDate, "yyyy-MM-dd'T'23:59:59") : null,
                 page: filters.page,
                 limit: filters.limit
             });
             setRefunds(groupByRefund(res.data));
+            setTotalPages(Math.ceil(res.data.length / filters.limit));
         } catch (err) {
             console.error('Lỗi khi lấy danh sách hoàn tiền:', err);
         }
@@ -175,13 +181,14 @@ const RefundList = () => {
                             endDate={endDate}
                             onChange={(update) => setDateRange(update)}
                             onCalendarClose={() => {
-                                handleInputChange('fromDate', startDate);
-                                handleInputChange('toDate', endDate);
+                                handleInputChange('fromDate', startDate ? format(startDate, "yyyy-MM-dd'T'00:00:00") : null);
+                                handleInputChange('toDate', endDate ? format(endDate, "yyyy-MM-dd'T'23:59:59") : null);
                             }}
                             isClearable
                             placeholderText="Chọn khoảng ngày"
                             className="form-control"
-                            dateFormat="yyyy-MM-dd"
+                            dateFormat="dd/MM/yyyy"
+                            locale="vi"
                             customInput={<CustomDateInput />}
                         />
                     </Col>
@@ -196,8 +203,6 @@ const RefundList = () => {
                                 <th>Mã đơn</th>
                                 <th>Chi nhánh</th>
                                 <th>Nhân viên</th>
-                                <th>Sản phẩm</th>
-                                <th>Số lượng</th>
                                 <th>Thành tiền</th>
                                 <th></th>
                             </tr>
@@ -210,7 +215,6 @@ const RefundList = () => {
                                     <td>{refund.order_id}</td>
                                     <td>{refund.warehouse}</td>
                                     <td>{refund.employee_name}</td>
-                                    <td>{refund.details.length} sản phẩm</td>
                                     <td>
                                         {refund.details.reduce((sum, d) => sum + d.totalPrice, 0).toLocaleString()} VND
                                     </td>
@@ -225,7 +229,7 @@ const RefundList = () => {
                     </Table>
                 </div>
 
-                {renderPagination()}
+                {totalPages > 1 && renderPagination()}
 
                 <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
                     <Modal.Header closeButton>

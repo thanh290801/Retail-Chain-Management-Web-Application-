@@ -1,24 +1,30 @@
 import React, { useEffect, useState, forwardRef } from 'react';
 import axios from 'axios';
 import { Table, Form, Row, Col, Modal, Button } from 'react-bootstrap';
-import DatePicker from 'react-datepicker';
+import DatePicker, { registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import vi from "date-fns/locale/vi"; // 👈 Đưa lên cùng với import
+import { format } from 'date-fns';
+
 import useDebounce from './useDebounce';
 import Header from '../headerComponent/header';
+
+// ✅ Sau tất cả import, mới được gọi hàm
+registerLocale("vi", vi);
+
 
 const OrderList = () => {
     const [orders, setOrders] = useState([]);
     const [branches, setBranches] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
-    const [selectedOrderDetails, setSelectedOrderDetails] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [ordersPerPage] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
 
     const [filters, setFilters] = useState({
-        orderCode: null,
+        orderId: null,
         productName: null,
         employeeId: null,
         branchId: null,
@@ -30,7 +36,7 @@ const OrderList = () => {
     const [dateRange, setDateRange] = useState([null, null]);
     const [startDate, endDate] = dateRange;
 
-    const debouncedOrderCode = useDebounce(filters.orderCode, 500);
+    const debouncedOrderId = useDebounce(filters.orderId, 500);
     const debouncedProductName = useDebounce(filters.productName, 500);
 
     const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
@@ -53,20 +59,7 @@ const OrderList = () => {
 
     useEffect(() => {
         fetchOrders();
-    }, [
-        currentPage,
-        debouncedOrderCode,
-        debouncedProductName,
-        filters.employeeId,
-        filters.branchId,
-        filters.paymentMethod,
-        filters.fromDate,
-        filters.toDate
-    ]);
-
-    useEffect(() => {
-        fetchOrders();
-    }, [currentPage]);
+    }, [currentPage, debouncedOrderId, debouncedProductName, filters.employeeId, filters.branchId, filters.paymentMethod, filters.fromDate, filters.toDate]);
 
     useEffect(() => {
         handleFilterChange('fromDate', startDate ? startDate.toISOString() : null);
@@ -83,9 +76,36 @@ const OrderList = () => {
         setEmployees(res.data);
     };
 
+    const groupByOrder = (data) => {
+        const grouped = {};
+        data.forEach(row => {
+            if (!grouped[row.orderId]) {
+                grouped[row.orderId] = {
+                    orderId: row.orderId,
+                    created_date: row.created_date,
+                    employee_name: row.employee_name,
+                    total_amount: row.total_amount,
+                    warehouse: row.warehouse,
+                    details: []
+                };
+            }
+
+            if (row.product_id !== null) {
+                grouped[row.orderId].details.push({
+                    product_name: row.product_name,
+                    quantity: row.quantity,
+                    unit_price: row.unit_price,
+                    total_price: row.total_price
+                });
+            }
+        });
+
+        return Object.values(grouped);
+    };
+
     const fetchOrders = async () => {
         const body = {
-            orderCode: debouncedOrderCode || null,
+            orderId: debouncedOrderId || null,        // ✅ đúng với DTO
             productName: debouncedProductName || null,
             employeeId: filters.employeeId || null,
             branchId: filters.branchId || null,
@@ -95,13 +115,13 @@ const OrderList = () => {
             page: currentPage,
             limit: ordersPerPage
         };
-
+        console.log(body)
         try {
             const res = await axios.post('https://localhost:5000/api/sale-invoice/listOrder', body);
             const { data, totalCount } = res.data;
-            setOrders(data);
+            setOrders(groupByOrder(data));
             setTotalPages(Math.ceil(totalCount / ordersPerPage));
-            console.log("📤 Body gửi API:", body);
+            console.log(groupByOrder(data))
         } catch (err) {
             console.error('Lỗi khi lấy đơn hàng:', err);
             setOrders([]);
@@ -109,30 +129,25 @@ const OrderList = () => {
     };
 
     const handleFilterChange = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
+        setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+        setCurrentPage(1);
     };
 
-    const handleViewOrder = (orderId) => {
-        const mainOrder = orders.find(o => o.orderId === orderId);
-        const details = orders.filter(o => o.orderId === orderId && o.product_id !== null);
-        setSelectedOrder(mainOrder);
-        setSelectedOrderDetails(details);
-        setShowModal(true);
-    };
-
-    const renderPageNumbers = () => {
-        const pages = [];
-        for (let i = 1; i <= totalPages; i++) {
-            pages.push(
-                <Button key={i} variant={i === currentPage ? 'primary' : 'outline-secondary'} onClick={() => setCurrentPage(i)} className="mx-1" size="sm">
-                    {i}
+    const renderPagination = () => (
+        <div className="d-flex justify-content-center mt-4 flex-wrap">
+            <Button variant="secondary" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                Trước
+            </Button>
+            {[...Array(totalPages).keys()].map(i => (
+                <Button key={i + 1} variant={i + 1 === currentPage ? 'primary' : 'outline-secondary'} onClick={() => setCurrentPage(i + 1)} className="mx-1" size="sm">
+                    {i + 1}
                 </Button>
-            );
-        }
-        return pages;
-    };
-
-    const uniqueOrders = [...new Map(orders.map(o => [o.orderId, o])).values()];
+            ))}
+            <Button variant="secondary" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+                Tiếp
+            </Button>
+        </div>
+    );
 
     return (
         <div>
@@ -174,13 +189,28 @@ const OrderList = () => {
 
                 <Row className="mb-3 g-2">
                     <Col md={4}>
+                        <Form.Control placeholder="Mã đơn" value={filters.orderId ?? ''} onChange={e => handleFilterChange('orderId', e.target.value)} />
+                    </Col>
+                    <Col md={4}>
                         <Form.Control placeholder="Sản phẩm" value={filters.productName ?? ''} onChange={e => handleFilterChange('productName', e.target.value)} />
                     </Col>
                     <Col md={4}>
-                        <Form.Control placeholder="Mã đơn" value={filters.orderCode ?? ''} onChange={e => handleFilterChange('orderCode', e.target.value)} />
-                    </Col>
-                    <Col md={4}>
-                        <DatePicker selectsRange startDate={startDate} endDate={endDate} onChange={update => setDateRange(update)} isClearable dateFormat="yyyy-MM-dd" customInput={<CustomDateInput />} />
+                        <DatePicker
+                            selectsRange
+                            startDate={startDate}
+                            endDate={endDate}
+                            onChange={(update) => {
+                                setDateRange(update);
+                                handleFilterChange('fromDate', update[0] ? format(update[0], "yyyy-MM-dd'T'00:00:00") : null);
+                                handleFilterChange('toDate', update[1] ? format(update[1], "yyyy-MM-dd'T'23:59:59") : null);
+                            }}
+                            isClearable
+                            placeholderText="Chọn khoảng ngày"
+                            className="form-control"
+                            dateFormat="dd/MM/yyyy"
+                            locale="vi"
+                            customInput={<CustomDateInput />}
+                        />
                     </Col>
                 </Row>
 
@@ -192,18 +222,20 @@ const OrderList = () => {
                                 <th>Ngày tạo</th>
                                 <th>Nhân viên</th>
                                 <th>Tổng tiền</th>
-                                <th>Chi tiết</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {uniqueOrders.map(order => (
+                            {orders.map((order, idx) => (
                                 <tr key={order.orderId}>
                                     <td>{order.orderId}</td>
                                     <td>{new Date(order.created_date).toLocaleString("vi-VN")}</td>
                                     <td>{order.employee_name}</td>
                                     <td>{order.total_amount.toLocaleString()} VND</td>
                                     <td>
-                                        <Button variant="info" size="sm" onClick={() => handleViewOrder(order.orderId)}>Xem</Button>
+                                        <Button size="sm" onClick={() => { setSelectedOrder(order); setShowModal(true); }}>
+                                            Xem
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
@@ -211,19 +243,11 @@ const OrderList = () => {
                     </Table>
                 </div>
 
-                <div className="d-flex justify-content-center mt-4 flex-wrap">
-                    <Button variant="secondary" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-                        Trước
-                    </Button>
-                    {renderPageNumbers()}
-                    <Button variant="secondary" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-                        Tiếp
-                    </Button>
-                </div>
+                {totalPages > 1 && renderPagination()}
 
                 <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
                     <Modal.Header closeButton>
-                        <Modal.Title>Hóa đơn số {selectedOrder?.orderId}</Modal.Title>
+                        <Modal.Title>Chi tiết đơn hàng #{selectedOrder?.orderId}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         {selectedOrder && (
@@ -231,7 +255,8 @@ const OrderList = () => {
                                 <p><strong>Ngày tạo:</strong> {new Date(selectedOrder.created_date).toLocaleString()}</p>
                                 <p><strong>Chi nhánh:</strong> {selectedOrder.warehouse}</p>
                                 <p><strong>Người bán:</strong> {selectedOrder.employee_name}</p>
-                                <h5 className="mt-4">Sản phẩm:</h5>
+
+                                <h5 className="mt-3">Sản phẩm:</h5>
                                 <Table striped bordered>
                                     <thead>
                                         <tr>
@@ -242,8 +267,8 @@ const OrderList = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {selectedOrderDetails.map((item, idx) => (
-                                            <tr key={`${item.product_id}-${idx}`}>
+                                        {selectedOrder.details.map((item, idx) => (
+                                            <tr key={idx}>
                                                 <td>{item.product_name}</td>
                                                 <td>{item.quantity}</td>
                                                 <td>{item.unit_price.toLocaleString()} VND</td>

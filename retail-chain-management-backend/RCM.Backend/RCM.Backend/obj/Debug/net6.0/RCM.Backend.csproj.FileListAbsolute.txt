@@ -92,7 +92,6 @@ D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-managemen
 D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets.build.json
 D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets.development.json
 D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\scopedcss\bundle\RCM.Backend.styles.css
-D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\RCM.Backend.csproj.CopyComplete
 D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\RCM.Backend.dll
 D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\refint\RCM.Backend.dll
 D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\RCM.Backend.pdb
@@ -208,3 +207,14 @@ E:\New folder\Retail-Chain-Management-Web-Application-\retail-chain-management-b
 E:\New folder\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\RCM.Back.D43B2E84.Up2Date
 E:\New folder\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\RCM.Backend.genruntimeconfig.cache
 E:\New folder\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\ref\RCM.Backend.dll
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\bin\Debug\net6.0\RCM.Backend.staticwebassets.endpoints.json
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\RCM.Backend.sourcelink.json
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets.build.endpoints.json
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets\msbuild.RCM.Backend.Microsoft.AspNetCore.StaticWebAssets.props
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets\msbuild.RCM.Backend.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets\msbuild.build.RCM.Backend.props
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets\msbuild.buildMultiTargeting.RCM.Backend.props
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets\msbuild.buildTransitive.RCM.Backend.props
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets.pack.json
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\staticwebassets.upToDateCheck.txt
+D:\DoAnTotNghiep\Retail-Chain-Management-Web-Application-\retail-chain-management-backend\RCM.Backend\RCM.Backend\obj\Debug\net6.0\RCM.Back.D43B2E84.Up2Date
