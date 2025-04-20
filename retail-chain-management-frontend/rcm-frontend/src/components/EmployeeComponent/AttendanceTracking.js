@@ -194,7 +194,7 @@ const EmployeeTable = () => {
       <Header />
       <div className="h-screen flex flex-col mt-5">
         <div className="flex justify-between items-center p-4 border-b bg-white shadow">
-          <div className="text-lg font-bold">Lịch Làm Việc Hàng Tuần</div>
+          <div className="text-lg font-bold">Lịch Chấm Công Hàng Tuần</div>
           <div className="flex gap-2 items-center">
             <select
               value={selectedYear}
@@ -224,17 +224,11 @@ const EmployeeTable = () => {
               className="border p-2 rounded"
             >
               {weeks.map((week, idx) => (
-                <option key={idx} value={week}>{`Tuần ${
-                  idx + 1
-                } (${week})`}</option>
+                <option key={idx} value={week}>{`Tuần ${idx + 1
+                  } (${week})`}</option>
               ))}
             </select>
-            <button
-              onClick={handleExport}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Xuất Excel
-            </button>
+
           </div>
         </div>
         <div className="flex-grow overflow-x-auto p-2">

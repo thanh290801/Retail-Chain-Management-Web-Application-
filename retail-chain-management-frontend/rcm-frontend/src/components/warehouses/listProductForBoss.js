@@ -212,83 +212,91 @@ const ProductStockForOwner = () => {
                         checked={showOnlyLossProducts}
                         onChange={(e) => handleToggleShowLoss(e.target.checked)}
                     />
-                    <label>Chỉ hiển thị sản phẩm lỗ</label>
+                    <label>Chỉ hiển thị sản phẩm có giá bán thấp hơn hoặc bằng giá nhập</label>
                 </div>
 
                 {hasLossProducts && (
                     <div className="bg-yellow-200 text-yellow-800 font-medium p-3 rounded mb-4">
-                        ⚠️ Có sản phẩm đang bán thấp hơn giá nhập! Vui lòng kiểm tra lại.
+                        ⚠️ Có sản phẩm đang bán thấp hơn hoặc bằng giá nhập! Vui lòng kiểm tra lại.
                     </div>
                 )}
 
-<table className="w-full bg-white shadow-md rounded text-center">
-    <thead className="bg-gray-100">
-        <tr>
-            <th><input type="checkbox" onChange={handleSelectAll} checked={selectedProducts.length === currentProducts.length && currentProducts.length > 0} /></th>
-            <th>Mã</th>
-            <th>Tên</th>
-            <th>Tồn kho</th>
-            <th>Tối thiểu</th>
-            <th>Giá nhập</th>
-            <th>Giá lẻ</th>
-            <th>Trạng thái</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody>
-        {currentProducts.length > 0 ? currentProducts.map(product => {
-            const purchasePrice = parseFloat(updatedPrices[product.productsId]?.NewPurchasePrice || product.purchasePrice);
-            const retailPrice = parseFloat(updatedPrices[product.productsId]?.NewRetailPrice || product.retailPrice);
-            const isLowStock = product.quantity < product.minQuantity;
+                <table className="w-full bg-white shadow-md rounded text-center">
+                    <thead className="bg-gray-100">
+                        <tr>
+                            <th><input type="checkbox" onChange={handleSelectAll} checked={selectedProducts.length === currentProducts.length && currentProducts.length > 0} /></th>
+                            <th>Mã</th>
+                            <th>Tên</th>
+                            <th>Tồn kho</th>
+                            <th>Tối thiểu</th>
+                            <th>Giá nhập</th>
+                            <th>Giá lẻ</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {currentProducts.length > 0 ? currentProducts.map(product => {
+                            const purchasePrice = parseFloat(updatedPrices[product.productsId]?.NewPurchasePrice || product.purchasePrice);
+                            const retailPrice = parseFloat(updatedPrices[product.productsId]?.NewRetailPrice || product.retailPrice);
+                            const isLowStock = product.quantity < product.minQuantity;
 
-            // Kiểm tra nếu giá bán <= giá nhập
-            const isPriceLessThanOrEqual = retailPrice <= purchasePrice;
+                            // Kiểm tra nếu giá bán <= giá nhập
+                            const isPriceLessThanOrEqual = retailPrice <= purchasePrice;
 
-            let rowClass = "";
-            if (isPriceLessThanOrEqual) rowClass = "bg-yellow-100"; // Highlight vàng nếu giá bán <= giá nhập
-            else if (isLowStock) rowClass = "bg-red-100";
+                            let rowClass = "";
+                            if (isPriceLessThanOrEqual) rowClass = "bg-yellow-100"; // Highlight vàng nếu giá bán <= giá nhập
+                            else if (isLowStock) rowClass = "bg-red-100";
 
-            return (
-                <tr key={product.productsId} className={rowClass}>
-                    <td><input type="checkbox" checked={selectedProducts.some(p => p.productsId === product.productsId)} onChange={() => handleCheckboxChange(product)} /></td>
-                    <td>{product.productsId}</td>
-                    <td>{product.name}</td>
-                    <td className={`font-semibold ${isLowStock ? "text-red-600" : ""}`}>{product.quantity}</td>
-                    <td>{product.minQuantity}</td>
-                    <td>
-                        <input
-                            type="number"
-                            value={updatedPrices[product.productsId]?.NewPurchasePrice || product.purchasePrice}
-                            onChange={(e) => handlePriceChange(product.productsId, "NewPurchasePrice", e.target.value)}
-                            disabled={!isEditingPrice}
-                        />
-                    </td>
-                    <td>
-                        <input
-                            type="number"
-                            value={updatedPrices[product.productsId]?.NewRetailPrice || product.retailPrice}
-                            onChange={(e) => handlePriceChange(product.productsId, "NewRetailPrice", e.target.value)}
-                            disabled={!isEditingPrice}
-                        />
-                    </td>
-                    <td>{product.status ? "Đang bán" : "Ngừng bán"}</td>
-                    <td>
-                        <button
-                            className={`${product.status ? "bg-red-500" : "bg-green-500"} text-white p-2 rounded`}
-                            onClick={() => handleToggleStatus(product.productsId, product.status)}
-                        >
-                            {product.status ? "Ngưng bán" : "Mở bán"}
-                        </button>
-                    </td>
-                </tr>
-            );
-        }) : (
-            <tr>
-                <td colSpan="9" className="p-4 text-center">Chưa có sản phẩm</td>
-            </tr>
-        )}
-    </tbody>
-</table>
+                            return (
+                                <tr key={product.productsId} className={rowClass}>
+                                    <td><input type="checkbox" checked={selectedProducts.some(p => p.productsId === product.productsId)} onChange={() => handleCheckboxChange(product)} /></td>
+                                    <td>{product.productsId}</td>
+                                    <td>{product.name}</td>
+                                    <td className={`font-semibold ${isLowStock ? "text-red-600" : ""}`}>{product.quantity}</td>
+                                    <td>{product.minQuantity}</td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            value={updatedPrices[product.productsId]?.NewPurchasePrice || product.purchasePrice}
+                                            onChange={(e) => handlePriceChange(product.productsId, "NewPurchasePrice", e.target.value)}
+                                            disabled={!isEditingPrice}
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            value={updatedPrices[product.productsId]?.NewRetailPrice || product.retailPrice}
+                                            onChange={(e) => handlePriceChange(product.productsId, "NewRetailPrice", e.target.value)}
+                                            disabled={!isEditingPrice}
+                                        />
+                                    </td>
+                                    <td>
+                                        {product.status
+                                            ? "Đang bán"
+                                            : product.manualOverride
+                                                ? "Ngừng bán (tắt tay)"
+                                                : product.autoDisabled
+                                                    ? "Tự ngưng (giá thấp)"
+                                                    : "Ngừng bán"}
+                                    </td>
+                                    <td>
+                                        <button
+                                            className={`${product.status ? "bg-red-500" : "bg-green-500"} text-white p-2 rounded`}
+                                            onClick={() => handleToggleStatus(product.productsId, product.status)}
+                                        >
+                                            {product.status ? "Ngưng bán" : "Mở bán"}
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        }) : (
+                            <tr>
+                                <td colSpan="9" className="p-4 text-center">Chưa có sản phẩm</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
 
                 <div className="flex justify-center mt-4">
                     {[...Array(totalPages)].map((_, index) => (

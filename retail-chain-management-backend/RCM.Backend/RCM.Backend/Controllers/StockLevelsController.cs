@@ -90,6 +90,10 @@ public async Task<IActionResult> GetAvailableProducts(int supplierId, int wareho
             // Cập nhật giá nhập
             stockItem.PurchasePrice = request.NewPrice;
             await _context.SaveChangesAsync();
+            await _context.Database.ExecuteSqlRawAsync(
+    "EXEC dbo.sp_AutoUpdateProductStatusById @p0, @p1",
+    new object[] { request.ProductId, request.WarehouseId });
+
 
             return Ok(new { message = "Giá nhập đã được cập nhật thành công!", updatedPrice = stockItem.PurchasePrice });
         }
@@ -110,9 +114,14 @@ public async Task<IActionResult> GetAvailableProducts(int supplierId, int wareho
         try
         {
             await _context.SaveChangesAsync();
-            return Ok("Đã cập nhật giá nhập thành công.");
-        }
-        catch (Exception ex)
+                await _context.Database.ExecuteSqlRawAsync(
+    "EXEC dbo.sp_AutoUpdateProductStatusById @p0, @p1",
+    new object[] { dto.ProductId, dto.WarehouseId });
+
+                return Ok("Đã cập nhật giá nhập thành công.");
+
+            }
+            catch (Exception ex)
         {
             return StatusCode(500, $"Lỗi hệ thống: {ex.Message}");
         }

@@ -162,8 +162,6 @@ const ProductListComponent = () => {
                             <th className="p-2">Thể tích (ml)</th>
                             <th className="p-2">Hình ảnh</th>
                             <th className="p-2">Danh mục</th>
-                            <th className="p-2">Trạng thái</th>
-                            <th className="p-2">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -185,15 +183,7 @@ const ProductListComponent = () => {
                                     ) : 'Không có ảnh'}
                                 </td>
                                 <td className="p-2">{product.category}</td>
-                                <td className="p-2">{product.isEnabled ? 'Đang bán' : 'Đã ngừng bán'}</td>
-                                <td className="p-2 space-x-2" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                        className={`px-3 py-1 rounded ${product.isEnabled ? 'bg-red-500' : 'bg-blue-500'} text-white`}
-                                        onClick={() => toggleProductStatus(product)}
-                                    >
-                                        {product.isEnabled ? 'Ngưng bán' : 'Mở bán'}
-                                    </button>
-                                </td>
+
                             </tr>
                         ))}
                     </tbody>

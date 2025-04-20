@@ -14,6 +14,8 @@ namespace RCM.Backend.Models
         public decimal? WholesalePrice { get; set; }
         public decimal? RetailPrice { get; set; }
         public bool? Status { get; set; }
+        public bool ManualOverride { get; set; }
+        public bool AutoDisabled { get; set; }
 
         public virtual Product Product { get; set; } = null!;
         public virtual Warehouse Warehouse { get; set; } = null!;

@@ -1189,6 +1189,13 @@ namespace RCM.Backend.Models
                 entity.Property(e => e.RetailPrice)
                     .HasColumnType("decimal(18, 2)")
                     .HasColumnName("retail_price");
+                entity.Property(e => e.ManualOverride)
+                    .HasColumnName("manual_override")
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.AutoDisabled)
+                    .HasColumnName("auto_disabled")
+                    .HasDefaultValueSql("((0))");
 
                 entity.Property(e => e.Status)
                     .HasColumnName("status")

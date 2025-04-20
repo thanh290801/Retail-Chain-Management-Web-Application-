@@ -32,6 +32,7 @@ const AttendanceTable = () => {
 
   // Lấy role từ localStorage (giả định role được lưu dưới dạng "Owner" hoặc khác)
   const userRole = localStorage.getItem("role") || "Employee"; // Mặc định là Employee nếu không có role
+  const [showTable, setShowTable] = useState(false);
 
   const isCheckInRoute = window.location.pathname === "/checkin";
   const isOwner = (id && id === localEmployeeId) || isCheckInRoute;
@@ -216,8 +217,7 @@ const AttendanceTable = () => {
   const checkOvertimeAvailability = async (date) => {
     try {
       const response = await fetch(
-        `${api_url}/Staff/ApprovedOvertimeList?month=${
-          dayjs(date).month() + 1
+        `${api_url}/Staff/ApprovedOvertimeList?month=${dayjs(date).month() + 1
         }&year=${dayjs(date).year()}`
       );
       if (!response.ok) {
@@ -331,27 +331,27 @@ const AttendanceTable = () => {
         date: dayjs(date).format("DD/MM/YYYY"),
         morningCheckIn: morningShift?.checkInTime
           ? dayjs(morningShift.checkInTime, [
-              "DD/MM/YYYY HH:mm:ss",
-              "YYYY-MM-DDTHH:mm:ss",
-            ]).format("HH:mm:ss")
+            "DD/MM/YYYY HH:mm:ss",
+            "YYYY-MM-DDTHH:mm:ss",
+          ]).format("HH:mm:ss")
           : "-",
         morningCheckOut: morningShift?.checkOutTime
           ? dayjs(morningShift.checkOutTime, [
-              "DD/MM/YYYY HH:mm:ss",
-              "YYYY-MM-DDTHH:mm:ss",
-            ]).format("HH:mm:ss")
+            "DD/MM/YYYY HH:mm:ss",
+            "YYYY-MM-DDTHH:mm:ss",
+          ]).format("HH:mm:ss")
           : "-",
         afternoonCheckIn: afternoonShift?.checkInTime
           ? dayjs(afternoonShift.checkInTime, [
-              "DD/MM/YYYY HH:mm:ss",
-              "YYYY-MM-DDTHH:mm:ss",
-            ]).format("HH:mm:ss")
+            "DD/MM/YYYY HH:mm:ss",
+            "YYYY-MM-DDTHH:mm:ss",
+          ]).format("HH:mm:ss")
           : "-",
         afternoonCheckOut: afternoonShift?.checkOutTime
           ? dayjs(afternoonShift.checkOutTime, [
-              "DD/MM/YYYY HH:mm:ss",
-              "YYYY-MM-DDTHH:mm:ss",
-            ]).format("HH:mm:ss")
+            "DD/MM/YYYY HH:mm:ss",
+            "YYYY-MM-DDTHH:mm:ss",
+          ]).format("HH:mm:ss")
           : "-",
         totalOvertime: overtimeHoursForMonth[date]
           ? overtimeHoursForMonth[date].toFixed(2)
@@ -359,13 +359,13 @@ const AttendanceTable = () => {
         morningStatus: isFutureDate
           ? "-"
           : morningShift
-          ? getStatus(morningShift)
-          : "-",
+            ? getStatus(morningShift)
+            : "-",
         afternoonStatus: isFutureDate
           ? "-"
           : afternoonShift
-          ? getStatus(afternoonShift)
-          : "-",
+            ? getStatus(afternoonShift)
+            : "-",
         morningLateDuration: morningShift?.lateDuration || "-",
         afternoonLateDuration: afternoonShift?.lateDuration || "-",
       });
@@ -449,61 +449,71 @@ const AttendanceTable = () => {
             </button>
           </div>
         )}
-        <Table
-          columns={[
-            { title: "Ngày", dataIndex: "date", key: "date" },
-            {
-              title: "Check-in Ca 1",
-              dataIndex: "morningCheckIn",
-              key: "morningCheckIn",
-            },
-            {
-              title: "Check-out Ca 1",
-              dataIndex: "morningCheckOut",
-              key: "morningCheckOut",
-            },
-            {
-              title: "Trạng thái Ca 1",
-              dataIndex: "morningStatus",
-              key: "morningStatus",
-              render: (status) => getStatusTag(status),
-            },
-            {
-              title: "Thời gian đi muộn Ca 1",
-              dataIndex: "morningLateDuration",
-              key: "morningLateDuration",
-            },
-            {
-              title: "Check-in Ca 2",
-              dataIndex: "afternoonCheckIn",
-              key: "afternoonCheckIn",
-            },
-            {
-              title: "Check-out Ca 2",
-              dataIndex: "afternoonCheckOut",
-              key: "afternoonCheckOut",
-            },
-            {
-              title: "Trạng thái Ca 2",
-              dataIndex: "afternoonStatus",
-              key: "afternoonStatus",
-              render: (status) => getStatusTag(status),
-            },
-            {
-              title: "Thời gian đi muộn Ca 2",
-              dataIndex: "afternoonLateDuration",
-              key: "afternoonLateDuration",
-            },
-            {
-              title: "Số giờ tăng ca",
-              dataIndex: "totalOvertime",
-              key: "totalOvertime",
-            },
-          ]}
-          dataSource={formatAttendanceData()}
-          pagination={false}
-        />
+        <button
+          className="bg-purple-500 text-white py-2 px-4 rounded font-semibold uppercase mb-4"
+          onClick={() => setShowTable(!showTable)}
+        >
+          {showTable ? "Ẩn bảng chấm công" : "Chi tiết bảng chấm công"}
+        </button>
+        {showTable && (
+
+          <Table
+            columns={[
+              { title: "Ngày", dataIndex: "date", key: "date" },
+              {
+                title: "Check-in Ca 1",
+                dataIndex: "morningCheckIn",
+                key: "morningCheckIn",
+              },
+              {
+                title: "Check-out Ca 1",
+                dataIndex: "morningCheckOut",
+                key: "morningCheckOut",
+              },
+              {
+                title: "Trạng thái Ca 1",
+                dataIndex: "morningStatus",
+                key: "morningStatus",
+                render: (status) => getStatusTag(status),
+              },
+              {
+                title: "Thời gian đi muộn Ca 1",
+                dataIndex: "morningLateDuration",
+                key: "morningLateDuration",
+              },
+              {
+                title: "Check-in Ca 2",
+                dataIndex: "afternoonCheckIn",
+                key: "afternoonCheckIn",
+              },
+              {
+                title: "Check-out Ca 2",
+                dataIndex: "afternoonCheckOut",
+                key: "afternoonCheckOut",
+              },
+              {
+                title: "Trạng thái Ca 2",
+                dataIndex: "afternoonStatus",
+                key: "afternoonStatus",
+                render: (status) => getStatusTag(status),
+              },
+              {
+                title: "Thời gian đi muộn Ca 2",
+                dataIndex: "afternoonLateDuration",
+                key: "afternoonLateDuration",
+              },
+              {
+                title: "Số giờ tăng ca",
+                dataIndex: "totalOvertime",
+                key: "totalOvertime",
+              },
+            ]}
+            dataSource={formatAttendanceData()}
+            pagination={false}
+          />
+        )}
       </div>
+
       {checkInMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div
