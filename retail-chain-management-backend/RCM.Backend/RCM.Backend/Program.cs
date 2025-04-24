@@ -110,6 +110,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.WebHost.UseUrls("http://localhost:5000", "http://rcm-backend.local:5000");
+
 var app = builder.Build();
 
 // 🔹 Thêm Swagger vào Middleware
