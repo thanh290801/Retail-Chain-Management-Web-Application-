@@ -115,13 +115,13 @@ const CreatePurchaseOrder = () => {
                     price: item.purchasePrice
                 }))
             };
-    
+
             // 1. Gọi API tạo đơn đặt hàng
             const orderResponse = await axios.post("https://localhost:5000/api/PurchaseOrders/Create", payload);
-    
+
             // ✅ Thông báo thành công tạo đơn hàng
             alert("Đơn hàng được tạo thành công!");
-    
+
             // ✅ Đưa người dùng quay lại danh sách đơn hàng
             navigate("/ownerorderlist");
         } catch (err) {
@@ -129,7 +129,7 @@ const CreatePurchaseOrder = () => {
             alert("Có lỗi xảy ra khi tạo đơn hàng.");
         }
     };
-    
+
     // Kiểm tra có sản phẩm nào có giá nhập = 0 hoặc chưa có sản phẩm trong orderItems
     const isCreateOrderDisabled = orderItems.length === 0 || orderItems.some(item => item.purchasePrice === 0);
 
@@ -152,13 +152,7 @@ const CreatePurchaseOrder = () => {
 
                     <div>
                         <label className="font-semibold">📑 Nhà cung cấp:</label>
-                        <input
-                            type="text"
-                            className="w-full p-2 border rounded"
-                            value={searchSupplier}
-                            placeholder="Tìm nhà cung cấp..."
-                            onChange={(e) => setSearchSupplier(e.target.value)}
-                        />
+
                         <select
                             className="w-full p-2 border rounded"
                             value={selectedSupplier}

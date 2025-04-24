@@ -159,7 +159,10 @@ public async Task<ActionResult<IEnumerable<object>>> GetProductsByWarehouse(int 
                 stock.PurchasePrice,
                 stock.WholesalePrice,
                 stock.RetailPrice,
-                stock.Status // Trả về thêm trường status
+                stock.Status, // Trả về thêm trường status
+                stock.ManualOverride,
+                stock.AutoDisabled
+
             })
         .OrderBy(p => p.Name)
         .ToListAsync();
@@ -172,27 +175,48 @@ public async Task<ActionResult<IEnumerable<object>>> GetProductsByWarehouse(int 
 
     return Ok(productsInStock);
 }
+    [HttpPut("{warehouseId}/toggle-product-status/{productId}")]
+    public async Task<IActionResult> ToggleProductStatus(int warehouseId, int productId, [FromBody] ToggleStatusDto dto)
+    {
+        var stockLevel = await _context.StockLevels
+            .FirstOrDefaultAsync(sl => sl.WarehouseId == warehouseId && sl.ProductId == productId);
 
-[HttpPut("{warehouseId}/toggle-product-status/{productId}")]
-        public async Task<IActionResult> ToggleProductStatus(int warehouseId, int productId, [FromBody] ToggleStatusDto dto)
+        if (stockLevel == null)
         {
-            var stockLevel = await _context.StockLevels
-                .FirstOrDefaultAsync(sl => sl.WarehouseId == warehouseId && sl.ProductId == productId);
-
-            if (stockLevel == null)
-            {
-                return NotFound(new { message = "Không tìm thấy sản phẩm trong kho." });
-            }
-
-            stockLevel.Status = dto.Status;
-            await _context.SaveChangesAsync();
-
-            var statusMessage = dto.Status ? "Sản phẩm đã được bật lại." : "Sản phẩm đã được vô hiệu hóa.";
-            return Ok(new { message = statusMessage });
+            return NotFound(new { message = "Không tìm thấy sản phẩm trong kho." });
         }
 
-        // POST: api/Warehouses
-[HttpPost]
+        // Chủ nhấn tắt tay => đặt manual_override = 1 và status = 0
+        // Chủ nhấn bật tay => nếu giá hợp lý thì đặt manual_override = 0 và status = 1
+        if (!dto.Status)
+        {
+            stockLevel.Status = false;
+            stockLevel.ManualOverride = true;
+            stockLevel.AutoDisabled = true; // đảm bảo không tự bật lại
+        }
+        else
+        {
+            if (stockLevel.RetailPrice > stockLevel.PurchasePrice)
+            {
+                stockLevel.Status = true;
+                stockLevel.ManualOverride = false;
+                stockLevel.AutoDisabled = false;
+            }
+            else
+            {
+                return BadRequest(new { message = "Không thể bật nếu giá bán thấp hơn hoặc bằng giá nhập." });
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        var statusMessage = dto.Status ? "Sản phẩm đã được bật lại." : "Sản phẩm đã được vô hiệu hóa.";
+        return Ok(new { message = statusMessage });
+    }
+
+
+    // POST: api/Warehouses
+    [HttpPost]
 public async Task<IActionResult> CreateWarehouse([FromBody] WarehouseCreateDto dto)
 {
     if (string.IsNullOrWhiteSpace(dto.Name) || string.IsNullOrWhiteSpace(dto.Address) || dto.Capacity <= 0)
