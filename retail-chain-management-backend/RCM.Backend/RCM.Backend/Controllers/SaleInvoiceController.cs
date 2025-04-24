@@ -16,29 +16,12 @@ namespace RCM.Backend.Controllers
     {
 
         // ✅ DTO Models để nhận dữ liệu từ Body
-        public class BarcodeSearchRequest
-        {
-            public string Barcode { get; set; }
-            public int WarehouseId { get; set; }
-        }
+       
 
-        public class ProductSearchRequest
-        {
-            public string Query { get; set; }
-            public int WarehouseId { get; set; }
-        }
-
-        public class OrderSearchRequest
-        {
-            public int? OrderId { get; set; }
-            public int? EmployeeId { get; set; }
-            public DateTime? StartDate { get; set; }
-            public DateTime? EndDate { get; set; }
-            public int? WarehouseId { get; set; }
-            public string? Barcode { get; set; }
-            public string? ProductName { get; set; }
-        }
-
+       /// <summary>
+       /// 
+       /// </summary>
+        
         public class OrderDetailSearchRequest
         {
             public int OrderId { get; set; }
@@ -109,7 +92,7 @@ namespace RCM.Backend.Controllers
                     OriginalPrice = reader.GetDecimal("OriginalPrice"),
                     FinalPrice = reader.GetDecimal("FinalPrice"),
                     Category = reader.GetString("category"),
-                    IsEnabled = reader.GetBoolean("is_enabled"),
+                    IsEnabled = reader.GetBoolean("status"),
 
                     // Thông tin khuyến mãi
                     PromotionId = reader.IsDBNull(reader.GetOrdinal("PromotionId")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("PromotionId")),

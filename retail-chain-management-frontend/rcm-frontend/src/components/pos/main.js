@@ -69,8 +69,16 @@ const Main = () => {
         }
     }, [invoiceToAutoRemove]);
 
+
     useEffect(() => {
+        setTimeout(() => {
+            searchInputRef.current?.blur(); // ❗ Ngăn focus vào input khi load trang
+        }, 500);
+
         const handleGlobalKeyDown = async (e) => {
+            // ❗ Nếu đang focus input thì bỏ qua (để người dùng gõ tay)
+            if (document.activeElement.tagName === 'INPUT') return;
+
             const currentTime = new Date().getTime();
 
             if (currentTime - lastScanTime > 1000) {
@@ -82,14 +90,16 @@ const Main = () => {
             if (e.key === 'Enter' && barcodeRef.current.trim() !== '') {
                 await handleBarcodeScan(barcodeRef.current.trim());
                 barcodeRef.current = "";
-            } else {
+            } else if (e.key.length === 1) {
                 barcodeRef.current += e.key;
             }
         };
 
         window.addEventListener('keydown', handleGlobalKeyDown);
         return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-    }, []); // ✅ Không có dependency → Không bị lặp vô hạn
+    }, [lastScanTime]);
+
+
 
     // ✅ 3. Hàm xử lý hóa đơn
     const handleAddNewInvoice = () => {
@@ -194,6 +204,11 @@ const Main = () => {
             const response = await axios.post(`${API_BASE_URL}/barcode`, {
                 Barcode: scannedBarcode,
                 WarehouseId: 1
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // 🛠️ Bổ sung dòng này
+                }
             });
 
             if (response.data) {
@@ -301,6 +316,7 @@ const Main = () => {
 
                     <Form.Control
                         ref={searchInputRef}
+                        autoFocus
                         type="text"
                         placeholder="Tìm sản phẩm hoặc quét mã vạch..."
                         value={searchText}

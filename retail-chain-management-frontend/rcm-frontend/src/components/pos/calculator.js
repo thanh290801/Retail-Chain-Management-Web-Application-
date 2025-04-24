@@ -228,7 +228,16 @@ const Calculator = ({
             setSelectedDenoms([]);
             // ✅ Gọi `handleRemoveInvoice` để xóa hóa đơn sau khi thanh toán
             handleRemoveInvoice(); // ✅ Gọi hàm đã nhận từ props — đảm bảo đúng tab hiện tại
-
+            handlePrintInvoice({
+                id: invoiceId || `HD-${Date.now()}`,
+                customer: "Khách lẻ",
+                totalAmount: totalPrice,
+                items: cartData.map(item => ({
+                    name: item.productName || item.name,
+                    quantity: item.quantity,
+                    price: item.price || item.unitPrice
+                }))
+            });
         } catch (error) {
             console.error("❌ Lỗi khi gọi API thanh toán:", error);
 
@@ -379,6 +388,7 @@ const Calculator = ({
                 >
                     {isReturn ? "Hoàn tiền" : "Thanh toán"}
                 </Button>
+
             </Form>
         </Card>
     );

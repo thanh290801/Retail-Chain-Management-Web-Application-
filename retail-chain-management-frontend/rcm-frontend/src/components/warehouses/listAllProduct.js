@@ -9,6 +9,7 @@ const ProductListComponent = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState(null);
     const productsPerPage = 10;
+    const [searchTerm, setSearchTerm] = useState("");
 
     const fetchProducts = () => {
         fetch('https://localhost:5000/api/products')
@@ -68,7 +69,10 @@ const ProductListComponent = () => {
 
     const indexOfLastProduct = currentPage * productsPerPage;
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-    const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+    const filteredProducts = products.filter(p =>
+        p.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
     const totalPages = Math.ceil(products.length / productsPerPage);
 
     const handleAddProductSuccess = () => {
@@ -150,6 +154,15 @@ const ProductListComponent = () => {
                         </div>
                     </div>
                 )}
+                <div className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="🔍 Tìm kiếm tên sản phẩm..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="px-4 py-2 border rounded w-full max-w-md"
+                    />
+                </div>
 
                 <table className="w-full bg-white shadow-md rounded">
                     <thead className="bg-gray-100">

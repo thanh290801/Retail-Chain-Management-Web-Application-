@@ -49,6 +49,19 @@ const ProductStockForOwner = () => {
                 .catch(error => console.error("Error fetching stock:", error));
         }
     };
+    useEffect(() => {
+        const filtered = products.filter(product =>
+            product.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(
+                searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            )
+        );
+
+        if (showOnlyLossProducts) {
+            setVisibleProducts(filtered.filter(p => parseFloat(p.retailPrice) <= parseFloat(p.purchasePrice)));
+        } else {
+            setVisibleProducts(filtered);
+        }
+    }, [searchTerm, products, showOnlyLossProducts]);
 
     useEffect(() => {
         fetchProducts();
